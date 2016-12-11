@@ -39,6 +39,10 @@ abstract class WC_Estonian_Shipping_Method_Omniva extends WC_Estonian_Shipping_M
 
 		foreach( $terminals_json as $key => $location ) {
 			if( $location->A0_NAME == $filter_country && $location->TYPE == $filter_type ) {
+				$cityKey = 'A2_NAME';
+				if($filter_country == 'LT') {
+					$cityKey = 'A1_NAME';
+				}
 				$locations[] = (object) array(
 					'place_id'   => $location->ZIP,
 					'zipcode'    => $location->ZIP,
