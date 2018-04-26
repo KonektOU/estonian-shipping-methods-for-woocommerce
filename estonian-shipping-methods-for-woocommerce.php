@@ -57,7 +57,7 @@ class Estonian_Shipping_Methods_For_WooCommerce {
 		'WC_Estonian_Shipping_Method_Omniva_Parcel_Machines_LT' => false,
 		
 		// Omniva Post Offices
-		'WC_Estonian_Shipping_Method_Omniva_Post_Offices_EE' => false
+		'WC_Estonian_Shipping_Method_Omniva_Post_Offices_EE' => false,
 
 		// DPD
 		'WC_Estonian_Shipping_Method_DPD_Shops_EE' => false,
