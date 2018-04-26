@@ -15,6 +15,7 @@ This plugin consists of several Estonian shipping methods:
 
 *   DPD package shops (Estonia, Latvia, Lithuania)
 *   Omniva parcel terminals (Estonia, Latvia, Lithuania)
+*   Omniva post offices (Estonia)
 *   SmartPOST parcel terminals (Estonia, Finland)
 *   SmartPOST courier
 *   Collect.net packrobots (Estonia)
