@@ -14,8 +14,10 @@
  * WC tested up to: 3.3.3
  */
 
-// Security check
-if ( ! defined( 'ABSPATH' ) ) exit;
+// Security check.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 /**
  * Main file constant
@@ -46,31 +48,31 @@ class Estonian_Shipping_Methods_For_WooCommerce {
 	 * @var array
 	 */
 	public $methods = array(
-		// Smartpost
+		// Smartpost.
 		'WC_Estonian_Shipping_Method_Smartpost_Estonia' => false,
 		'WC_Estonian_Shipping_Method_Smartpost_Finland' => false,
 		'WC_Estonian_Shipping_Method_Smartpost_Courier' => false,
 
-		// Omniva
+		// Omniva.
 		'WC_Estonian_Shipping_Method_Omniva_Parcel_Machines_EE' => false,
 		'WC_Estonian_Shipping_Method_Omniva_Parcel_Machines_LV' => false,
 		'WC_Estonian_Shipping_Method_Omniva_Parcel_Machines_LT' => false,
 
-		// DPD
+		// DPD.
 		'WC_Estonian_Shipping_Method_DPD_Shops_EE' => false,
 		'WC_Estonian_Shipping_Method_DPD_Shops_LV' => false,
 		'WC_Estonian_Shipping_Method_DPD_Shops_LT' => false,
 
-		// Collect.net
-		'WC_Estonian_Shipping_Method_Collect_Net' => false
+		// Collect.net.
+		'WC_Estonian_Shipping_Method_Collect_Net' => false,
 	);
 
 	/**
 	 * Class constructor
 	 */
-	function __construct() {
-		// Load plugin functionality when others have loaded
-		add_action( 'plugins_loaded',                   array( $this, 'plugins_loaded' ) );
+	public function __construct() {
+		// Load plugin functionality when others have loaded.
+		add_action( 'plugins_loaded', array( $this, 'plugins_loaded' ) );
 	}
 
 	/**

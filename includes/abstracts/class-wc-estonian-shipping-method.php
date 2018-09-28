@@ -91,13 +91,13 @@ abstract class WC_Estonian_Shipping_Method extends WC_Shipping_Method {
 	}
 
 	/**
-	 * Check if shipping is available
+	 * Check if shipping is available based on country and packages.
 	 *
-	 * @param array $package
+	 * @param array $package Shipping package.
 	 * @return bool
 	 */
-	public function is_available( $package ) {
-		return ! ( 'no' == $this->enabled );
+	public function is_available( $package = array() ) {
+		return ! ( 'no' === $this->enabled ) && ( ! isset( $this->country ) || ( isset( $this->country ) && isset( $package['destination'] ) && isset( $package['destination']['country'] ) && $package['destination']['country'] == $this->country ) );
 	}
 
 	/**

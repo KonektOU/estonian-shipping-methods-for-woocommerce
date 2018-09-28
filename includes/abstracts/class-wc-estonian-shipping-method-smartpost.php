@@ -64,21 +64,11 @@ abstract class WC_Estonian_Shipping_Method_Smartpost extends WC_Estonian_Shippin
 	}
 
 	/**
-	 * Check if shipping is available
-	 *
-	 * @param  array $package
-	 * @return bool
-	 */
-	function is_available( $package = array() ) {
-		return parent::is_available( $package ) && ( ! isset( $this->country ) || ( isset( $this->country ) && isset( $package['destination'] ) && isset( $package['destination']['country'] ) && $package['destination']['country'] == $this->country ) );
-	}
-
-	/**
 	 * Fetches locations and stores them to cache.
 	 *
 	 * @return array Terminals
 	 */
-	function get_terminals() {
+	public function get_terminals() {
 		// Fetch terminals from cache
 		$terminals_transient = $this->get_terminals_cache();
 		$shipping_country    = $this->get_shipping_country();

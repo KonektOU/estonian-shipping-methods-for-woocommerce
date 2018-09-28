@@ -76,16 +76,6 @@ abstract class WC_Estonian_Shipping_Method_DPD_Shops extends WC_Estonian_Shippin
 	}
 
 	/**
-	 * Check if shipping is available
-	 *
-	 * @param  array $package
-	 * @return bool
-	 */
-	function is_available( $package = array() ) {
-		return parent::is_available( $package ) && ( ! isset( $this->country ) || ( isset( $this->country ) && isset( $package['destination'] ) && isset( $package['destination']['country'] ) && $package['destination']['country'] == $this->country ) );
-	}
-
-	/**
 	 * Translates place ID to place name
 	 *
 	 * @param  integer $place_id Place ID
