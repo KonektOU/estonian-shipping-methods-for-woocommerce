@@ -2,8 +2,8 @@
 Contributors: konektou, ristoniinemets
 Tags: WooCommerce, shipping method, Estonia, smartpost, dpd, pakiautomaat, courier, omniva
 Requires at least: 4.1
-Tested up to: 4.9.4
-Stable tag: 1.5.3
+Tested up to: 4.9.8
+Stable tag: 1.5.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -49,6 +49,9 @@ Since version 1.5.1 we have added an action that you could add to your code:
 `do_action( 'wc_estonian_shipping_method_show_terminal', $order_id );`
 
 == Changelog ==
+
+= 1.5.4 =
+* Fix Collect.net availability in other countries than Estonia (should not be available)
 
 = 1.5.3 =
 * Fix dropdown selection text (mixed labels)

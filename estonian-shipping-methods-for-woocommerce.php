@@ -3,7 +3,7 @@
  * Plugin Name: Estonian Shipping Methods for WooCommerce
  * Plugin URI: https://github.com/KonektOU/estonian-shipping-methods-for-woocommerce
  * Description: Extends WooCommerce with most commonly used Estonian shipping methods.
- * Version: 1.5.3
+ * Version: 1.5.4
  * Author: Konekt OÜ
  * Author URI: https://www.konekt.ee
  * Developer: Risto Niinemets
