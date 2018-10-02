@@ -106,20 +106,28 @@ abstract class WC_Estonian_Shipping_Method extends WC_Shipping_Method {
 	 * @return array
 	 */
 	public function calculate_shipping( $package = array() ) {
-		$is_free            = FALSE;
+		$is_free            = false;
 		$free_shipping_from = wc_format_decimal( $this->free_shipping_amount );
 		$cart_total_cost    = WC()->cart->get_displayed_subtotal();
 
-		if( $free_shipping_from > 0 && $cart_total_cost >= $free_shipping_from ) {
-			$is_free        = TRUE;
+		if ( WC()->cart->display_prices_including_tax() ) {
+			$cart_total_cost = round( $cart_total_cost - ( WC()->cart->get_discount_total() + WC()->cart->get_discount_tax() ), wc_get_price_decimals() );
+		} else {
+			$cart_total_cost = round( $cart_total_cost - WC()->cart->get_discount_total(), wc_get_price_decimals() );
 		}
 
-		// Check if free shipping coupon can set the cost to zero
+		if ( $free_shipping_from > 0 && $cart_total_cost >= $free_shipping_from ) {
+			$is_free = true;
+		}
+
+		// Check if free shipping coupon can set the cost to zero.
 		if ( $this->enable_free_shipping_coupons ) {
-			if ( $coupons = WC()->cart->get_coupons() ) {
+			$coupons = WC()->cart->get_coupons();
+
+			if ( $coupons ) {
 				foreach ( $coupons as $code => $coupon ) {
 					if ( $coupon->is_valid() && $coupon->get_free_shipping() ) {
-						$is_free = TRUE;
+						$is_free = true;
 
 						break;
 					}
@@ -131,11 +139,11 @@ abstract class WC_Estonian_Shipping_Method extends WC_Shipping_Method {
 			'id'      => $this->get_rate_id(),
 			'label'   => $this->title,
 			'cost'    => $is_free ? 0 : $this->shipping_price,
-			'package' => $package
+			'package' => $package,
 		);
 
-		if( $this->tax_status == 'none' ) {
-			$args['taxes'] = FALSE;
+		if ( 'none' === $this->tax_status ) {
+			$args['taxes'] = false;
 		}
 
 		$this->add_rate( $args );
