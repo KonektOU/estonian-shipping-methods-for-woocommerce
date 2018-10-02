@@ -3,7 +3,7 @@
  * Plugin Name: Estonian Shipping Methods for WooCommerce
  * Plugin URI: https://github.com/KonektOU/estonian-shipping-methods-for-woocommerce
  * Description: Extends WooCommerce with most commonly used Estonian shipping methods.
- * Version: 1.5.4
+ * Version: 1.5.5
  * Author: Konekt OÜ
  * Author URI: https://www.konekt.ee
  * Developer: Risto Niinemets
@@ -11,7 +11,7 @@
  * Text Domain: wc-estonian-shipping-methods
  * Domain Path: /languages
  * WC requires at least: 2.6
- * WC tested up to: 3.3.3
+ * WC tested up to: 3.4.5
  */
 
 // Security check.
@@ -80,25 +80,27 @@ class Estonian_Shipping_Methods_For_WooCommerce {
 	 * @return void
 	 */
 	public function plugins_loaded() {
-		// Check if shipping methods are available
-		if ( ! $this->is_shipping_class_available() ) return FALSE;
+		// Check if shipping methods are available.
+		if ( ! $this->is_shipping_class_available() ) {
+			return false;
+		}
 
 		// Load functionality, translations
 		$this->includes();
 		$this->load_translations();
 
 		// Shipping
-		add_action( 'woocommerce_shipping_init',        array( $this, 'shipping_init' ) );
+		add_action( 'woocommerce_shipping_init', array( $this, 'shipping_init' ) );
 
 		// Add shipping methods
-		add_filter( 'woocommerce_shipping_methods',     array( $this, 'register_shipping_methods' ) );
+		add_filter( 'woocommerce_shipping_methods', array( $this, 'register_shipping_methods' ) );
 
 		// Allow WC template file search in this plugin
-		add_filter( 'woocommerce_locate_template',      array( $this, 'locate_template' ), 20, 3 );
+		add_filter( 'woocommerce_locate_template', array( $this, 'locate_template' ), 20, 3 );
 		add_filter( 'woocommerce_locate_core_template', array( $this, 'locate_template' ), 20, 3 );
 
-		add_action( 'woocommerce_view_order',           array( $this, 'load_shipping_method' ), 1, 1 );
-		add_action( 'woocommerce_email',                array( $this, 'load_shipping_method' ), 1, 1 );
+		add_action( 'woocommerce_view_order', array( $this, 'load_shipping_method' ), 1, 1 );
+		add_action( 'woocommerce_email', array( $this, 'load_shipping_method' ), 1, 1 );
 	}
 
 	/**
@@ -150,7 +152,7 @@ class Estonian_Shipping_Methods_For_WooCommerce {
 	 * @return void
 	 */
 	public function shipping_init() {
-		foreach( $this->methods as $method_id => $method ) {
+		foreach ( $this->methods as $method_id => $method ) {
 			$this->methods[ $method_id ] = new $method_id();
 		}
 	}
@@ -160,7 +162,7 @@ class Estonian_Shipping_Methods_For_WooCommerce {
 	 *
 	 * @return boolean True if it does
 	 */
-	function is_shipping_class_available() {
+	public function is_shipping_class_available() {
 		return class_exists( 'WC_Shipping_Method' );
 	}
 
@@ -172,12 +174,12 @@ class Estonian_Shipping_Methods_For_WooCommerce {
 	 *
 	 * @return void
 	 */
-	function load_translations() {
+	public function load_translations() {
 		$domain = 'wc-estonian-shipping-methods';
 		$locale = apply_filters( 'plugin_locale', get_locale(), $domain );
 
 		load_textdomain( $domain, WP_LANG_DIR . '/estonian-shipping-methods-for-woocommerce/' . $domain . '-' . $locale . '.mo' );
-		load_plugin_textdomain( $domain, FALSE, dirname( plugin_basename( WC_ESTONIAN_SHIPPING_METHODS_MAIN_FILE ) ) . '/languages/' );
+		load_plugin_textdomain( $domain, '', dirname( plugin_basename( WC_ESTONIAN_SHIPPING_METHODS_MAIN_FILE ) ) . '/languages/' );
 	}
 
 	/**
@@ -186,9 +188,9 @@ class Estonian_Shipping_Methods_For_WooCommerce {
 	 * @param  array $methods Shipping methods
 	 * @return array          Shipping methods
 	 */
-	function register_shipping_methods( $methods ) {
+	public function register_shipping_methods( $methods ) {
 		// Add methods
-		foreach( $this->methods as $method_id => $method ) {
+		foreach ( $this->methods as $method_id => $method ) {
 			$methods[ $method_id ] = $method;
 		}
 
@@ -221,11 +223,13 @@ class Estonian_Shipping_Methods_For_WooCommerce {
 	 * @param  string $template_path Template path
 	 * @return string                Search result for the template
 	 */
-	function locate_template( $template, $template_name, $template_path ) {
+	public function locate_template( $template, $template_name, $template_path ) {
 		// Tmp holder
 		$_template = $template;
 
-		if ( ! $template_path ) $template_path = WC_TEMPLATE_PATH;
+		if ( ! $template_path ) {
+			$template_path = WC_TEMPLATE_PATH;
+		}
 
 		// Set our base path
 		$plugin_path = $this->plugin_path() . '/woocommerce/';
@@ -234,17 +238,19 @@ class Estonian_Shipping_Methods_For_WooCommerce {
 		$template = locate_template(
 			array(
 				trailingslashit( $template_path ) . $template_name,
-				$template_name
+				$template_name,
 			)
 		);
 
 		// Get the template from this plugin, if it exists
-		if ( ! $template && file_exists( $plugin_path . $template_name ) )
+		if ( ! $template && file_exists( $plugin_path . $template_name ) ) {
 			$template	= $plugin_path . $template_name;
+		}
 
 		// Use default template
-		if ( ! $template )
+		if ( ! $template ) {
 			$template = $_template;
+		}
 
 		// Return what we found
 		return $template;
@@ -256,8 +262,9 @@ class Estonian_Shipping_Methods_For_WooCommerce {
 	 * @return Estonian_Shipping_Methods_For_WooCommerce
 	 */
 	public static function instance() {
-		if ( ! isset( self::$instance ) )
+		if ( ! isset( self::$instance ) ) {
 			self::$instance = new self;
+		}
 
 		return self::$instance;
 	}
