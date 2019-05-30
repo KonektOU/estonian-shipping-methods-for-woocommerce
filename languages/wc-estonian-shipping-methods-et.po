@@ -1,15 +1,15 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Estonian Shipping Methods for WooCommerce\n"
-"POT-Creation-Date: 2018-02-28 16:04+0200\n"
-"PO-Revision-Date: 2018-02-28 16:05+0200\n"
+"POT-Creation-Date: 2019-05-30 13:10+0300\n"
+"PO-Revision-Date: 2019-05-30 13:12+0300\n"
 "Last-Translator: Risto Niinemets <risto@konekt.ee>\n"
 "Language-Team: Konekt OÜ <info@konekt.ee>\n"
 "Language: et\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.0.5\n"
+"X-Generator: Poedit 2.2.3\n"
 "X-Poedit-KeywordsList: __;_e;__ngettext:1,2;_n:1,2;__ngettext_noop:1,2;"
 "_n_noop:1,2;_c;_nc:4c,1,2;_x:1,2c;_nx:4c,1,2;_nx_noop:4c,1,2;_ex:1,2c;"
 "esc_attr__;esc_attr_e;esc_attr_x:1,2c;esc_html__;esc_html_e;esc_html_x:1,2c\n"
@@ -18,47 +18,47 @@ msgstr ""
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:68
+#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:69
 msgid "Chosen terminal"
 msgstr "Valitud pakiautomaat"
 
-#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:80
+#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:81
 msgid "Terminals format"
 msgstr "Vorming"
 
-#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:84
+#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:85
 msgid "Only terminal name"
 msgstr "Ainult automaadi nimetus"
 
-#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:85
+#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:86
 msgid "Name with address"
 msgstr "Automaadi nimetus koos aadressiga"
 
-#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:89
+#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:90
 msgid "Sort terminals by"
 msgstr "Automaatide järjestus"
 
-#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:93
+#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:94
 msgid "No sorting"
 msgstr "Ei järjestata"
 
-#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:94
+#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:95
 msgid "Alphabetically"
 msgstr "Tähestikuliselt"
 
-#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:95
+#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:96
 msgid "Bigger cities first, then alphabetically the rest"
 msgstr "Suuremad linnad ees"
 
-#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:99
+#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:100
 msgid "Group terminals"
 msgstr "Grupeeri automaadid"
 
-#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:103
+#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:104
 msgid "By cities"
 msgstr "Linna järgi"
 
-#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:286
+#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:315
 msgid "Please select a parcel terminal"
 msgstr "Palun vali pakiautomaat"
 
@@ -130,23 +130,23 @@ msgstr "Lisatakse juurde"
 msgid "None"
 msgstr "Ilma maksudeta"
 
-#: includes/abstracts/class-wc-estonian-shipping-method.php:202
+#: includes/abstracts/class-wc-estonian-shipping-method.php:210
 msgid "Please add country prefix to the phone number (eg. +372)."
 msgstr "Palun lisage telefoni numbrile riigi eesliide (näiteks +372)."
 
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:42
+#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:50
 msgid "Collect.net"
 msgstr "Collect.net pakirobotid"
 
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:55
+#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:63
 msgid "Chosen packrobot"
 msgstr "Valitud pakirobot"
 
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:75
+#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:83
 msgid "Order status"
 msgstr "Tellimuse staatus"
 
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:78
+#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:86
 msgid ""
 "Which order status will submit the data from WooCommerce to Collect.net "
 "application"
@@ -154,42 +154,54 @@ msgstr ""
 "Millise tellimuse staatuse saavutamisel saadetakse informatsioon Collect.net "
 "iseteenindusse"
 
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:80
+#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:88
 msgid "Processing"
 msgstr "Töötluses"
 
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:81
+#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:89
 msgid "Completed"
 msgstr "Täidetud"
 
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:85
+#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:93
 msgid "Collect.net username"
 msgstr "Collect.net kasutajanimi"
 
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:89
+#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:97
 msgid "Collect.net password"
 msgstr "Collect.net salasõna"
 
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:102
+#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:101
+msgid "Hold days"
+msgstr "Hoiuaeg päevades"
+
+#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:103
+msgid ""
+"Defines for how many days the package will be held in PUDO point. After the "
+"days it will be automatically returned to sender."
+msgstr ""
+"Hoiuaeg määrab paki hoiustamise aja päevades. Hoiuaja möödudes tagastatakse "
+"pakk saatjale."
+
+#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:116
 msgid "User Role"
 msgstr "Kasutaja roll"
 
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:105
+#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:119
 msgid "Which user role will be used to create tickets for Collect.net"
 msgstr ""
 "Millise kasutaja rolli alla luuakse Collect.net keskkonda tellimuste piletid"
 
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:212
+#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:229
 #, php-format
-msgid "%s: Ticket created with ID %d."
-msgstr "%s: Pilet IDga %d on loodud."
+msgid "%1$s: Ticket created with ID %2$d."
+msgstr "%1$s: Pilet IDga %2$d on loodud."
 
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:220
+#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:237
 #, php-format
-msgid "%s: Ticket creation failed: %s"
-msgstr "%s: Pileti loomine ebaõnnestus: %s"
+msgid "%1$s: Ticket creation failed: %2$s"
+msgstr "%1$s: Pileti loomine ebaõnnestus: %2$s"
 
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:235
+#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:252
 #, php-format
 msgid ""
 "%s: Could not create a session with entered credentials. %s to review your "
@@ -197,7 +209,7 @@ msgid ""
 msgstr ""
 "%s: Sessiooni loomine iseteenindusega ebaõnnestus. %s, et muuta seadistusi."
 
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:235
+#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:252
 msgid "Click here"
 msgstr "Vajuta siia"
 
@@ -224,6 +236,10 @@ msgstr "Omniva Leedu"
 #: includes/methods/class-wc-estonian-shipping-method-omniva-parcel-machines-lv.php:20
 msgid "Omniva Latvia"
 msgstr "Omniva Läti"
+
+#: includes/methods/class-wc-estonian-shipping-method-omniva-post-offices-ee.php:20
+msgid "Omniva Post Offices Estonia"
+msgstr "Omniva Eesti postkontorid"
 
 #: includes/methods/class-wc-estonian-shipping-method-smartpost-courier.php:20
 msgid "SmartCOURIER"
@@ -303,6 +319,15 @@ msgstr "Vali pakiautomaat"
 msgctxt "empty value label for terminals"
 msgid "- Choose terminal -"
 msgstr "- Vali pakiautomaat -"
+
+#: woocommerce/checkout/form-shipping-omniva-postoffice.php:2
+msgid "Choose post office"
+msgstr "Vali postkontor"
+
+#: woocommerce/checkout/form-shipping-omniva-postoffice.php:5
+msgctxt "empty value label for post office"
+msgid "- Choose post office -"
+msgstr "- Vali postkontor -"
 
 #: woocommerce/checkout/form-shipping-smartpost-courier.php:2
 msgid "Choose timewindow"

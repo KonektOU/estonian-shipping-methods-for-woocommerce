@@ -3,7 +3,7 @@
  * Plugin Name: Estonian Shipping Methods for WooCommerce
  * Plugin URI: https://github.com/KonektOU/estonian-shipping-methods-for-woocommerce
  * Description: Extends WooCommerce with most commonly used Estonian shipping methods.
- * Version: 1.5.6
+ * Version: 1.5.7
  * Author: Konekt OÜ
  * Author URI: https://www.konekt.ee
  * Developer: Risto Niinemets
@@ -11,7 +11,7 @@
  * Text Domain: wc-estonian-shipping-methods
  * Domain Path: /languages
  * WC requires at least: 2.6
- * WC tested up to: 3.4.5
+ * WC tested up to: 3.6.4
  */
 
 // Security check.
@@ -57,7 +57,7 @@ class Estonian_Shipping_Methods_For_WooCommerce {
 		'WC_Estonian_Shipping_Method_Omniva_Parcel_Machines_EE' => false,
 		'WC_Estonian_Shipping_Method_Omniva_Parcel_Machines_LV' => false,
 		'WC_Estonian_Shipping_Method_Omniva_Parcel_Machines_LT' => false,
-		
+
 		// Omniva Post Offices
 		'WC_Estonian_Shipping_Method_Omniva_Post_Offices_EE' => false,
 
