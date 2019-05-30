@@ -48,29 +48,30 @@ abstract class WC_Estonian_Shipping_Method_Terminals extends WC_Estonian_Shippin
 		// WooCommerce PDF Invoices & Packing Slips
 		add_action( 'wpo_wcpdf_after_order_data',                              array( $this, 'wpo_wcpdf_show_selected_terminal' ), 10, 2 );
 
-		// Custom locations
-		add_action( 'wc_estonian_shipping_method_show_terminal',               array( $this, 'show_selected_terminal' ), 10, 1 );
+		// Custom locations.
+		add_action( 'wc_estonian_shipping_method_show_terminal', array( $this, 'show_selected_terminal' ), 10, 1 );
+		add_filter( 'wc_estonian_shipping_method_order_terminal_name', array( $this, 'add_order_terminal_name' ), 10, 2 );
 
-		// Checkout validation
+		// Checkout validation.
 		add_action( 'woocommerce_after_checkout_validation',                   array( $this, 'validate_user_selected_terminal' ), 10, 1 );
 
 		// Show selected terminal in admin order review
 		// and since WC 3.3.0 in order preview
-		if( is_admin() ) {
+		if ( is_admin() ) {
 			add_action( 'woocommerce_admin_order_data_after_shipping_address', array( $this, 'show_selected_terminal' ), 20 );
-			add_filter( 'woocommerce_admin_order_preview_get_order_details',   array( $this, 'show_selected_terminal_in_order_preview' ), 20, 2 );
+			add_filter( 'woocommerce_admin_order_preview_get_order_details', array( $this, 'show_selected_terminal_in_order_preview' ), 20, 2 );
 		}
 
-		// Meta and input field name
-		$this->field_name = apply_filters( 'wc_shipping_'. $this->id .'_terminals_field_name', 'wc_shipping_'. $this->id .'_terminal' );
+		// Meta and input field name.
+		$this->field_name = apply_filters( 'wc_shipping_' . $this->id . '_terminals_field_name', 'wc_shipping_' . $this->id . '_terminal' );
 
-		// i18n
+		// i18n.
 		$this->i18n_selected_terminal = esc_html__( 'Chosen terminal', 'wc-estonian-shipping-methods' );
 
-		// Construct parent
+		// Construct parent.
 		parent::__construct();
 
-		// Add/merge form fields
+		// Add/merge form fields.
 		$this->add_form_fields();
 	}
 
@@ -174,14 +175,14 @@ abstract class WC_Estonian_Shipping_Method_Terminals extends WC_Estonian_Shippin
 	 * @param  mixed $order Order (ID or WC_Order)
 	 * @return void
 	 */
-	function show_selected_terminal( $order ) {
-		// Create order instance if needed
-		if( is_numeric( $order ) ) {
-			$order         = wc_get_order( $order );
+	public function show_selected_terminal( $order ) {
+		// Create order instance if needed.
+		if ( ! is_object( $order ) ) {
+			$order = wc_get_order( $order );
 		}
 
 		// Store order ID
-		$this->order_id    = wc_esm_get_order_id( $order );
+		$this->order_id = wc_esm_get_order_id( $order );
 
 		// Check if the order has our shipping method
 		if( $order->has_shipping_method( $this->id ) ) {
@@ -227,10 +228,38 @@ abstract class WC_Estonian_Shipping_Method_Terminals extends WC_Estonian_Shippin
 	}
 
 	/**
+	 * Custom filter to add order terminal name.
+	 *
+	 * @param string   $terminal_name Terminal name.
+	 * @param WC_Order $order Order.
+	 *
+	 * @return string
+	 */
+	public function add_order_terminal_name( $terminal_name, $order ) {
+		// Create order instance if needed.
+		if ( ! is_object( $order ) ) {
+			$order = wc_get_order( $order );
+		}
+
+		// Store order ID.
+		$this->order_id = wc_esm_get_order_id( $order );
+
+		// Check if the order has our shipping method.
+		if ( $order->has_shipping_method( $this->id ) ) {
+			// Fetch selected terminal ID.
+			$terminal_id   = $this->get_order_terminal( $this->order_id );
+			$terminal_name = $this->get_terminal_name( $terminal_id );
+		}
+
+		return $terminal_name;
+	}
+
+	/**
 	 * Outputs user selected terminal for WooCommerce PDF Invoices & Packing Slips plugin
 	 *
-	 * @param  string $document_type Invoice or Packing slip
-	 * @param  mixed  $order         Order
+	 * @param string $document_type Invoice or Packing slip.
+	 * @param mixed  $order         Order.
+	 *
 	 * @return void
 	 */
 	public function wpo_wcpdf_show_selected_terminal( $document_type, $order ) {
@@ -246,13 +275,13 @@ abstract class WC_Estonian_Shipping_Method_Terminals extends WC_Estonian_Shippin
 	 * @return array                   Modified order details
 	 */
 	public function show_selected_terminal_in_order_preview( $order_details, $order ) {
-		// Create order instance if needed
-		if( is_numeric( $order ) ) {
-			$order         = wc_get_order( $order );
+		// Create order instance if needed.
+		if ( ! is_object( $order ) ) {
+			$order = wc_get_order( $order );
 		}
 
 		// Store order ID
-		$this->order_id    = wc_esm_get_order_id( $order );
+		$this->order_id = wc_esm_get_order_id( $order );
 
 		// Check if the order has our shipping method
 		if( $order->has_shipping_method( $this->id ) ) {
@@ -277,7 +306,7 @@ abstract class WC_Estonian_Shipping_Method_Terminals extends WC_Estonian_Shippin
 	 */
 	function validate_user_selected_terminal( $posted ) {
 		// Chcek if our field was submitted
-		if( isset( $_POST[ $this->field_name ] ) && $_POST[ $this->field_name ] == '' ) {
+		if ( isset( $_POST[ $this->field_name ] ) && empty( $_POST[ $this->field_name ] ) ) {
 			// Be sure shipping method was posted
 			if( isset( $posted['shipping_method'] ) && is_array( $posted['shipping_method'] ) ) {
 				// Check if it was regular parcel terminal
@@ -739,41 +768,41 @@ abstract class WC_Estonian_Shipping_Method_Terminals extends WC_Estonian_Shippin
 	 *
 	 * @return array                Return fields or all fields from cURL request
 	 */
-	function request_remote_url( $url, $method = 'GET', $body = null ) {
-		// Remote args
+	public function request_remote_url( $url, $method = 'GET', $body = null ) {
+		// Remote args.
 		$args    = array(
 			'body'   => '',
-			'method' => $method
+			'method' => $method,
 		);
 
-		// Disable SSL verification on debugging sites
-		if ( defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG === TRUE ) {
+		// Disable SSL verification on debugging sites.
+		if ( defined( 'WP_DEBUG_LOG' ) && true === WP_DEBUG_LOG ) {
 			$args['sslverify'] = false;
 		}
 
-		// Add body if needed
-		if( $body ) {
+		// Add body if needed.
+		if ( $body ) {
 			$args['body'] = $body;
 		}
 
-		// Apply hook on arguments
-		$args       = apply_filters( 'wc_shipping_'. $this->id .'_remote_request_args', $args, $url, $body );
-		$args       = apply_filters( 'wc_shipping_remote_request_args', $args, $url, $body );
+		// Apply hook on arguments.
+		$args = apply_filters( 'wc_shipping_' . $this->id . '_remote_request_args', $args, $url, $body );
+		$args = apply_filters( 'wc_shipping_remote_request_args', $args, $url, $body );
 
-		// Parse the URL
-		$parsed_url = parse_url( $url );
+		// Parse the URL.
+		$parsed_url = wp_parse_url( $url );
 
 		// If it's a FTP, wp_remote_request does not allow it. Then we use plain simple cURL.
-		if( isset( $parsed_url['scheme'] ) && $parsed_url['scheme'] == 'ftp' ) {
+		if ( isset( $parsed_url['scheme'] ) && 'ftp' === $parsed_url['scheme'] ) {
 			return $this->request_remote_url_via_curl( $url, $args );
 		}
 
 		$request = wp_remote_request( $url, $args );
 
 		return array(
-			'success'  => wp_remote_retrieve_response_code( $request ) == 200,
+			'success'  => 200 === wp_remote_retrieve_response_code( $request ),
 			'response' => $request,
-			'data'     => wp_remote_retrieve_body( $request )
+			'data'     => wp_remote_retrieve_body( $request ),
 		);
 	}
 
