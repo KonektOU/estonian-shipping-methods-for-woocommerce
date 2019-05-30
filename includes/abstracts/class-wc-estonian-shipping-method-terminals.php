@@ -280,16 +280,16 @@ abstract class WC_Estonian_Shipping_Method_Terminals extends WC_Estonian_Shippin
 			$order = wc_get_order( $order );
 		}
 
-		// Store order ID
+		// Store order ID.
 		$this->order_id = wc_esm_get_order_id( $order );
 
-		// Check if the order has our shipping method
-		if( $order->has_shipping_method( $this->id ) ) {
-			// Fetch selected terminal ID
+		// Check if the order has our shipping method.
+		if ( $order->has_shipping_method( $this->id ) ) {
+			// Fetch selected terminal ID.
 			$terminal_id   = $this->get_order_terminal( $this->order_id );
 			$terminal_name = $this->get_terminal_name( $terminal_id );
 
-			if( isset( $order_details['shipping_via'] ) ) {
+			if ( isset( $order_details['shipping_via'] ) ) {
 				$order_details['shipping_via'] = sprintf( '%s (%s)', $order->get_shipping_method(), esc_html( $terminal_name ) );
 			}
 		}

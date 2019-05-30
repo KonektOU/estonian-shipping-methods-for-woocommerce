@@ -136,7 +136,7 @@ class WC_Estonian_Shipping_Method_Smartpost_Courier extends WC_Estonian_Shipping
 	 *
 	 * @return void
 	 */
-	function validate_user_selected_terminal( $posted ) {
+	public function validate_user_selected_terminal( $posted ) {
 		// Chcek if our field was submitted
 		if( isset( $_POST[ $this->field_name ] ) && $_POST[ $this->field_name ] == '' ) {
 			// Be sure shipping method was posted
@@ -147,5 +147,18 @@ class WC_Estonian_Shipping_Method_Smartpost_Courier extends WC_Estonian_Shipping
 				}
 			}
 		}
+	}
+
+	/** Fetches time window
+	 *
+	 * @param string $window_value
+	 *
+	 * @return string;
+	 */
+	public function get_terminal_name( $window_value ) {
+		// Fetch selected window.
+		$time_windows = $this->get_courier_time_windows();
+
+		return isset( $time_windows[ $window_value ] ) ? $time_windows[ $window_value ] : reset( $time_windows );
 	}
 }
