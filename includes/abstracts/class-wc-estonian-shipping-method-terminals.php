@@ -696,7 +696,7 @@ abstract class WC_Estonian_Shipping_Method_Terminals extends WC_Estonian_Shippin
 			$a_number = $this->get_city_order_number( $a->city );
 			$b_number = $this->get_city_order_number( $b->city );
 
-			return ( $a_number == $b_number ) ? 0 : ( $a_number > $b_number ) ? -1 : 1;
+			return ( ( $a_number == $b_number ) ? 0 : ( $a_number > $b_number ) ) ? -1 : 1;
 		}
 	}
 
