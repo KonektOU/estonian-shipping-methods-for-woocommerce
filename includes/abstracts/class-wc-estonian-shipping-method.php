@@ -110,7 +110,7 @@ abstract class WC_Estonian_Shipping_Method extends WC_Shipping_Method {
 		$free_shipping_from = wc_format_decimal( $this->free_shipping_amount );
 		$cart_total_cost    = WC()->cart->get_displayed_subtotal();
 
-		if ( ( method_exists( WC()->cart, 'display_prices_including_tax' ) && WC()->cart->display_prices_including_tax() ) || WC()->cart->tax_display_cart ) {
+		if ( ( method_exists( WC()->cart, 'display_prices_including_tax' ) && WC()->cart->display_prices_including_tax() ) || WC()->cart->get_tax_price_display_mode() ) {
 			$cart_total_cost = round( $cart_total_cost - ( WC()->cart->get_discount_total() + WC()->cart->get_discount_tax() ), wc_get_price_decimals() );
 		} else {
 			$cart_total_cost = round( $cart_total_cost - WC()->cart->get_discount_total(), wc_get_price_decimals() );
