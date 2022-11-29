@@ -35,33 +35,7 @@ abstract class WC_Estonian_Shipping_Method_Terminals extends WC_Estonian_Shippin
 	 * @access public
 	 * @return void
 	 */
-	function __construct() {
-		// Add terminal selection dropdown and save it
-		add_action( 'woocommerce_review_order_after_shipping',                 array( $this, 'review_order_after_shipping' ) );
-		add_action( 'woocommerce_checkout_update_order_meta',                  array( $this, 'checkout_save_order_terminal_id_meta' ), 10, 2 );
-		add_action( 'woocommerce_checkout_update_order_review',                array( $this, 'checkout_save_session_terminal_id' ), 10, 1 );
-
-		// Show selected terminal in order and emails
-		add_action( 'woocommerce_order_details_after_customer_details',        array( $this, 'show_selected_terminal' ), 10, 1 );
-		add_action( 'woocommerce_email_customer_details',                      array( $this, 'show_selected_terminal' ), 15, 1 );
-
-		// WooCommerce PDF Invoices & Packing Slips
-		add_action( 'wpo_wcpdf_after_order_data',                              array( $this, 'wpo_wcpdf_show_selected_terminal' ), 10, 2 );
-
-		// Custom locations.
-		add_action( 'wc_estonian_shipping_method_show_terminal', array( $this, 'show_selected_terminal' ), 10, 1 );
-		add_filter( 'wc_estonian_shipping_method_order_terminal_name', array( $this, 'add_order_terminal_name' ), 10, 2 );
-
-		// Checkout validation.
-		add_action( 'woocommerce_after_checkout_validation',                   array( $this, 'validate_user_selected_terminal' ), 10, 1 );
-
-		// Show selected terminal in admin order review
-		// and since WC 3.3.0 in order preview
-		if ( is_admin() ) {
-			add_action( 'woocommerce_admin_order_data_after_shipping_address', array( $this, 'show_selected_terminal' ), 20 );
-			add_filter( 'woocommerce_admin_order_preview_get_order_details', array( $this, 'show_selected_terminal_in_order_preview' ), 20, 2 );
-		}
-
+	public function __construct() {
 		// Meta and input field name.
 		$this->field_name = apply_filters( 'wc_shipping_' . $this->id . '_terminals_field_name', 'wc_shipping_' . $this->id . '_terminal' );
 
@@ -75,7 +49,38 @@ abstract class WC_Estonian_Shipping_Method_Terminals extends WC_Estonian_Shippin
 		$this->add_form_fields();
 	}
 
-	function add_form_fields() {
+	/**
+	 * Add hooks even when shipping might not be inited. Adds compatibility with lots of plugins.
+	 *
+	 * @return void
+	 */
+	public function add_terminals_hooks() {
+		// Show selected terminal in order and emails.
+		add_action( 'woocommerce_order_details_after_customer_details', array( $this, 'show_selected_terminal' ), 10, 1 );
+		add_action( 'woocommerce_email_customer_details', array( $this, 'show_selected_terminal' ), 15, 1 );
+
+		// WooCommerce PDF Invoices & Packing Slips.
+		add_action( 'wpo_wcpdf_after_order_data', array( $this, 'wpo_wcpdf_show_selected_terminal' ), 10, 2 );
+
+		// Custom locations.
+		add_action( 'wc_estonian_shipping_method_show_terminal', array( $this, 'show_selected_terminal' ), 10, 1 );
+		add_filter( 'wc_estonian_shipping_method_order_terminal_name', array( $this, 'add_order_terminal_name' ), 10, 2 );
+
+		// Show selected terminal in admin order review
+		// and since WC 3.3.0 in order preview.
+		add_action( 'woocommerce_admin_order_data_after_shipping_address', array( $this, 'show_selected_terminal' ), 20 );
+		add_filter( 'woocommerce_admin_order_preview_get_order_details', array( $this, 'show_selected_terminal_in_order_preview' ), 20, 2 );
+
+		// Add terminal selection dropdown and save it.
+		add_action( 'woocommerce_review_order_after_shipping', array( $this, 'review_order_after_shipping' ) );
+		add_action( 'woocommerce_checkout_update_order_meta', array( $this, 'checkout_save_order_terminal_id_meta' ), 10, 2 );
+		add_action( 'woocommerce_checkout_update_order_review', array( $this, 'checkout_save_session_terminal_id' ), 10, 1 );
+
+		// Checkout validation.
+		add_action( 'woocommerce_after_checkout_validation', array( $this, 'validate_user_selected_terminal' ), 10, 1 );
+	}
+
+	public function add_form_fields() {
 		$this->form_fields = array_merge( $this->form_fields, array(
 				'terminals_format' => array(
 					'title'                => __( 'Terminals format', 'wc-estonian-shipping-methods' ),

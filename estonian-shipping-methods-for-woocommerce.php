@@ -89,22 +89,21 @@ class Estonian_Shipping_Methods_For_WooCommerce {
 			return false;
 		}
 
-		// Load functionality, translations
+		// Load functionality, translations.
 		$this->includes();
 		$this->load_translations();
 
-		// Shipping
+		// Shipping.
 		add_action( 'woocommerce_shipping_init', array( $this, 'shipping_init' ) );
 
-		// Add shipping methods
+		// Add shipping methods.
 		add_filter( 'woocommerce_shipping_methods', array( $this, 'register_shipping_methods' ) );
 
-		// Allow WC template file search in this plugin
+		// Allow WC template file search in this plugin.
 		add_filter( 'woocommerce_locate_template', array( $this, 'locate_template' ), 20, 3 );
 		add_filter( 'woocommerce_locate_core_template', array( $this, 'locate_template' ), 20, 3 );
 
-		add_action( 'woocommerce_view_order', array( $this, 'load_shipping_method' ), 1, 1 );
-		add_action( 'woocommerce_email', array( $this, 'load_shipping_method' ), 1, 1 );
+		$this->add_terminals_hooks();
 	}
 
 	/**
@@ -113,17 +112,17 @@ class Estonian_Shipping_Methods_For_WooCommerce {
 	 * @return void
 	 */
 	public function includes() {
-		// Compatibility helpers
+		// Compatibility helpers.
 		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/compatibility-helpers.php';
 
-		// Abstract classes
+		// Abstract classes.
 		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/abstracts/class-wc-estonian-shipping-method.php';
 		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/abstracts/class-wc-estonian-shipping-method-terminals.php';
 		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/abstracts/class-wc-estonian-shipping-method-smartpost.php';
 		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/abstracts/class-wc-estonian-shipping-method-omniva.php';
 		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/abstracts/class-wc-estonian-shipping-method-dpd-shops.php';
 
-		// Methods
+		// Methods.
 		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/methods/class-wc-estonian-shipping-method-smartpost-estonia.php';
 		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/methods/class-wc-estonian-shipping-method-smartpost-finland.php';
 		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/methods/class-wc-estonian-shipping-method-smartpost-courier.php';
@@ -142,14 +141,17 @@ class Estonian_Shipping_Methods_For_WooCommerce {
 	}
 
 	/**
-	 * Force loading the shipping method on, for example, "view order" page,
-	 * otherwise selected terminal will not be shown
+	 * Add hooks even when shipping might not be inited. Adds compatibility with lots of plugins.
 	 *
-	 * @param  integer $order_id Order ID
 	 * @return void
 	 */
-	public function load_shipping_method( $order_id ) {
-		WC()->shipping();
+	public function add_terminals_hooks() {
+		foreach ( $this->methods as $method_id => $method ) {
+			if ( is_subclass_of( $method_id, 'WC_Estonian_Shipping_Method_Terminals' ) ) {
+				$method = new $method_id();
+				$method->add_terminals_hooks();
+			}
+		}
 	}
 
 	/**
@@ -185,7 +187,7 @@ class Estonian_Shipping_Methods_For_WooCommerce {
 		$locale = apply_filters( 'plugin_locale', get_locale(), $domain );
 
 		load_textdomain( $domain, WP_LANG_DIR . '/estonian-shipping-methods-for-woocommerce/' . $domain . '-' . $locale . '.mo' );
-		load_plugin_textdomain( $domain, '', dirname( plugin_basename( WC_ESTONIAN_SHIPPING_METHODS_MAIN_FILE ) ) . '/languages/' );
+		load_plugin_textdomain( $domain, false, dirname( plugin_basename( WC_ESTONIAN_SHIPPING_METHODS_MAIN_FILE ) ) . '/languages/' );
 	}
 
 	/**
@@ -195,7 +197,7 @@ class Estonian_Shipping_Methods_For_WooCommerce {
 	 * @return array          Shipping methods
 	 */
 	public function register_shipping_methods( $methods ) {
-		// Add methods
+		// Add methods.
 		foreach ( $this->methods as $method_id => $method ) {
 			$methods[ $method_id ] = $method;
 		}
