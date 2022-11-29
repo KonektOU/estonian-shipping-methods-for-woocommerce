@@ -81,3 +81,22 @@ function wc_esm_get_order_shipping_country( $order ) {
 		return $order->shipping_country;
 	}
 }
+
+/**
+ * Get HTML element class name from theme.
+ *
+ * @since 1.6
+ *
+ * @param string $element HTML element name.
+ *
+ * @return string HTML class name.
+ */
+function wc_esm_get_element_class_name( $element ) {
+	$class_name = '';
+
+	if ( function_exists( 'wc_wp_theme_get_element_class_name' ) ) {
+		$class_name = wc_wp_theme_get_element_class_name( $element );
+	}
+
+	return apply_filters( 'wc_estonian_shipping_methods_element_class_name', $class_name, $element );
+}

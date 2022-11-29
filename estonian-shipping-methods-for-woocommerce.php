@@ -30,7 +30,8 @@ define( 'WC_ESTONIAN_SHIPPING_METHODS_MAIN_FILE', __FILE__ );
 define( 'WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH', plugin_dir_path( WC_ESTONIAN_SHIPPING_METHODS_MAIN_FILE ) . 'includes' );
 
 /**
- * @class    Estonian_Shipping_Methods_For_WooCommerce
+ * Main class.
+ *
  * @category Plugin
  * @package  Estonian_Shipping_Methods_For_WooCommerce
  */
@@ -58,7 +59,7 @@ class Estonian_Shipping_Methods_For_WooCommerce {
 		'WC_Estonian_Shipping_Method_Omniva_Parcel_Machines_LV' => false,
 		'WC_Estonian_Shipping_Method_Omniva_Parcel_Machines_LT' => false,
 
-		// Omniva Post Offices
+		// Omniva Post Offices.
 		'WC_Estonian_Shipping_Method_Omniva_Post_Offices_EE' => false,
 
 		// DPD.
