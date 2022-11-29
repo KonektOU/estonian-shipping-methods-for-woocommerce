@@ -2,8 +2,8 @@
 Contributors: konektou, ristoniinemets
 Tags: WooCommerce, shipping method, Estonia, smartpost, dpd, pakiautomaat, courier, omniva
 Requires at least: 4.1
-Tested up to: 7.1.0
-Stable tag: 1.5.9
+Tested up to: 6.1.1
+Stable tag: 1.6.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -50,6 +50,11 @@ Since version 1.5.1 we have added an action that you could add to your code:
 `do_action( 'wc_estonian_shipping_method_show_terminal', $order_id );`
 
 == Changelog ==
+
+= 1.6.0 =
+* Relocate terminal methods hooks for compatibility with other plugins
+* Add version tag to templates, clean up templates
+* Removed use of deprecated WC property
 
 = 1.5.9 =
 * Change DPD terminals source URL
