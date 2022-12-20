@@ -3,7 +3,7 @@
  * Plugin Name: Estonian Shipping Methods for WooCommerce
  * Plugin URI: https://github.com/KonektOU/estonian-shipping-methods-for-woocommerce
  * Description: Extends WooCommerce with most commonly used Estonian shipping methods.
- * Version: 1.6.1
+ * Version: 1.6.2
  * Author: Konekt OÜ
  * Author URI: https://www.konekt.ee
  * Developer: Risto Niinemets
@@ -11,7 +11,7 @@
  * Text Domain: wc-estonian-shipping-methods
  * Domain Path: /languages
  * WC requires at least: 3.3
- * WC tested up to: 7.1
+ * WC tested up to: 7.2
  *
  * @package Estonian_Shipping_Methods_For_WooCommerce
  */
@@ -104,6 +104,8 @@ class Estonian_Shipping_Methods_For_WooCommerce {
 		// Allow WC template file search in this plugin.
 		add_filter( 'woocommerce_locate_template', array( $this, 'locate_template' ), 20, 3 );
 		add_filter( 'woocommerce_locate_core_template', array( $this, 'locate_template' ), 20, 3 );
+
+		add_action( 'before_woocommerce_init', array( $this, 'declare_wc_cot_compatibility' ) );
 
 		$this->add_terminals_hooks();
 	}
@@ -264,6 +266,18 @@ class Estonian_Shipping_Methods_For_WooCommerce {
 
 		// Return what we found
 		return $template;
+	}
+
+
+	/**
+	 * Declare high performance order storage (COT) compatibility
+	 *
+	 * @return void
+	 */
+	public function declare_wc_cot_compatibility() {
+		if ( class_exists( '\Automattic\WooCommerce\Utilities\FeaturesUtil' ) ) {
+			\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', WC_ESTONIAN_SHIPPING_METHODS_MAIN_FILE, true );
+		}
 	}
 
 	/**

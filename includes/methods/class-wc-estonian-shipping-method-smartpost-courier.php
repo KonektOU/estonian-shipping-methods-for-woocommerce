@@ -62,10 +62,10 @@ class WC_Estonian_Shipping_Method_Smartpost_Courier extends WC_Estonian_Shipping
 	function show_selected_terminal( $order ) {
 		if( $order->has_shipping_method( $this->id ) ) {
 			// Fetch selected terminal ID
-			$window_value  = $this->get_order_terminal( wc_esm_get_order_id( $order ) );
-			$time_windows  = $this->get_courier_time_windows();
+			$window_value = $this->get_order_terminal( wc_esm_get_order_id( $order ) );
+			$time_windows = $this->get_courier_time_windows();
 
-			$window_name   = isset( $time_windows[ $window_value ] ) ? $time_windows[ $window_value ] : reset( $time_windows );
+			$window_name = isset( $time_windows[ $window_value ] ) ? $time_windows[ $window_value ] : reset( $time_windows );
 
 			// Output selected terminal to user customer details
 			if( current_filter() == 'woocommerce_order_details_after_customer_details' ) {

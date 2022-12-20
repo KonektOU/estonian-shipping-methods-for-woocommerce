@@ -83,24 +83,15 @@ abstract class WC_Estonian_Shipping_Method_DPD_Shops extends WC_Estonian_Shippin
 	 * @param  integer $place_id Place ID
 	 * @return string            Place name
 	 */
-	function get_terminal_name( $place_id ) {
+	public function get_terminal_name( $place_id ) {
 		$terminals = $this->get_terminals();
 
-		foreach( $terminals as $terminal ) {
-			if( $terminal->place_id == $place_id ) {
+		foreach(  $terminals as $terminal ) {
+			if ( $terminal->place_id == $place_id ) {
 				return $this->get_formatted_terminal_name( $terminal );
 
 				break;
 			}
 		}
-	}
-
-	/**
-	 * Get selected terminal ID from order meta
-	 * @param  integer $order_id Order ID
-	 * @return integer           Selected terminal ID
-	 */
-	function get_order_terminal( $order_id ) {
-		return get_post_meta( $order_id, $this->field_name, true );
 	}
 }

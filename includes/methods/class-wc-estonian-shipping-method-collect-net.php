@@ -193,7 +193,7 @@ class WC_Estonian_Shipping_Method_Collect_Net extends WC_Estonian_Shipping_Metho
 			$terminal_id = $this->get_order_terminal( wc_esm_get_order_id( $order ) );
 
 			// Prepare ticket data.
-			$ticket      = array(
+			$ticket = array(
 				'id'                       => $order->get_order_number(),
 				'uuid'                     => $this->generate_ticket_uuid(),
 				'hold_days'                => (int) $this->get_option( 'hold_days', 7 ),
@@ -229,8 +229,9 @@ class WC_Estonian_Shipping_Method_Collect_Net extends WC_Estonian_Shipping_Metho
 				$order->add_order_note( sprintf( __( '%1$s: Ticket created with ID %2$d.', 'wc-estonian-shipping-methods' ), $this->get_title(), $request_data->id ) );
 
 				// Add ticket ID to order meta.
-				update_post_meta( wc_esm_get_order_id( $order ), $this->id . '_ticket_id', $request_data->id );
-				update_post_meta( wc_esm_get_order_id( $order ), $this->id . '_ticket_uuid', $ticket['uuid'] );
+				$order->update_meta_data( $this->id . '_ticket_id', $request_data->id );
+				$order->update_meta_data( $this->id . '_ticket_uuid', $ticket['uuid'] );
+				$order->save();
 			} else {
 				// Add ticket ID to order notes.
 				/* translators: %1$s method title, %2$s error message */

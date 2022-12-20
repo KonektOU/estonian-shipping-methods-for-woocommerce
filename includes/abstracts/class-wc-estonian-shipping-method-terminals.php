@@ -81,34 +81,36 @@ abstract class WC_Estonian_Shipping_Method_Terminals extends WC_Estonian_Shippin
 	}
 
 	public function add_form_fields() {
-		$this->form_fields = array_merge( $this->form_fields, array(
+		$this->form_fields = array_merge(
+			$this->form_fields,
+			array(
 				'terminals_format' => array(
-					'title'                => __( 'Terminals format', 'wc-estonian-shipping-methods' ),
-					'type'                 => 'select',
-					'default'              => 'name',
-					'options'              => array(
-						'name'             => __( 'Only terminal name', 'wc-estonian-shipping-methods' ),
-						'with_address'     => __( 'Name with address', 'wc-estonian-shipping-methods' )
-					)
+					'title'   => __( 'Terminals format', 'wc-estonian-shipping-methods' ),
+					'type'    => 'select',
+					'default' => 'name',
+					'options' => array(
+						'name'         => __( 'Only terminal name', 'wc-estonian-shipping-methods' ),
+						'with_address' => __( 'Name with address', 'wc-estonian-shipping-methods' ),
+					),
 				),
 				'sort_terminals' => array(
-					'title'                => __( 'Sort terminals by', 'wc-estonian-shipping-methods' ),
-					'type'                 => 'select',
-					'default'              => 'alphabetically',
-					'options'              => array(
-						'none'             => __( 'No sorting', 'wc-estonian-shipping-methods' ),
-						'alphabetically'   => __( 'Alphabetically', 'wc-estonian-shipping-methods' ),
-						'cities_first'     => __( 'Bigger cities first, then alphabetically the rest', 'wc-estonian-shipping-methods' )
-					)
+					'title'   => __( 'Sort terminals by', 'wc-estonian-shipping-methods' ),
+					'type'    => 'select',
+					'default' => 'alphabetically',
+					'options' => array(
+						'none'           => __( 'No sorting', 'wc-estonian-shipping-methods' ),
+						'alphabetically' => __( 'Alphabetically', 'wc-estonian-shipping-methods' ),
+						'cities_first'   => __( 'Bigger cities first, then alphabetically the rest', 'wc-estonian-shipping-methods' ),
+					),
 				),
 				'group_terminals' => array(
-					'title'                => __( 'Group terminals', 'wc-estonian-shipping-methods' ),
-					'type'                 => 'select',
-					'default'              => 'cities',
-					'options'              => array(
-						'cities'           => __( 'By cities', 'wc-estonian-shipping-methods' )
-					)
-				)
+					'title'   => __( 'Group terminals', 'wc-estonian-shipping-methods' ),
+					'type'    => 'select',
+					'default' => 'cities',
+					'options' => array(
+						'cities' => __( 'By cities', 'wc-estonian-shipping-methods' ),
+					),
+				),
 			)
 		);
 	}
@@ -122,7 +124,7 @@ abstract class WC_Estonian_Shipping_Method_Terminals extends WC_Estonian_Shippin
 		$chosen_shipping_methods = WC()->session->get( 'chosen_shipping_methods' );
 
 		// Check if ours is one of the selected methods
-		if( ! empty( $chosen_shipping_methods ) && in_array( $this->id, $chosen_shipping_methods ) ) {
+		if ( ! empty( $chosen_shipping_methods ) && in_array( $this->id, $chosen_shipping_methods ) ) {
 			// Get selected terminal
 			$selected_terminal   = WC()->session->get( $this->field_name );
 
@@ -131,14 +133,14 @@ abstract class WC_Estonian_Shipping_Method_Terminals extends WC_Estonian_Shippin
 				'terminals'  => $this->get_sorted_and_grouped_terminals(),
 				'field_name' => $this->field_name,
 				'field_id'   => $this->field_name,
-				'selected'   => $selected_terminal ? $selected_terminal : ''
+				'selected'   => $selected_terminal ? $selected_terminal : '',
 			);
 
 			// Allow to do some activity before terminals
 			do_action( $this->id . '_before_terminals' );
 
 			// Get terminals template
-			wc_get_template( 'checkout/form-shipping-'. $this->terminals_template .'.php', $template_data );
+			wc_get_template( 'checkout/form-shipping-' . $this->terminals_template . '.php', $template_data );
 
 			// Allow to do some activity after terminals
 			do_action( $this->id . '_after_terminals' );
@@ -153,9 +155,13 @@ abstract class WC_Estonian_Shipping_Method_Terminals extends WC_Estonian_Shippin
 	 *
 	 * @return void
 	 */
-	function checkout_save_order_terminal_id_meta( $order_id, $posted ) {
-		if( isset( $_POST[ $this->field_name ] ) ) {
-			update_post_meta( $order_id, $this->field_name, $_POST[ $this->field_name ] );
+	public function checkout_save_order_terminal_id_meta( $order_id, $posted ) {
+		$terminal_id = wc_get_var( $_POST[ $this->field_name ] );
+
+		if ( $terminal_id ) {
+			$order = wc_get_order( $order_id );
+			$order->update_meta_data( $this->field_name, $terminal_id );
+			$order->save();
 		}
 	}
 
@@ -190,7 +196,7 @@ abstract class WC_Estonian_Shipping_Method_Terminals extends WC_Estonian_Shippin
 		$this->order_id = wc_esm_get_order_id( $order );
 
 		// Check if the order has our shipping method
-		if( $order->has_shipping_method( $this->id ) ) {
+		if ( $order->has_shipping_method( $this->id ) ) {
 			// Fetch selected terminal ID
 			$terminal_id   = $this->get_order_terminal( $this->order_id );
 			$terminal_name = $this->get_terminal_name( $terminal_id );
@@ -221,7 +227,7 @@ abstract class WC_Estonian_Shipping_Method_Terminals extends WC_Estonian_Shippin
 			}
 			// Output selected terminal to everywhere else
 			else {
-				$terminal  = '<div class="selected_terminal">';
+				$terminal  = '<div class="selected_terminal clear">';
 				$terminal .= '<div><strong>' . $this->i18n_selected_terminal . ':</strong></div>';
 				$terminal .= esc_html( $terminal_name );
 				$terminal .= '</div>';
@@ -721,11 +727,15 @@ abstract class WC_Estonian_Shipping_Method_Terminals extends WC_Estonian_Shippin
 
 	/**
 	 * Get selected terminal ID from order meta
-	 * @param  integer $order_id Order ID
-	 * @return integer           Selected terminal ID
+	 *
+	 * @param  integer $order_id Order ID.
+	 *
+	 * @return integer           Selected terminal
 	 */
-	function get_order_terminal( $order_id ) {
-		return (int) get_post_meta( $order_id, $this->field_name, TRUE );
+	public function get_order_terminal( $order_id ) {
+		$order = wc_get_order( $order_id );
+
+		return $order ? $order->get_meta( $this->field_name, true ) : false;
 	}
 
 	/**
