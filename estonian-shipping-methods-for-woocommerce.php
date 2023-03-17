@@ -3,7 +3,7 @@
  * Plugin Name: Estonian Shipping Methods for WooCommerce
  * Plugin URI: https://github.com/KonektOU/estonian-shipping-methods-for-woocommerce
  * Description: Extends WooCommerce with most commonly used Estonian shipping methods.
- * Version: 1.6.2
+ * Version: 1.7
  * Author: Konekt OÜ
  * Author URI: https://www.konekt.ee
  * Developer: Risto Niinemets
@@ -52,9 +52,11 @@ class Estonian_Shipping_Methods_For_WooCommerce {
 	 */
 	public $methods = array(
 		// Smartpost.
-		'WC_Estonian_Shipping_Method_Smartpost_Estonia' => false,
-		'WC_Estonian_Shipping_Method_Smartpost_Finland' => false,
-		'WC_Estonian_Shipping_Method_Smartpost_Courier' => false,
+		'WC_Estonian_Shipping_Method_Smartpost_Estonia'   => false,
+		'WC_Estonian_Shipping_Method_Smartpost_Finland'   => false,
+		'WC_Estonian_Shipping_Method_Smartpost_Courier'   => false,
+		'WC_Estonian_Shipping_Method_Smartpost_Latvia'    => false,
+		'WC_Estonian_Shipping_Method_Smartpost_Lithuania' => false,
 
 		// Omniva.
 		'WC_Estonian_Shipping_Method_Omniva_Parcel_Machines_EE' => false,
@@ -129,6 +131,8 @@ class Estonian_Shipping_Methods_For_WooCommerce {
 		// Methods.
 		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/methods/class-wc-estonian-shipping-method-smartpost-estonia.php';
 		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/methods/class-wc-estonian-shipping-method-smartpost-finland.php';
+		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/methods/class-wc-estonian-shipping-method-smartpost-latvia.php';
+		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/methods/class-wc-estonian-shipping-method-smartpost-lithuania.php';
 		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/methods/class-wc-estonian-shipping-method-smartpost-courier.php';
 
 		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/methods/class-wc-estonian-shipping-method-omniva-parcel-machines-ee.php';
