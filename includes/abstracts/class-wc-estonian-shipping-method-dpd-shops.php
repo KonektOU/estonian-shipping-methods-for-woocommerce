@@ -16,7 +16,14 @@ abstract class WC_Estonian_Shipping_Method_DPD_Shops extends WC_Estonian_Shippin
 	 *
 	 * @var string
 	 */
-	public $terminals_url = 'ftp://ftp:@ftp.dpdbaltics.com/PickupParcelShopData.json';
+	public $api_url = 'https://eserviss.dpd.lv/api/v1/';
+
+	/**
+	 * API token for authentication
+	 *
+	 * @var string
+	 */
+	protected $api_token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjdXN0b21lcl9pZCI6Njc3NDUsImFkbWluX2lkIjpudWxsLCJzaWduYXR1cmVfaWQiOiJlNmNlOGRiNS05ZWE4LTRkNjgtYTEwZS1iYTZhMWM0ZjAyZGYiLCJzaWduYXR1cmVfbmFtZSI6IkVzdG9uaWFuIFNoaXBwaW5nIE1ldGhvZHMgZm9yIFdvb0NvbW1lcmNlIiwiaXNzIjoiYW1iZXItbHYiLCJleHAiOjEwMTY3OTA1OTU2NH0.NgQ620Rr_zTc37jD7Xj97SUdxnSxkXVSmQBTzaDKlTY';
 
 	/**
 	 * Class constructor
@@ -51,22 +58,25 @@ abstract class WC_Estonian_Shipping_Method_DPD_Shops extends WC_Estonian_Shippin
 		$locations      = array();
 
 		// Fetch terminals.
-		$terminals_request = $this->request_remote_url( $this->terminals_url );
+		$request_args      = array(
+			'headers' => array(
+				'Content-Type'  => 'application/json',
+				'Accept'        => 'application/json',
+				'Authorization' => sprintf( 'Bearer %s', apply_filters( 'wc_shipping_dpd_shops_bearer_token', $this->api_token ) ),
+			),
+		);
+		$terminals_request = $this->request_remote_url( $this->get_terminals_url(), 'GET', null, $request_args );
 
 		if ( true === $terminals_request['success'] ) {
 			$terminals = json_decode( $terminals_request['data'] );
 
 			foreach ( $terminals as $data ) {
-				if ( $filter_country !== $data->countryCode ) {
-					continue;
-				}
-
 				$locations[] = (object) array(
-					'place_id' => $data->parcelShopId,
-					'zipcode'  => $data->zipCode,
-					'name'     => $data->companyName,
-					'address'  => sprintf( '%s, %s', $data->street, $data->city ),
-					'city'     => $data->city,
+					'place_id' => $data->id,
+					'zipcode'  => $data->address->postalCode,
+					'name'     => $data->name,
+					'address'  => sprintf( '%s, %s', $data->address->street, $data->address->city ),
+					'city'     => $data->address->city,
 				);
 			}
 		}
@@ -93,5 +103,17 @@ abstract class WC_Estonian_Shipping_Method_DPD_Shops extends WC_Estonian_Shippin
 				break;
 			}
 		}
+	}
+
+	/**
+	 * Get URL where to fetch terminals from
+	 *
+	 * @return string Terminals remote URL
+	 */
+	public function get_terminals_url() {
+		$terminals_url = untrailingslashit( $this->api_url ) . '/lockers';
+		$terminals_url = add_query_arg( 'countryCode', $this->country, $terminals_url );
+
+		return apply_filters( 'wc_shipping_dpd_shops_terminals_url', $terminals_url, $this->country, $this->api_url );
 	}
 }

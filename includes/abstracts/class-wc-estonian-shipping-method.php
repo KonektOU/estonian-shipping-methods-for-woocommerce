@@ -11,12 +11,19 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
  */
 abstract class WC_Estonian_Shipping_Method extends WC_Shipping_Method {
 	/**
+	 * Shipping method country
+	 *
+	 * @var string
+	 */
+	public $country = 'EE';
+
+	/**
 	 * __construct function.
 	 *
 	 * @access public
 	 * @return void
 	 */
-	function __construct() {
+	public function __construct() {
 		// Get the settings
 		$this->title                        = $this->get_option( 'title', $this->method_title );
 		$this->enabled                      = $this->get_option( 'enabled', 'no' );

@@ -1,5 +1,5 @@
 <?php
-if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
 
 /**
  * Omniva parcel machines shipping method
@@ -14,12 +14,12 @@ class WC_Estonian_Shipping_Method_DPD_Shops_LT extends WC_Estonian_Shipping_Meth
 	/**
 	 * Class constructor
 	 */
-	function __construct() {
-		// Identify method
-		$this->id                 = 'dpd_shops_lt';
-		$this->method_title       = __( 'DPD Shops Lithuania', 'wc-estonian-shipping-methods' );
+	public function __construct() {
+		// Identify method.
+		$this->id           = 'dpd_shops_lt';
+		$this->method_title = __( 'DPD Shops Lithuania', 'wc-estonian-shipping-methods' );
 
-		// Construct parent
+		// Construct parent.
 		parent::__construct();
 
 		$this->country            = 'LT';

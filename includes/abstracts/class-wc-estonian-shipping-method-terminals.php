@@ -765,13 +765,13 @@ abstract class WC_Estonian_Shipping_Method_Terminals extends WC_Estonian_Shippin
 	function get_terminal_data( $place_id ) {
 		$terminals = $this->get_terminals();
 
-		foreach( $terminals as $terminal ) {
-			if( $terminal->place_id == $place_id ) {
+		foreach ( $terminals as $terminal ) {
+			if ( $terminal->place_id == $place_id ) {
 				return $terminal;
 			}
 		}
 
-		return FALSE;
+		return false;
 	}
 
 	/**
@@ -780,17 +780,21 @@ abstract class WC_Estonian_Shipping_Method_Terminals extends WC_Estonian_Shippin
 	 * @param  string $url          URL to be requested
 	 * @param  string $method       POST/GET
 	 * @param  mixed  $body         What ever you want to sent to the requested URL
+	 * @param  mixed  $args         Additional request arguments
 	 *
 	 * @return array                Return fields or all fields from cURL request
 	 */
-	public function request_remote_url( $url, $method = 'GET', $body = null ) {
+	public function request_remote_url( $url, $method = 'GET', $body = null, $args = array() ) {
 		// Remote args.
-		$args = array(
-			'body'    => '',
-			'method'  => $method,
-			'headers' => array(
-				'Content-Type' => 'application/json',
-			),
+		$args = wp_parse_args(
+			$args,
+			array(
+				'body'    => '',
+				'method'  => $method,
+				'headers' => array(
+					'Content-Type' => 'application/json',
+				),
+			)
 		);
 
 		// Disable SSL verification on debugging sites.
@@ -804,72 +808,14 @@ abstract class WC_Estonian_Shipping_Method_Terminals extends WC_Estonian_Shippin
 		}
 
 		// Apply hook on arguments.
-		$args = apply_filters( 'wc_shipping_' . $this->id . '_remote_request_args', $args, $url, $body );
-		$args = apply_filters( 'wc_shipping_remote_request_args', $args, $url, $body );
-
-		// Parse the URL.
-		$parsed_url = wp_parse_url( $url );
-
-		// If it's a FTP, wp_remote_request does not allow it. Then we use plain simple cURL.
-		if ( isset( $parsed_url['scheme'] ) && 'ftp' === $parsed_url['scheme'] ) {
-			return $this->request_remote_url_via_curl( $url, $args );
-		}
-
+		$args    = apply_filters( 'wc_shipping_' . $this->id . '_remote_request_args', $args, $url, $body );
+		$args    = apply_filters( 'wc_shipping_remote_request_args', $args, $url, $body );
 		$request = wp_remote_request( $url, $args );
 
 		return array(
 			'success'  => 200 === wp_remote_retrieve_response_code( $request ),
 			'response' => $request,
 			'data'     => wp_remote_retrieve_body( $request ),
-		);
-	}
-
-	/**
-	 * Request remote URL
-	 *
-	 * @param  string $url          URL to be requested
-	 * @param  array  $args         Arguments that contain data to be sent and used
-	 *
-	 * @return array                Return fields or all fields from cURL request
-	 */
-	function request_remote_url_via_curl( $url, $args = array() ) {
-		// Init cURL
-		$ch = curl_init( $url );
-
-		// We need data to be returned
-		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
-
-		// Set body and method
-		if( $args['method'] == 'POST' ) {
-			curl_setopt( $ch, CURLOPT_POSTFIELDS, is_array( $args['body'] ) ? http_build_query( $args['body'] ) : $args['body'] );
-			curl_setopt( $ch, CURLOPT_POST, true );
-		}
-		else {
-			if( is_array( $args['body'] ) ) {
-				curl_setopt( $ch, CURLOPT_URL, add_query_arg( $args['body'], $url ) );
-			}
-
-			curl_setopt( $ch, CURLOPT_HTTPGET, true );
-		}
-
-		// SSL verification
-		if( isset( $args['sslverify'] ) ) {
-			curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, $args['sslverify'] );
-		}
-
-		// More options
-		curl_setopt( $ch, CURLOPT_HEADER, true );
-		curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, false );
-
-		$data     = curl_exec( $ch );
-		$response = curl_getinfo( $ch );
-
-		curl_close( $ch );
-
-		return array(
-			'success'  => $response['http_code'] >= 200 && $response['http_code'] < 300,
-			'response' => $response,
-			'data'     => $data
 		);
 	}
 }
