@@ -339,13 +339,13 @@ abstract class WC_Estonian_Shipping_Method_Terminals extends WC_Estonian_Shippin
 		$grouped_terminals = $this->get_grouped_terminals( $sorted_terminals );
 
 		// If everything needed to be sorted alphabetically, do so
-		if( $this->get_sorting_option() == 'alphabetically' ) {
+		if ( $this->get_sorting_option() == 'alphabetically' ) {
 			ksort( $grouped_terminals );
 		}
 
 		// Format name
-		foreach( $grouped_terminals as $group => $terminals ) {
-			foreach( $terminals as $terminal_key => $terminal ) {
+		foreach ( $grouped_terminals as $group => $terminals ) {
+			foreach ( $terminals as $terminal_key => $terminal ) {
 				$grouped_terminals[ $group ][ $terminal_key ]->name = $this->get_formatted_terminal_name( $terminal );
 			}
 		}
@@ -359,28 +359,28 @@ abstract class WC_Estonian_Shipping_Method_Terminals extends WC_Estonian_Shippin
 	 * @param  mixed $terminals Terminals (false = will fetch)
 	 * @return array            Sorted terminals
 	 */
-	function get_sorted_terminals( $terminals = FALSE ) {
+	function get_sorted_terminals( $terminals = false ) {
 		$sort_by          = $this->get_sorting_option();
 		$terminals        = $terminals ? $terminals : $this->get_terminals();
 		$sorted_terminals = $terminals;
 
-		switch( $sort_by ) {
-			// By default, sort by Itella's priority (bigger cities first)
+		switch ( $sort_by ) {
+			// By default, sort by Itella's priority (bigger cities first).
 			default:
 			case 'cities_first':
-				// Sort by group_sort attribute provided by Smartpost
+				// Sort by group_sort attribute provided by Smartpost.
 				usort( $sorted_terminals, array( $this, 'terminals_group_sort' ) );
-			break;
+				break;
 
-			// Alphabetically
+			// Alphabetically.
 			case 'alphabetically':
 				usort( $sorted_terminals, array( $this, 'terminals_alphabetical_sort' ) );
-			break;
+				break;
 
-			// No sorting
+			// No sorting.
 			case 'none':
-				// Do nothing
-			break;
+				// Do nothing.
+				break;
 		}
 
 		return $sorted_terminals;
@@ -785,9 +785,12 @@ abstract class WC_Estonian_Shipping_Method_Terminals extends WC_Estonian_Shippin
 	 */
 	public function request_remote_url( $url, $method = 'GET', $body = null ) {
 		// Remote args.
-		$args    = array(
-			'body'   => '',
-			'method' => $method,
+		$args = array(
+			'body'    => '',
+			'method'  => $method,
+			'headers' => array(
+				'Content-Type' => 'application/json',
+			),
 		);
 
 		// Disable SSL verification on debugging sites.

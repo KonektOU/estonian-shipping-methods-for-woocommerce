@@ -1,5 +1,5 @@
 <?php
-if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
 
 /**
  * Smartpost shipping method
@@ -14,33 +14,39 @@ class WC_Estonian_Shipping_Method_Smartpost_Estonia extends WC_Estonian_Shipping
 	/**
 	 * Class constructor
 	 */
-	function __construct() {
-		// Identify method
+	public function __construct() {
+		// Identify method.
 		$this->id           = 'smartpost_estonia';
 		$this->method_title = __( 'Smartpost Estonia', 'wc-estonian-shipping-methods' );
 
-		// Construct parent
+		// Construct parent.
 		parent::__construct();
 
-		$this->country      = 'EE';
+		// Set country.
+		$this->country = 'EE';
 
-		// Add/merge form fields
+		// Add/merge form fields.
 		$this->add_extra_form_fields();
 	}
 
-	function add_extra_form_fields() {
+	/**
+	 * Add terminals filter option to settings.
+	 *
+	 * @return void
+	 */
+	public function add_extra_form_fields() {
 		$this->form_fields = array_merge(
 			$this->form_fields,
 			array(
 				'terminals_filter' => array(
-					'title'                => __( 'Terminals filter', 'wc-estonian-shipping-methods' ),
-					'type'                 => 'select',
-					'default'              => 'all',
-					'options'              => array(
-						'express'          => __( 'Only terminals with Express delivery', 'wc-estonian-shipping-methods' ),
-						'all'              => __( 'All terminals', 'wc-estonian-shipping-methods' )
-					)
-				)
+					'title'   => __( 'Terminals filter', 'wc-estonian-shipping-methods' ),
+					'type'    => 'select',
+					'default' => 'all',
+					'options' => array(
+						'express' => __( 'Only terminals with Express delivery', 'wc-estonian-shipping-methods' ),
+						'all'     => __( 'All terminals', 'wc-estonian-shipping-methods' ),
+					),
+				),
 			)
 		);
 	}
@@ -50,17 +56,14 @@ class WC_Estonian_Shipping_Method_Smartpost_Estonia extends WC_Estonian_Shipping
 	 *
 	 * @return string Terminals remote URL
 	 */
-	function get_terminals_url( $shipping_country = '' ) {
-		// Get terminals URL if exists
+	public function get_terminals_url() {
+		// Get terminals URL if exists.
 		$terminals_url = add_query_arg( 'country', $this->country, $this->api_url );
 
-		if( $terminals_url ) {
-			if( 'express' == $this->get_option( 'terminals_filter', 'all' ) ) {
+		if ( $terminals_url ) {
+			if ( 'express' === $this->get_option( 'terminals_filter', 'all' ) ) {
 				$terminals_url = add_query_arg( 'filter', 'express', $terminals_url );
 			}
-
-			$terminals_url = add_query_arg( 'type', 'APT', $terminals_url );
-			$terminals_url = add_query_arg( 'request', 'destinations', $terminals_url );
 		}
 
 		return apply_filters( 'wc_shipping_smartpost_terminals_url', $terminals_url, $this->country, $this->api_url );
