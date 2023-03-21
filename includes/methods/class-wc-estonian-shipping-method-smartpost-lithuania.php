@@ -23,7 +23,8 @@ class WC_Estonian_Shipping_Method_Smartpost_Lithuania extends WC_Estonian_Shippi
 		parent::__construct();
 
 		// Set country.
-		$this->country = 'LT';
+		$this->country        = 'LT';
+		$this->country_prefix = '01009';
 	}
 
 	/**

@@ -61,6 +61,13 @@ abstract class WC_Estonian_Shipping_Method_Smartpost extends WC_Estonian_Shippin
 	public $country = 'EE';
 
 	/**
+	 * Prefix for terminal number in new system
+	 *
+	 * @var string
+	 */
+	public $country_prefix = '01007';
+
+	/**
 	 * Class constructor
 	 */
 	public function __construct() {
@@ -103,5 +110,37 @@ abstract class WC_Estonian_Shipping_Method_Smartpost extends WC_Estonian_Shippin
 
 		// Return terminals.
 		return apply_filters( "wc_shipping_{$this->id}_terminals", $terminals, $this->get_shipping_country() );
+	}
+
+	/**
+	 * Get selected terminal ID from order meta
+	 *
+	 * @param  integer $order_id Order ID.
+	 *
+	 * @return integer           Selected terminal
+	 */
+	public function get_order_terminal( $order_id ) {
+		$order = wc_get_order( $order_id );
+
+		if ( $order ) {
+			$terminal_id = $order->get_meta( $this->field_name, true );
+
+			if ( strlen( $terminal_id ) < 5 ) {
+				return $this->get_prefixed_order_terminal( $terminal_id );
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Prepend country prefix to terminal ID
+	 *
+	 * @param integer $terminal_id Terminal ID.
+	 *
+	 * @return integer
+	 */
+	public function get_prefixed_order_terminal( $terminal_id ) {
+		return $this->country_prefix . $terminal_id;
 	}
 }

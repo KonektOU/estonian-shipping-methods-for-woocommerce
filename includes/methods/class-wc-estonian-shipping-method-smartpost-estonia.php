@@ -23,7 +23,8 @@ class WC_Estonian_Shipping_Method_Smartpost_Estonia extends WC_Estonian_Shipping
 		parent::__construct();
 
 		// Set country.
-		$this->country = 'EE';
+		$this->country        = 'EE';
+		$this->country_prefix = '01007';
 
 		// Add/merge form fields.
 		$this->add_extra_form_fields();
