@@ -16,7 +16,7 @@ This plugin consists of several Estonian shipping methods:
 *   DPD package shops (Estonia, Latvia, Lithuania)
 *   Omniva parcel terminals (Estonia, Latvia, Lithuania)
 *   Omniva post offices (Estonia)
-*   SmartPOST parcel terminals (Estonia, Finland)
+*   SmartPOST parcel terminals (Estonia, Finland, Latvia, Lithuania)
 *   SmartPOST courier
 *   Collect.net packrobots (Estonia)
 
@@ -52,13 +52,13 @@ Since version 1.5.1 we have added an action that you could add to your code:
 == Changelog ==
 
 = 1.7.1 =
-* Add support for older orders locations
+* Add support for older orders locations (SmartPost)
 
 = 1.7 =
 * Use DPD API for pickup locations instead of soon-to-be-deprecated FTP json
 * Use Smartpost API for pickup locations
 * Add Smartpost Latvia
-* Add Smartpost Lithuanie
+* Add Smartpost Lithuania
 
 = 1.6.2 =
 * Compatibility with WooCommerce CRUD, High-Performance order storage (COT)
