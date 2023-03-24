@@ -51,6 +51,9 @@ Since version 1.5.1 we have added an action that you could add to your code:
 
 == Changelog ==
 
+= 1.7.2 =
+* Fix Smartpost location not shown
+
 = 1.7.1 =
 * Add support for older orders locations (SmartPost)
 

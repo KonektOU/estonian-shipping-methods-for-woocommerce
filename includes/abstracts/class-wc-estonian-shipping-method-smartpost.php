@@ -127,6 +127,8 @@ abstract class WC_Estonian_Shipping_Method_Smartpost extends WC_Estonian_Shippin
 
 			if ( strlen( $terminal_id ) < 5 ) {
 				return $this->get_prefixed_order_terminal( $terminal_id );
+			} else {
+				return $terminal_id;
 			}
 		}
 
