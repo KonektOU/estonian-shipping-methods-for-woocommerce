@@ -42,6 +42,11 @@ class WC_Estonian_Shipping_Method_Collect_Net extends WC_Estonian_Shipping_Metho
 	private $skip_auth_token = false;
 
 	/**
+	 * @var string
+	 */
+	public $auth_error_notice = '';
+
+	/**
 	 * Class constructor
 	 */
 	public function __construct() {

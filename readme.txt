@@ -51,6 +51,9 @@ Since version 1.5.1 we have added an action that you could add to your code:
 
 == Changelog ==
 
+= 1.7.3 =
+* Added PHP8-compatibility
+
 = 1.7.2 =
 * Fix Smartpost location not shown
 
