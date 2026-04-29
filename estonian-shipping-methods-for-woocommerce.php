@@ -3,7 +3,7 @@
  * Plugin Name: Estonian Shipping Methods for WooCommerce
  * Plugin URI: https://github.com/KonektOU/estonian-shipping-methods-for-woocommerce
  * Description: Extends WooCommerce with most commonly used Estonian shipping methods.
- * Version: 1.7.2
+ * Version: 1.7.3
  * Author: Konekt OÜ
  * Author URI: https://www.konekt.ee
  * Developer: Risto Niinemets
@@ -11,7 +11,7 @@
  * Text Domain: wc-estonian-shipping-methods
  * Domain Path: /languages
  * WC requires at least: 3.3
- * WC tested up to: 7.5.1
+ * WC tested up to: 10.7.0
  *
  * @package Estonian_Shipping_Methods_For_WooCommerce
  */
@@ -93,9 +93,13 @@ class Estonian_Shipping_Methods_For_WooCommerce {
 			return false;
 		}
 
-		// Load functionality, translations.
+		// Load functionality.
 		$this->includes();
-		$this->load_translations();
+
+		// Translations and terminal class instantiation are deferred to `init`
+		// (WP 6.7+ disallows triggering translation loading before `init`).
+		add_action( 'init', array( $this, 'load_translations' ) );
+		add_action( 'init', array( $this, 'add_terminals_hooks' ) );
 
 		// Shipping.
 		add_action( 'woocommerce_shipping_init', array( $this, 'shipping_init' ) );
@@ -108,8 +112,6 @@ class Estonian_Shipping_Methods_For_WooCommerce {
 		add_filter( 'woocommerce_locate_core_template', array( $this, 'locate_template' ), 20, 3 );
 
 		add_action( 'before_woocommerce_init', array( $this, 'declare_wc_cot_compatibility' ) );
-
-		$this->add_terminals_hooks();
 	}
 
 	/**

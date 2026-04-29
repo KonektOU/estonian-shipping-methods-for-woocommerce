@@ -18,6 +18,21 @@ abstract class WC_Estonian_Shipping_Method extends WC_Shipping_Method {
 	public $country = 'EE';
 
 	/**
+	 * @var mixed
+	 */
+	public $shipping_price;
+
+	/**
+	 * @var mixed
+	 */
+	public $free_shipping_amount;
+
+	/**
+	 * @var bool
+	 */
+	public $enable_free_shipping_coupons;
+
+	/**
 	 * __construct function.
 	 *
 	 * @access public

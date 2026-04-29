@@ -30,6 +30,21 @@ abstract class WC_Estonian_Shipping_Method_Terminals extends WC_Estonian_Shippin
 	public $terminals = array();
 
 	/**
+	 * @var string
+	 */
+	public $name_format = '';
+
+	/**
+	 * @var string
+	 */
+	public $field_name = '';
+
+	/**
+	 * @var string
+	 */
+	public $i18n_selected_terminal = '';
+
+	/**
 	 * __construct function.
 	 *
 	 * @access public
