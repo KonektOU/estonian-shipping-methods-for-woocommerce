@@ -2,8 +2,8 @@
 Contributors: konektou, ristoniinemets
 Tags: WooCommerce, shipping method, Estonia, smartpost, dpd, pakiautomaat, courier, omniva
 Requires at least: 4.1
-Tested up to: 6.1.1
-Stable tag: 1.7.2
+Tested up to: 6.9.4
+Stable tag: 1.7.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 

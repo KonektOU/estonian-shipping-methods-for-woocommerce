@@ -11,7 +11,7 @@
  * Text Domain: wc-estonian-shipping-methods
  * Domain Path: /languages
  * WC requires at least: 3.3
- * WC tested up to: 7.5.1
+ * WC tested up to: 10.7.0
  *
  * @package Estonian_Shipping_Methods_For_WooCommerce
  */
