@@ -32,6 +32,11 @@ abstract class WC_Estonian_Shipping_Method_Terminals extends WC_Estonian_Shippin
 	/**
 	 * @var string
 	 */
+	public $name_format = '';
+
+	/**
+	 * @var string
+	 */
 	public $field_name = '';
 
 	/**
