@@ -28,6 +28,13 @@ class WC_Estonian_Shipping_Method_Collect_Net extends WC_Estonian_Shipping_Metho
 	private $session_cookies = array();
 
 	/**
+	 * Notice key used when authenticating with the API fails
+	 *
+	 * @var string
+	 */
+	public $auth_error_notice;
+
+	/**
 	 * API url
 	 *
 	 * @var string

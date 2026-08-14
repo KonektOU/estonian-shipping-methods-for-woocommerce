@@ -30,6 +30,30 @@ abstract class WC_Estonian_Shipping_Method_Terminals extends WC_Estonian_Shippin
 	public $terminals = array();
 
 	/**
+	 * Meta and input field name
+	 * @var string
+	 */
+	public $field_name;
+
+	/**
+	 * "Chosen terminal" label
+	 * @var string
+	 */
+	public $i18n_selected_terminal;
+
+	/**
+	 * How a terminal name is put together
+	 * @var string|boolean
+	 */
+	public $name_format;
+
+	/**
+	 * Order currently being handled
+	 * @var integer|boolean
+	 */
+	public $order_id;
+
+	/**
 	 * __construct function.
 	 *
 	 * @access public
