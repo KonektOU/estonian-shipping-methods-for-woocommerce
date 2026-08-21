@@ -186,6 +186,20 @@
 		return el(
 			'div',
 			{ className: 'wc-block-components-shipping-rates-control wc-esm-terminals' },
+			/* The search box is a field of its own, outside the select. WooCommerce
+			   floats the select's label over the top of its container, so anything
+			   else put in there is rendered underneath the label. */
+			el( 'input', {
+				type: 'search',
+				className: 'wc-esm-terminals__search',
+				value: search,
+				placeholder: __( 'Search by town or terminal name', 'wc-estonian-shipping-methods' ),
+				'aria-label': __( 'Search terminals', 'wc-estonian-shipping-methods' ),
+				'aria-controls': 'wc-esm-terminal',
+				onChange: function ( event ) {
+					setSearch( event.target.value );
+				},
+			} ),
 			el(
 				'div',
 				{ className: 'wc-blocks-components-select' },
@@ -197,17 +211,6 @@
 						{ className: 'wc-blocks-components-select__label', htmlFor: 'wc-esm-terminal' },
 						data.label || __( 'Choose terminal', 'wc-estonian-shipping-methods' )
 					),
-					el( 'input', {
-						type: 'search',
-						className: 'wc-esm-terminals__search',
-						value: search,
-						placeholder: __( 'Search by town or terminal name', 'wc-estonian-shipping-methods' ),
-						'aria-label': __( 'Search terminals', 'wc-estonian-shipping-methods' ),
-						'aria-controls': 'wc-esm-terminal',
-						onChange: function ( event ) {
-							setSearch( event.target.value );
-						},
-					} ),
 					el( 'select', {
 						id: 'wc-esm-terminal',
 						className: 'wc-blocks-components-select__select',

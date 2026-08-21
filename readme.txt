@@ -6,7 +6,7 @@ Tested up to: 7.0
 Requires PHP: 7.4
 WC requires at least: 7.0
 WC tested up to: 11.0
-Stable tag: 1.11.1
+Stable tag: 1.11.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -53,6 +53,11 @@ Since version 1.5.1 we have added an action that you could add to your code:
 `do_action( 'wc_estonian_shipping_method_show_terminal', $order_id );`
 
 == Changelog ==
+
+= 1.11.2 =
+* The terminal search box on the block checkout no longer has the "Choose
+  terminal" label printed across it. WooCommerce floats that label over its
+  select, and the search box was sitting underneath it.
 
 = 1.11.1 =
 * The terminal list on the block checkout is grouped again, the way the

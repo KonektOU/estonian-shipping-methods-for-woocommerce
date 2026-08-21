@@ -11,6 +11,13 @@
 	box-sizing: border-box;
 }
 
+/* On the block checkout the select below it is a component with padding of its
+   own, and a search box without any reads as a different kind of thing. One
+   selector, so a theme that dresses its own fields still wins. */
+.wc-esm-terminals > .wc-esm-terminals__search {
+	padding: .75em 1em;
+}
+
 .wc-esm-terminals__count {
 	margin: .4em 0 0;
 	font-size: .875em;
