@@ -35,9 +35,7 @@ class WC_Estonian_Shipping_Blocks_Integration implements IntegrationInterface {
 		wp_register_script(
 			'wc-estonian-shipping-terminals-block',
 			WC_ESTONIAN_SHIPPING_METHODS_PLUGIN_URL . '/assets/js/checkout-block.js',
-			// wp-components carries the searchable combobox this uses; it is
-			// WordPress's own, so there is nothing here to build or ship.
-			array( 'wp-element', 'wp-i18n', 'wp-data', 'wp-components', 'wc-blocks-checkout' ),
+			array( 'wp-element', 'wp-i18n', 'wp-data', 'wc-blocks-checkout' ),
 			$version,
 			true
 		);
@@ -49,10 +47,6 @@ class WC_Estonian_Shipping_Blocks_Integration implements IntegrationInterface {
 			$version,
 			true
 		);
-
-		// The combobox is styled by wp-components' own stylesheet, which the
-		// front end does not load by itself.
-		wp_enqueue_style( 'wp-components' );
 
 		if ( function_exists( 'wp_set_script_translations' ) ) {
 			wp_set_script_translations(
