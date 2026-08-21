@@ -108,8 +108,13 @@ abstract class WC_Estonian_Shipping_Method extends WC_Shipping_Method {
 			'tax_status'               => array(
 				'title'                => __( 'Tax status', 'wc-estonian-shipping-methods' ),
 				'type'                 => 'select',
-				'description'          => '',
-				'default'              => 'none',
+				// Taxable, as WooCommerce's own shipping methods default and as
+				// shipping normally is here: a shop that never opened this
+				// setting used to charge no VAT on delivery at all. Methods
+				// that already exist keep whatever they were doing - the
+				// upgrade to 1.8.0 writes their current answer down first.
+				'description'          => __( 'Whether VAT is added to the shipping cost. Shipping is usually taxable.', 'wc-estonian-shipping-methods' ),
+				'default'              => 'taxable',
 				'options'              => array(
 					'taxable'          => __( 'Taxable', 'wc-estonian-shipping-methods' ),
 					'none'             => __( 'None', 'wc-estonian-shipping-methods' )

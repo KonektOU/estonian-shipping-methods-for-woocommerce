@@ -3,7 +3,7 @@ Contributors: konektou, ristoniinemets
 Tags: WooCommerce, shipping method, Estonia, smartpost, dpd, pakiautomaat, courier, omniva
 Requires at least: 4.1
 Tested up to: 6.1.1
-Stable tag: 1.7.2
+Stable tag: 1.8.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -50,6 +50,20 @@ Since version 1.5.1 we have added an action that you could add to your code:
 `do_action( 'wc_estonian_shipping_method_show_terminal', $order_id );`
 
 == Changelog ==
+
+= 1.8.0 =
+* Terminal selection works on the block checkout. The dropdown was printed by a
+  hook the block checkout never fires, so a shop using it had no way to choose a
+  parcel terminal at all. The terminals now come through the Store API - only
+  the ones belonging to the shipping method chosen - and the choice is validated
+  and saved exactly where the classic checkout saves it, so orders, emails and
+  the admin screen are unchanged.
+* Shipping is taxable by default, as it is in WooCommerce's own shipping
+  methods. A shop that never opened the setting charged no VAT on delivery.
+  Methods that already exist keep whatever they were doing: the upgrade writes
+  their current answer into their settings before the default changes.
+* Translations are no longer loaded before WordPress is ready for them, which
+  WordPress 6.7 logs as an error on every request.
 
 = 1.7.2 =
 * Fix Smartpost location not shown

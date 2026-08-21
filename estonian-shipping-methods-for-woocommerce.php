@@ -3,7 +3,7 @@
  * Plugin Name: Estonian Shipping Methods for WooCommerce
  * Plugin URI: https://github.com/KonektOU/estonian-shipping-methods-for-woocommerce
  * Description: Extends WooCommerce with most commonly used Estonian shipping methods.
- * Version: 1.7.2
+ * Version: 1.8.0
  * Author: Konekt OÜ
  * Author URI: https://www.konekt.ee
  * Developer: Risto Niinemets
@@ -30,6 +30,13 @@ define( 'WC_ESTONIAN_SHIPPING_METHODS_MAIN_FILE', __FILE__ );
  * Includes folder path
  */
 define( 'WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH', plugin_dir_path( WC_ESTONIAN_SHIPPING_METHODS_MAIN_FILE ) . 'includes' );
+
+/**
+ * Plugin path and URL, for the checkout block's scripts
+ */
+define( 'WC_ESTONIAN_SHIPPING_METHODS_VERSION', '1.8.0' );
+define( 'WC_ESTONIAN_SHIPPING_METHODS_PATH', untrailingslashit( plugin_dir_path( WC_ESTONIAN_SHIPPING_METHODS_MAIN_FILE ) ) );
+define( 'WC_ESTONIAN_SHIPPING_METHODS_PLUGIN_URL', untrailingslashit( plugin_dir_url( WC_ESTONIAN_SHIPPING_METHODS_MAIN_FILE ) ) );
 
 /**
  * Main class.
@@ -109,7 +116,14 @@ class Estonian_Shipping_Methods_For_WooCommerce {
 
 		add_action( 'before_woocommerce_init', array( $this, 'declare_wc_cot_compatibility' ) );
 
-		$this->add_terminals_hooks();
+		WC_Estonian_Shipping_Blocks::init();
+		WC_Estonian_Shipping_Upgrade::init();
+
+		// On init rather than here: every method's constructor translates its
+		// own title, and WordPress 6.7 logs "translation loading triggered too
+		// early" for anything asked for before init - which this was, on every
+		// request the site served.
+		add_action( 'init', array( $this, 'add_terminals_hooks' ), 5 );
 	}
 
 	/**
@@ -120,6 +134,12 @@ class Estonian_Shipping_Methods_For_WooCommerce {
 	public function includes() {
 		// Compatibility helpers.
 		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/compatibility-helpers.php';
+
+		// The block checkout, which does not fire any of the classic hooks.
+		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/class-wc-estonian-shipping-blocks.php';
+
+		// Upgrades between versions.
+		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/class-wc-estonian-shipping-upgrade.php';
 
 		// Abstract classes.
 		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/abstracts/class-wc-estonian-shipping-method.php';
@@ -281,6 +301,10 @@ class Estonian_Shipping_Methods_For_WooCommerce {
 	public function declare_wc_cot_compatibility() {
 		if ( class_exists( '\Automattic\WooCommerce\Utilities\FeaturesUtil' ) ) {
 			\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', WC_ESTONIAN_SHIPPING_METHODS_MAIN_FILE, true );
+
+			// The terminal selection is part of the block checkout now, so the
+			// shop can be told this plugin belongs there.
+			\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'cart_checkout_blocks', WC_ESTONIAN_SHIPPING_METHODS_MAIN_FILE, true );
 		}
 	}
 
