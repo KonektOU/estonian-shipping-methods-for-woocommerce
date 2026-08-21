@@ -125,6 +125,11 @@
 					} );
 				} );
 
+				// How many actually matched: the chosen terminal is kept in the
+				// list below whether it matched or not, and counting it would
+				// have the search claim a result when there is none.
+				var matched = options.length;
+
 				// Never filter away what is already chosen, or the dropdown
 				// would look empty while a terminal is in fact selected.
 				( group.options || [] ).forEach( function ( option ) {
@@ -134,7 +139,7 @@
 				} );
 
 				if ( options.length ) {
-					result.push( { label: group.label, options: options } );
+					result.push( { label: group.label, options: options, matched: matched } );
 				}
 			} );
 
@@ -165,7 +170,7 @@
 		var options = [ el( 'option', { value: '', key: 'none' }, __( '- Choose terminal -', 'wc-estonian-shipping-methods' ) ) ];
 
 		filtered.forEach( function ( group, groupIndex ) {
-			matching += group.options.length;
+			matching += undefined === group.matched ? group.options.length : group.matched;
 
 			options.push(
 				el(
