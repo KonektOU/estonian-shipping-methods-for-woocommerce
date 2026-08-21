@@ -14,13 +14,13 @@ class WC_Estonian_Shipping_Method_Smartpost_Latvia extends WC_Estonian_Shipping_
 	/**
 	 * Class constructor
 	 */
-	public function __construct() {
+	public function __construct( $instance_id = 0 ) {
 		// Identify method.
 		$this->id           = 'smartpost_latvia';
 		$this->method_title = __( 'Smartpost Latvia', 'wc-estonian-shipping-methods' );
 
 		// Construct parent.
-		parent::__construct();
+		parent::__construct( $instance_id );
 
 		// Set country.
 		$this->country        = 'LV';

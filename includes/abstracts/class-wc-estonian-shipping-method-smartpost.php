@@ -70,11 +70,11 @@ abstract class WC_Estonian_Shipping_Method_Smartpost extends WC_Estonian_Shippin
 	/**
 	 * Class constructor
 	 */
-	public function __construct() {
+	public function __construct( $instance_id = 0 ) {
 		// Set template file name for this method.
 		$this->terminals_template = 'smartpost';
 
-		parent::__construct();
+		parent::__construct( $instance_id );
 	}
 
 	/**

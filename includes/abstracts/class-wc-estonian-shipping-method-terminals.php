@@ -59,7 +59,7 @@ abstract class WC_Estonian_Shipping_Method_Terminals extends WC_Estonian_Shippin
 	 * @access public
 	 * @return void
 	 */
-	public function __construct() {
+	public function __construct( $instance_id = 0 ) {
 		// Meta and input field name.
 		$this->field_name = apply_filters( 'wc_shipping_' . $this->id . '_terminals_field_name', 'wc_shipping_' . $this->id . '_terminal' );
 
@@ -67,7 +67,7 @@ abstract class WC_Estonian_Shipping_Method_Terminals extends WC_Estonian_Shippin
 		$this->i18n_selected_terminal = esc_html__( 'Chosen terminal', 'wc-estonian-shipping-methods' );
 
 		// Construct parent.
-		parent::__construct();
+		parent::__construct( $instance_id );
 
 		// Add/merge form fields.
 		$this->add_form_fields();
@@ -105,8 +105,8 @@ abstract class WC_Estonian_Shipping_Method_Terminals extends WC_Estonian_Shippin
 	}
 
 	public function add_form_fields() {
-		$this->form_fields = array_merge(
-			$this->form_fields,
+		$this->instance_form_fields = array_merge(
+			$this->instance_form_fields,
 			array(
 				'terminals_format' => array(
 					'title'   => __( 'Terminals format', 'wc-estonian-shipping-methods' ),

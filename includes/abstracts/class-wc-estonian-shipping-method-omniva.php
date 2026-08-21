@@ -35,11 +35,11 @@ abstract class WC_Estonian_Shipping_Method_Omniva extends WC_Estonian_Shipping_M
 	/**
 	 * Class constructor
 	 */
-	public function __construct() {
+	public function __construct( $instance_id = 0 ) {
 		$this->terminals_template = 'omniva';
 
 		// Construct parent
-		parent::__construct();
+		parent::__construct( $instance_id );
 	}
 
 	/**

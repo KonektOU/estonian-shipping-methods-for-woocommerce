@@ -28,14 +28,14 @@ abstract class WC_Estonian_Shipping_Method_DPD_Shops extends WC_Estonian_Shippin
 	/**
 	 * Class constructor
 	 */
-	public function __construct() {
+	public function __construct( $instance_id = 0 ) {
 		$this->terminals_template = 'dpd';
 
 		// Checkout phone numbe validation.
 		add_action( 'woocommerce_after_checkout_validation', array( $this, 'validate_customer_phone_number' ), 10, 1 );
 
 		// Construct parent.
-		parent::__construct();
+		parent::__construct( $instance_id );
 	}
 
 	/**

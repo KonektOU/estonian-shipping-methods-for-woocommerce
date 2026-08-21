@@ -3,7 +3,7 @@
  * Plugin Name: Estonian Shipping Methods for WooCommerce
  * Plugin URI: https://github.com/KonektOU/estonian-shipping-methods-for-woocommerce
  * Description: Extends WooCommerce with most commonly used Estonian shipping methods.
- * Version: 1.8.0
+ * Version: 1.9.0
  * Author: Konekt OÜ
  * Author URI: https://www.konekt.ee
  * Developer: Risto Niinemets
@@ -34,7 +34,7 @@ define( 'WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH', plugin_dir_path( WC_ESTONI
 /**
  * Plugin path and URL, for the checkout block's scripts
  */
-define( 'WC_ESTONIAN_SHIPPING_METHODS_VERSION', '1.8.0' );
+define( 'WC_ESTONIAN_SHIPPING_METHODS_VERSION', '1.9.0' );
 define( 'WC_ESTONIAN_SHIPPING_METHODS_PATH', untrailingslashit( plugin_dir_path( WC_ESTONIAN_SHIPPING_METHODS_MAIN_FILE ) ) );
 define( 'WC_ESTONIAN_SHIPPING_METHODS_PLUGIN_URL', untrailingslashit( plugin_dir_url( WC_ESTONIAN_SHIPPING_METHODS_MAIN_FILE ) ) );
 
@@ -188,8 +188,8 @@ class Estonian_Shipping_Methods_For_WooCommerce {
 	 * @return void
 	 */
 	public function shipping_init() {
-		foreach ( $this->methods as $method_id => $method ) {
-			$this->methods[ $method_id ] = new $method_id();
+		foreach ( array_keys( $this->methods ) as $class_name ) {
+			$this->methods[ $class_name ] = new $class_name();
 		}
 	}
 
@@ -225,9 +225,14 @@ class Estonian_Shipping_Methods_For_WooCommerce {
 	 * @return array          Shipping methods
 	 */
 	public function register_shipping_methods( $methods ) {
-		// Add methods.
-		foreach ( $this->methods as $method_id => $method ) {
-			$methods[ $method_id ] = $method;
+		// Registered under the method's own id rather than its class name.
+		// WooCommerce writes this key into the shipping zone table, so it is
+		// what a shop ends up looking at, and it is what the method's settings
+		// are stored under - a zone row saying "omniva_parcel_machines_ee"
+		// beats one saying "WC_Estonian_Shipping_Method_Omniva_Parcel_Machines_EE".
+		// Rows written under the old key are moved across on upgrade.
+		foreach ( $this->methods as $class_name => $method ) {
+			$methods[ is_object( $method ) ? $method->id : $class_name ] = $class_name;
 		}
 
 		return $methods;

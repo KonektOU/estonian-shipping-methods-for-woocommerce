@@ -3,7 +3,7 @@ Contributors: konektou, ristoniinemets
 Tags: WooCommerce, shipping method, Estonia, smartpost, dpd, pakiautomaat, courier, omniva
 Requires at least: 4.1
 Tested up to: 6.1.1
-Stable tag: 1.8.0
+Stable tag: 1.9.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -50,6 +50,17 @@ Since version 1.5.1 we have added an action that you could add to your code:
 `do_action( 'wc_estonian_shipping_method_show_terminal', $order_id );`
 
 == Changelog ==
+
+= 1.9.0 =
+* The shipping methods are shipping zone methods now: added to a zone, priced
+  per zone, and enabled or disabled by the zone like every other WooCommerce
+  shipping method. The same carrier can cost one thing in one zone and another
+  elsewhere, which was not possible before.
+* Existing sites are migrated on update: every method that was switched on is
+  put into the zone for the country it delivers to - the shop's existing zone
+  for that country where there is one, a new zone where there is not - carrying
+  its price, free shipping threshold, title and tax status with it. Methods that
+  were switched off are left alone, and the old settings stay in the database.
 
 = 1.8.0 =
 * Terminal selection works on the block checkout. The dropdown was printed by a

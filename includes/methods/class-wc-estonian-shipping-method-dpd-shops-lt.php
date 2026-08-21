@@ -14,13 +14,13 @@ class WC_Estonian_Shipping_Method_DPD_Shops_LT extends WC_Estonian_Shipping_Meth
 	/**
 	 * Class constructor
 	 */
-	public function __construct() {
+	public function __construct( $instance_id = 0 ) {
 		// Identify method.
 		$this->id           = 'dpd_shops_lt';
 		$this->method_title = __( 'DPD Shops Lithuania', 'wc-estonian-shipping-methods' );
 
 		// Construct parent.
-		parent::__construct();
+		parent::__construct( $instance_id );
 
 		$this->country            = 'LT';
 		$this->terminals_template = 'dpd';

@@ -44,18 +44,29 @@ abstract class WC_Estonian_Shipping_Method extends WC_Shipping_Method {
 	 * @access public
 	 * @return void
 	 */
-	public function __construct() {
-		// Get the settings
-		$this->title                        = $this->get_option( 'title', $this->method_title );
-		$this->enabled                      = $this->get_option( 'enabled', 'no' );
-		$this->shipping_price               = $this->get_option( 'shipping_price', 0 );
-		$this->free_shipping_amount         = $this->get_option( 'free_shipping_amount', 0 );
-		$this->enable_free_shipping_coupons = $this->get_option( 'enable_free_shipping_coupons', 'no' ) == 'yes';
-		$this->tax_status                   = $this->get_option( 'tax_status', 0 );
+	public function __construct( $instance_id = 0 ) {
+		$this->instance_id = absint( $instance_id );
+
+		// A zone method: added to a shipping zone, configured there, and
+		// enabled or disabled by the zone rather than by a setting of its own.
+		// Every setting below belongs to the instance, so one shop can offer
+		// the same carrier at different prices in different zones.
+		$this->supports = array(
+			'shipping-zones',
+			'instance-settings',
+			'instance-settings-modal',
+		);
 
 		// Load the settings
 		$this->init_form_fields();
 		$this->init_settings();
+
+		// Get the settings
+		$this->title                        = $this->get_option( 'title', $this->method_title );
+		$this->shipping_price               = $this->get_option( 'shipping_price', 0 );
+		$this->free_shipping_amount         = $this->get_option( 'free_shipping_amount', 0 );
+		$this->enable_free_shipping_coupons = $this->get_option( 'enable_free_shipping_coupons', 'no' ) == 'yes';
+		$this->tax_status                   = $this->get_option( 'tax_status', 0 );
 
 		// Actions
 		add_action( 'woocommerce_update_options_shipping_' . $this->id, array( $this, 'process_admin_options' ) );
@@ -67,14 +78,11 @@ abstract class WC_Estonian_Shipping_Method extends WC_Shipping_Method {
 	 * @return void
 	 */
 	function init_form_fields() {
-		// Set fields
-		$this->form_fields = array(
-			'enabled'                  => array(
-				'title'                => __( 'Enable method', 'wc-estonian-shipping-methods' ),
-				'type'                 => 'checkbox',
-				'default'              => 'no',
-				'label'                => __( 'Enable', 'wc-estonian-shipping-methods' )
-			),
+		// Set fields. Instance fields: WooCommerce shows these in the zone's
+		// method modal, and get_option() reads them from the instance first.
+		// There is no "enabled" among them any more - a zone method is enabled
+		// by the zone.
+		$this->instance_form_fields = array(
 			'title'                    => array(
 				'title'                => __( 'Title', 'wc-estonian-shipping-methods' ),
 				'type'                 => 'text',

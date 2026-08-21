@@ -51,7 +51,7 @@ class WC_Estonian_Shipping_Method_Collect_Net extends WC_Estonian_Shipping_Metho
 	/**
 	 * Class constructor
 	 */
-	public function __construct() {
+	public function __construct( $instance_id = 0 ) {
 		// Identify method.
 		$this->id           = 'collect_net';
 		$this->method_title = __( 'Collect.net', 'wc-estonian-shipping-methods' );
@@ -60,7 +60,7 @@ class WC_Estonian_Shipping_Method_Collect_Net extends WC_Estonian_Shipping_Metho
 		add_filter( 'wc_shipping_' . $this->id . '_remote_request_args', array( $this, 'add_request_arguments' ), 10, 1 );
 
 		// Construct parent.
-		parent::__construct();
+		parent::__construct( $instance_id );
 
 		$this->country            = 'EE';
 		$this->terminals_template = 'collect-net';
@@ -83,8 +83,8 @@ class WC_Estonian_Shipping_Method_Collect_Net extends WC_Estonian_Shipping_Metho
 	 * Add some more fields
 	 */
 	public function add_extra_form_fields() {
-		$this->form_fields = array_merge(
-			$this->form_fields,
+		$this->instance_form_fields = array_merge(
+			$this->instance_form_fields,
 			array(
 				'submit_trigger'   => array(
 					'title'    => __( 'Order status', 'wc-estonian-shipping-methods' ),
@@ -119,7 +119,7 @@ class WC_Estonian_Shipping_Method_Collect_Net extends WC_Estonian_Shipping_Metho
 				// Fetch roles from API.
 				$roles = $this->fetch_user_roles();
 
-				$this->form_fields['collect_role_id'] = array(
+				$this->instance_form_fields['collect_role_id'] = array(
 					'title'    => __( 'User Role', 'wc-estonian-shipping-methods' ),
 					'type'     => 'select',
 					'default'  => '',

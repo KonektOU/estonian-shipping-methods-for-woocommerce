@@ -14,14 +14,14 @@ class WC_Estonian_Shipping_Method_Omniva_Post_Offices_EE extends WC_Estonian_Shi
 	/**
 	 * Class constructor
 	 */
-	function __construct() {
+	function __construct( $instance_id = 0 ) {
 		// Identify method
 		$this->id           = 'omniva_post_offices_ee';
 		$this->method_title = __( 'Omniva Post Offices Estonia', 'wc-estonian-shipping-methods' );
 		
 		
 		// Construct parent
-		parent::__construct();
+		parent::__construct( $instance_id );
 		$this->terminals_template = 'omniva-postoffice';
 
 		$this->country      = 'EE';

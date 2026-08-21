@@ -14,13 +14,13 @@ class WC_Estonian_Shipping_Method_Smartpost_Estonia extends WC_Estonian_Shipping
 	/**
 	 * Class constructor
 	 */
-	public function __construct() {
+	public function __construct( $instance_id = 0 ) {
 		// Identify method.
 		$this->id           = 'smartpost_estonia';
 		$this->method_title = __( 'Smartpost Estonia', 'wc-estonian-shipping-methods' );
 
 		// Construct parent.
-		parent::__construct();
+		parent::__construct( $instance_id );
 
 		// Set country.
 		$this->country        = 'EE';
@@ -36,8 +36,8 @@ class WC_Estonian_Shipping_Method_Smartpost_Estonia extends WC_Estonian_Shipping
 	 * @return void
 	 */
 	public function add_extra_form_fields() {
-		$this->form_fields = array_merge(
-			$this->form_fields,
+		$this->instance_form_fields = array_merge(
+			$this->instance_form_fields,
 			array(
 				'terminals_filter' => array(
 					'title'   => __( 'Terminals filter', 'wc-estonian-shipping-methods' ),
