@@ -1,0 +1,22 @@
+/**
+ * The terminal search, on both checkouts.
+ *
+ * Deliberately little: the input and the select should look like whatever the
+ * theme makes of the fields around them, and the count is a quiet aside.
+ */
+.wc-esm-terminals__search {
+	display: block;
+	width: 100%;
+	margin-bottom: .5em;
+	box-sizing: border-box;
+}
+
+.wc-esm-terminals__count {
+	margin: .4em 0 0;
+	font-size: .875em;
+	opacity: .8;
+}
+
+.wc-esm-terminals select {
+	width: 100%;
+}

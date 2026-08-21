@@ -148,7 +148,7 @@ abstract class WC_Estonian_Shipping_Method_Terminals extends WC_Estonian_Shippin
 		$chosen_shipping_methods = WC()->session->get( 'chosen_shipping_methods' );
 
 		// Check if ours is one of the selected methods
-		if ( ! empty( $chosen_shipping_methods ) && in_array( $this->id, $chosen_shipping_methods ) ) {
+		if ( ! empty( $chosen_shipping_methods ) && $this->is_chosen_method( $chosen_shipping_methods ) ) {
 			// Get selected terminal
 			$selected_terminal   = WC()->session->get( $this->field_name );
 
@@ -345,7 +345,7 @@ abstract class WC_Estonian_Shipping_Method_Terminals extends WC_Estonian_Shippin
 			// Be sure shipping method was posted
 			if( isset( $posted['shipping_method'] ) && is_array( $posted['shipping_method'] ) ) {
 				// Check if it was regular parcel terminal
-				if( in_array( $this->id, $posted['shipping_method'] ) ) {
+				if( $this->is_chosen_method( $posted['shipping_method'] ) ) {
 					// Add checkout error
 					wc_add_notice( __( 'Please select a parcel terminal', 'wc-estonian-shipping-methods' ), 'error' );
 				}

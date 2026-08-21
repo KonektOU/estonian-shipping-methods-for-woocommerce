@@ -191,6 +191,31 @@ abstract class WC_Estonian_Shipping_Method extends WC_Shipping_Method {
 	}
 
 	/**
+	 * Is this method one of the ones chosen?
+	 *
+	 * A zone method's rate is "id:instance" - omniva_parcel_machines_ee:1 -
+	 * where before it was just the id, so comparing the two with in_array()
+	 * stopped matching the moment these became zone methods, and with it went
+	 * the terminal dropdown on the classic checkout.
+	 *
+	 * @param array $rates Chosen shipping method rate ids.
+	 *
+	 * @return boolean
+	 */
+	public function is_chosen_method( $rates ) {
+		foreach ( (array) $rates as $rate ) {
+			$parts = explode( ':', (string) $rate );
+
+			if ( $this->id === $parts[0] ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+
+	/**
 	 * Get order shipping country
 	 *
 	 * @return string Shipping country code
@@ -239,7 +264,7 @@ abstract class WC_Estonian_Shipping_Method extends WC_Shipping_Method {
 			// Be sure shipping method was posted
 			if( isset( $posted['shipping_method'] ) && is_array( $posted['shipping_method'] ) ) {
 				// Check if it was regular parcel terminal
-				if( in_array( $this->id, $posted['shipping_method'] ) ) {
+				if( $this->is_chosen_method( $posted['shipping_method'] ) ) {
 					// Remove spaces
 					$phone_number        = str_replace( ' ' , '', $phone_number );
 					$have_country_prefix = substr( $phone_number, 0, 1 ) == '+';

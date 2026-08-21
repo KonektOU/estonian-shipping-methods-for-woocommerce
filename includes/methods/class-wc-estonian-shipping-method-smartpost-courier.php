@@ -106,7 +106,7 @@ class WC_Estonian_Shipping_Method_Smartpost_Courier extends WC_Estonian_Shipping
 		$chosen_shipping_methods = WC()->session->get( 'chosen_shipping_methods' );
 
 		// Check if ours is one of the selected methods
-		if( ! empty( $chosen_shipping_methods ) && in_array( $this->id, $chosen_shipping_methods ) ) {
+		if( ! empty( $chosen_shipping_methods ) && $this->is_chosen_method( $chosen_shipping_methods ) ) {
 			// Get selected window
 			$selected_window   = WC()->session->get( $this->field_name );
 
@@ -141,7 +141,7 @@ class WC_Estonian_Shipping_Method_Smartpost_Courier extends WC_Estonian_Shipping
 		if( isset( $_POST[ $this->field_name ] ) && $_POST[ $this->field_name ] == '' ) {
 			// Be sure shipping method was posted
 			if( isset( $posted['shipping_method'] ) && is_array( $posted['shipping_method'] ) ) {
-				if( in_array( $this->id, $posted['shipping_method'] ) ) {
+				if( $this->is_chosen_method( $posted['shipping_method'] ) ) {
 					// Add checkout error
 					wc_add_notice( __( 'Please select a courier timewindow', 'wc-estonian-shipping-methods' ), 'error' );
 				}

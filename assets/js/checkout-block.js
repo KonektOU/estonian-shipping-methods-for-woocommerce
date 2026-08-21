@@ -18,8 +18,10 @@
 
 	var el = wp.element.createElement;
 	var useEffect = wp.element.useEffect;
+	var useMemo = wp.element.useMemo;
 	var __ = wp.i18n && wp.i18n.__ ? wp.i18n.__ : function ( text ) { return text; };
 
+	var ComboboxControl = wp.components && wp.components.ComboboxControl ? wp.components.ComboboxControl : null;
 	var registerCheckoutBlock = wc.blocksCheckout.registerCheckoutBlock;
 	var extensionCartUpdate = wc.blocksCheckout.extensionCartUpdate;
 	var ValidationInputError = wc.blocksCheckout.ValidationInputError;
@@ -92,12 +94,35 @@
 
 		useTerminalValidation( needed, selected );
 
+		// WordPress ships a searchable combobox and the block checkout already
+		// loads it: filtering, keyboard handling and the ARIA plumbing come
+		// from there rather than from anything written here. Hundreds of
+		// terminals in a plain dropdown is a great deal of scrolling - Omniva
+		// alone is over four hundred.
+		var options = useMemo( function () {
+			var flat = [];
+
+			groups.forEach( function ( group ) {
+				( group.options || [] ).forEach( function ( option ) {
+					// The town, unless the terminal's name already says it -
+					// the combobox searches the label, so it has to be in there.
+					var label = option.label.toLowerCase().indexOf( group.label.toLowerCase() ) === -1
+						? group.label + ' – ' + option.label
+						: option.label;
+
+					flat.push( { value: option.value, label: label } );
+				} );
+			} );
+
+			return flat;
+		}, [ groups ] );
+
 		if ( ! needed ) {
 			return null;
 		}
 
-		var onChange = function ( event ) {
-			var value = event.target.value;
+		var onChange = function ( value ) {
+			value = value || '';
 
 			setExtensionData( NAMESPACE, 'terminal_id', value );
 
@@ -111,46 +136,39 @@
 			}
 		};
 
-		var options = [
-			el( 'option', { value: '', key: 'none' }, __( '- Choose terminal -', 'wc-estonian-shipping-methods' ) ),
-		];
-
-		groups.forEach( function ( group, groupIndex ) {
-			options.push(
-				el(
-					'optgroup',
-					{ label: group.label, key: 'group-' + groupIndex },
-					( group.options || [] ).map( function ( option ) {
-						return el( 'option', { value: option.value, key: option.value }, option.label );
-					} )
-				)
-			);
-		} );
-
-		// WooCommerce's own select markup, so the terminal list looks like
-		// every other control in the checkout rather than a bare dropdown.
 		return el(
 			'div',
 			{ className: 'wc-block-components-shipping-rates-control wc-esm-terminals' },
-			el(
-				'div',
-				{ className: 'wc-blocks-components-select' },
-				el(
-					'div',
-					{ className: 'wc-blocks-components-select__container' },
-					el(
-						'label',
-						{ className: 'wc-blocks-components-select__label', htmlFor: 'wc-esm-terminal' },
-						data.label || __( 'Choose terminal', 'wc-estonian-shipping-methods' )
-					),
-					el( 'select', {
+			ComboboxControl
+				? el( ComboboxControl, {
+					className: 'wc-esm-terminals__combobox',
+					label: data.label || __( 'Choose terminal', 'wc-estonian-shipping-methods' ),
+					placeholder: __( 'Search by town or terminal name', 'wc-estonian-shipping-methods' ),
+					value: selected,
+					options: options,
+					onChange: onChange,
+					allowReset: false,
+					__next40pxDefaultSize: true,
+					__nextHasNoMarginBottom: true,
+				} )
+				// Nothing to fall back on but a plain dropdown, which is what
+				// this was before the combobox existed.
+				: el(
+					'select',
+					{
 						id: 'wc-esm-terminal',
 						className: 'wc-blocks-components-select__select',
 						value: selected,
-						onChange: onChange,
-					}, options )
-				)
-			),
+						onChange: function ( event ) {
+							onChange( event.target.value );
+						},
+					},
+					[ el( 'option', { value: '', key: 'none' }, __( '- Choose terminal -', 'wc-estonian-shipping-methods' ) ) ].concat(
+						options.map( function ( option ) {
+							return el( 'option', { value: option.value, key: option.value }, option.label );
+						} )
+					)
+				),
 			ValidationInputError ? el( ValidationInputError, { propertyName: VALIDATION_ERROR_ID } ) : null
 		);
 	};

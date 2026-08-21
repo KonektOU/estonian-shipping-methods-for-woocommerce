@@ -3,7 +3,7 @@ Contributors: konektou, ristoniinemets
 Tags: WooCommerce, shipping method, Estonia, smartpost, dpd, pakiautomaat, courier, omniva
 Requires at least: 4.1
 Tested up to: 6.1.1
-Stable tag: 1.9.0
+Stable tag: 1.10.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -50,6 +50,16 @@ Since version 1.5.1 we have added an action that you could add to your code:
 `do_action( 'wc_estonian_shipping_method_show_terminal', $order_id );`
 
 == Changelog ==
+
+= 1.10.0 =
+* The terminal list is searchable on both checkouts. A parcel terminal list runs
+  to hundreds of entries, which is a lot of scrolling to find the one down the
+  road. Nothing new is loaded to do it: the block checkout uses WordPress's own
+  combobox and the classic one uses selectWoo, which WooCommerce already ships
+  for its country and state fields.
+* Fixes the terminal dropdown not appearing on the classic checkout after 1.9.0.
+  A zone method's rate is "id:instance" where it used to be just "id", so the
+  check for "is this the chosen method" stopped matching.
 
 = 1.9.0 =
 * The shipping methods are shipping zone methods now: added to a zone, priced

@@ -3,7 +3,7 @@
  * Plugin Name: Estonian Shipping Methods for WooCommerce
  * Plugin URI: https://github.com/KonektOU/estonian-shipping-methods-for-woocommerce
  * Description: Extends WooCommerce with most commonly used Estonian shipping methods.
- * Version: 1.9.0
+ * Version: 1.10.0
  * Author: Konekt OÜ
  * Author URI: https://www.konekt.ee
  * Developer: Risto Niinemets
@@ -34,7 +34,7 @@ define( 'WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH', plugin_dir_path( WC_ESTONI
 /**
  * Plugin path and URL, for the checkout block's scripts
  */
-define( 'WC_ESTONIAN_SHIPPING_METHODS_VERSION', '1.9.0' );
+define( 'WC_ESTONIAN_SHIPPING_METHODS_VERSION', '1.10.0' );
 define( 'WC_ESTONIAN_SHIPPING_METHODS_PATH', untrailingslashit( plugin_dir_path( WC_ESTONIAN_SHIPPING_METHODS_MAIN_FILE ) ) );
 define( 'WC_ESTONIAN_SHIPPING_METHODS_PLUGIN_URL', untrailingslashit( plugin_dir_url( WC_ESTONIAN_SHIPPING_METHODS_MAIN_FILE ) ) );
 
@@ -124,6 +124,53 @@ class Estonian_Shipping_Methods_For_WooCommerce {
 		// early" for anything asked for before init - which this was, on every
 		// request the site served.
 		add_action( 'init', array( $this, 'add_terminals_hooks' ), 5 );
+
+		// The terminal search, for the classic checkout. The block checkout
+		// brings its own with the block; the stylesheet is shared.
+		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_checkout_assets' ) );
+	}
+
+	/**
+	 * Terminal search on the checkout.
+	 *
+	 * A parcel terminal list runs to hundreds of entries - Omniva Estonia alone
+	 * is over four hundred - which is a great deal of scrolling to find the one
+	 * down the road. The list is already on the page, so the search filters it
+	 * where it stands, without asking anybody's server.
+	 *
+	 * @return void
+	 */
+	public function enqueue_checkout_assets() {
+		if ( ! function_exists( 'is_checkout' ) || ! is_checkout() ) {
+			return;
+		}
+
+		wp_enqueue_style(
+			'wc-estonian-shipping-terminals',
+			WC_ESTONIAN_SHIPPING_METHODS_PLUGIN_URL . '/assets/css/checkout-terminals.css',
+			array(),
+			WC_ESTONIAN_SHIPPING_METHODS_VERSION
+		);
+
+		wp_enqueue_script(
+			'wc-estonian-shipping-terminals-search',
+			WC_ESTONIAN_SHIPPING_METHODS_PLUGIN_URL . '/assets/js/terminals-search.js',
+			array(),
+			WC_ESTONIAN_SHIPPING_METHODS_VERSION,
+			true
+		);
+
+		wp_localize_script(
+			'wc-estonian-shipping-terminals-search',
+			'wcEsmTerminals',
+			array(
+				'searchPlaceholder' => __( 'Search by town or terminal name', 'wc-estonian-shipping-methods' ),
+				'searchLabel'       => __( 'Search terminals', 'wc-estonian-shipping-methods' ),
+				/* translators: %d: number of terminals matching the search. */
+				'found'             => __( '%d terminals found', 'wc-estonian-shipping-methods' ),
+				'nothingFound'      => __( 'No terminals match that search.', 'wc-estonian-shipping-methods' ),
+			)
+		);
 	}
 
 	/**
