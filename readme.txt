@@ -1,9 +1,12 @@
 === Estonian Shipping Methods for WooCommerce ===
 Contributors: konektou, ristoniinemets
 Tags: WooCommerce, shipping method, Estonia, smartpost, dpd, pakiautomaat, courier, omniva
-Requires at least: 4.1
-Tested up to: 6.1.1
-Stable tag: 1.10.0
+Requires at least: 6.0
+Tested up to: 7.0
+Requires PHP: 7.4
+WC requires at least: 7.0
+WC tested up to: 11.0
+Stable tag: 1.11.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -50,6 +53,14 @@ Since version 1.5.1 we have added an action that you could add to your code:
 `do_action( 'wc_estonian_shipping_method_show_terminal', $order_id );`
 
 == Changelog ==
+
+= 1.11.0 =
+* A method can be limited to shipping classes, or to a maximum cart weight, so
+  a parcel terminal is not offered for a wardrobe. Both are per zone method and
+  empty by default, which is how every existing method behaves today. Asked for
+  in GitHub issues #11, #29 and #30.
+* Header versions say what this has actually been tested against: WordPress 7.0,
+  WooCommerce 11.0, PHP 7.4 and up.
 
 = 1.10.0 =
 * The terminal list is searchable on both checkouts. A parcel terminal list runs

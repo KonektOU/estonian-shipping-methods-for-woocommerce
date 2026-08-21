@@ -113,6 +113,28 @@ abstract class WC_Estonian_Shipping_Method extends WC_Shipping_Method {
 				'label'                    => __( 'Enable', 'wc-estonian-shipping-methods' ),
 				'description'              => sprintf( __( 'Enable this if you want to make this shipping method free of charge when free shipping coupon is applied to customer&rsquo;s cart. Read more about free shipping and coupons from %s.', 'wc-estonian-shipping-methods' ), sprintf( '<a href="https://docs.woocommerce.com/document/free-shipping/#section-2" target="_blank">%s</a>', __( 'WooCommerce&rsquo;s documentation', 'wc-estonian-shipping-methods' ) ) )
 			),
+			'shipping_classes'         => array(
+				'title'                => __( 'Only for shipping classes', 'wc-estonian-shipping-methods' ),
+				'type'                 => 'multiselect',
+				'class'                => 'wc-enhanced-select',
+				'css'                  => 'width: 400px;',
+				'default'              => '',
+				'options'              => $this->get_shipping_class_options(),
+				'description'          => __( 'Offer this method only when everything in the cart is in one of these classes. Leave empty to offer it for everything.', 'wc-estonian-shipping-methods' ),
+				'desc_tip'             => true,
+			),
+			'max_weight'               => array(
+				'title'                => sprintf(
+					/* translators: %s: the shop's weight unit, e.g. kg. */
+					__( 'Maximum cart weight (%s)', 'wc-estonian-shipping-methods' ),
+					esc_html( get_option( 'woocommerce_weight_unit', 'kg' ) )
+				),
+				'type'                 => 'text',
+				'default'              => '',
+				'placeholder'          => __( 'No limit', 'wc-estonian-shipping-methods' ),
+				'description'          => __( 'Hide this method when the cart weighs more than this. A parcel terminal will not take everything a courier will. Leave empty for no limit.', 'wc-estonian-shipping-methods' ),
+				'desc_tip'             => true,
+			),
 			'tax_status'               => array(
 				'title'                => __( 'Tax status', 'wc-estonian-shipping-methods' ),
 				'type'                 => 'select',
@@ -138,7 +160,64 @@ abstract class WC_Estonian_Shipping_Method extends WC_Shipping_Method {
 	 * @return bool
 	 */
 	public function is_available( $package = array() ) {
-		return ! ( 'no' === $this->enabled ) && ( ! isset( $this->country ) || ( isset( $this->country ) && isset( $package['destination'] ) && isset( $package['destination']['country'] ) && $package['destination']['country'] == $this->country ) );
+		$available = ! ( 'no' === $this->enabled )
+			&& ( ! isset( $this->country ) || ( isset( $this->country ) && isset( $package['destination'] ) && isset( $package['destination']['country'] ) && $package['destination']['country'] == $this->country ) );
+
+		if ( $available ) {
+			$available = $this->is_available_for_contents( $package );
+		}
+
+		return apply_filters( 'woocommerce_shipping_' . $this->id . '_is_available', $available, $package, $this );
+	}
+
+
+	/**
+	 * Whether this method will carry what is in the cart.
+	 *
+	 * A parcel terminal will not take a wardrobe, and shops have been asking
+	 * for a way to say so since 2018 - by shipping class, or by weight, or
+	 * both. Empty settings mean no restriction, which is what every existing
+	 * method has.
+	 *
+	 * @param array $package Shipping package.
+	 *
+	 * @return boolean
+	 */
+	public function is_available_for_contents( $package = array() ) {
+		$classes = (array) $this->get_option( 'shipping_classes', array() );
+		$classes = array_filter( array_map( 'absint', $classes ) );
+
+		$max_weight = (float) $this->get_option( 'max_weight', 0 );
+		$weight     = 0;
+
+		foreach ( (array) ( $package['contents'] ?? array() ) as $item ) {
+			if ( empty( $item['data'] ) || ! is_a( $item['data'], 'WC_Product' ) ) {
+				continue;
+			}
+
+			/** @var \WC_Product $product */
+			$product  = $item['data'];
+			$quantity = isset( $item['quantity'] ) ? (int) $item['quantity'] : 1;
+
+			// Every product has to be one this method carries: a cart with one
+			// wardrobe in it cannot go to a parcel terminal, however small the
+			// rest of it is.
+			if ( ! empty( $classes ) && ! in_array( (int) $product->get_shipping_class_id(), $classes, true ) ) {
+				return false;
+			}
+
+			if ( $max_weight > 0 && $product->has_weight() ) {
+				// In the shop's own weight unit, which is the unit the setting
+				// is labelled with and the unit these products are weighed in.
+				$weight += (float) $product->get_weight() * $quantity;
+			}
+		}
+
+		if ( $max_weight > 0 && $weight > $max_weight ) {
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
@@ -189,6 +268,37 @@ abstract class WC_Estonian_Shipping_Method extends WC_Shipping_Method {
 
 		$this->add_rate( $args );
 	}
+
+	/**
+	 * The shop's shipping classes, for the setting above.
+	 *
+	 * @return array class id => name.
+	 */
+	protected function get_shipping_class_options() {
+		$options = array();
+
+		// Straight from the taxonomy, not from WC()->shipping(): these fields
+		// are built while WooCommerce is initialising its shipping methods, and
+		// asking WC()->shipping() there sends it round the same loop until the
+		// memory runs out.
+		$classes = get_terms(
+			array(
+				'taxonomy'   => 'product_shipping_class',
+				'hide_empty' => false,
+			)
+		);
+
+		if ( is_wp_error( $classes ) ) {
+			return $options;
+		}
+
+		foreach ( (array) $classes as $shipping_class ) {
+			$options[ $shipping_class->term_id ] = $shipping_class->name;
+		}
+
+		return $options;
+	}
+
 
 	/**
 	 * Is this method one of the ones chosen?

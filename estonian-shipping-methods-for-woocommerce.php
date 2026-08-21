@@ -3,15 +3,18 @@
  * Plugin Name: Estonian Shipping Methods for WooCommerce
  * Plugin URI: https://github.com/KonektOU/estonian-shipping-methods-for-woocommerce
  * Description: Extends WooCommerce with most commonly used Estonian shipping methods.
- * Version: 1.10.0
+ * Version: 1.11.0
  * Author: Konekt OÜ
  * Author URI: https://www.konekt.ee
  * Developer: Risto Niinemets
  * Developer URI: https://www.konekt.ee
  * Text Domain: wc-estonian-shipping-methods
  * Domain Path: /languages
- * WC requires at least: 3.3
- * WC tested up to: 7.5.1
+ * Requires at least: 6.0
+ * Tested up to: 7.0
+ * Requires PHP: 7.4
+ * WC requires at least: 7.0
+ * WC tested up to: 11.0
  *
  * @package Estonian_Shipping_Methods_For_WooCommerce
  */
@@ -34,7 +37,7 @@ define( 'WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH', plugin_dir_path( WC_ESTONI
 /**
  * Plugin path and URL, for the checkout block's scripts
  */
-define( 'WC_ESTONIAN_SHIPPING_METHODS_VERSION', '1.10.0' );
+define( 'WC_ESTONIAN_SHIPPING_METHODS_VERSION', '1.11.0' );
 define( 'WC_ESTONIAN_SHIPPING_METHODS_PATH', untrailingslashit( plugin_dir_path( WC_ESTONIAN_SHIPPING_METHODS_MAIN_FILE ) ) );
 define( 'WC_ESTONIAN_SHIPPING_METHODS_PLUGIN_URL', untrailingslashit( plugin_dir_url( WC_ESTONIAN_SHIPPING_METHODS_MAIN_FILE ) ) );
 
