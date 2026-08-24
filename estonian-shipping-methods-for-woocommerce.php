@@ -83,6 +83,9 @@ class Estonian_Shipping_Methods_For_WooCommerce {
 
 		// Collect.net.
 		'WC_Estonian_Shipping_Method_Collect_Net' => false,
+
+		// Cleveron.
+		'WC_Estonian_Shipping_Method_Cleveron_Office' => false,
 	);
 
 	/**
@@ -216,10 +219,18 @@ class Estonian_Shipping_Methods_For_WooCommerce {
 		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/methods/class-wc-estonian-shipping-method-dpd-shops-lt.php';
 
 		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/methods/class-wc-estonian-shipping-method-collect-net.php';
+
+		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/methods/class-wc-estonian-shipping-method-cleveron-office.php';
 	}
 
 	/**
 	 * Add hooks even when shipping might not be inited. Adds compatibility with lots of plugins.
+	 *
+	 * A method that is not a terminal list may still need hooks of its own -
+	 * an order can change status in a request that never touches the cart, a
+	 * REST call or WP-CLI among them, and WooCommerce does not initialise
+	 * shipping there. Anything declaring add_actions() gets the same chance
+	 * the terminal methods already had.
 	 *
 	 * @return void
 	 */
@@ -228,6 +239,9 @@ class Estonian_Shipping_Methods_For_WooCommerce {
 			if ( is_subclass_of( $method_id, 'WC_Estonian_Shipping_Method_Terminals' ) ) {
 				$method = new $method_id();
 				$method->add_terminals_hooks();
+			} elseif ( method_exists( $method_id, 'add_actions' ) ) {
+				$method = new $method_id();
+				$method->add_actions();
 			}
 		}
 	}
