@@ -135,74 +135,6 @@ msgstr "Nav"
 msgid "Please add country prefix to the phone number (eg. +372)."
 msgstr "Lūdzu pievienojat valsts kodu pie telefona numura (piemēram, +371)"
 
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:42
-msgid "Collect.net"
-msgstr "Collect.net"
-
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:55
-msgid "Chosen packrobot"
-msgstr "Izvēlētais pakomāts"
-
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:75
-msgid "Order status"
-msgstr "Pasūtījuma statuss"
-
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:78
-msgid ""
-"Which order status will submit the data from WooCommerce to Collect.net "
-"application"
-msgstr ""
-"Kāds pasūtījuma statuss aizsūtīs datus no WooCommerce uz Collect.net "
-"aplikāciju."
-
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:80
-msgid "Processing"
-msgstr "Apstrādā"
-
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:81
-msgid "Completed"
-msgstr "Pabeigts"
-
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:85
-msgid "Collect.net username"
-msgstr "Collect.net lietotājvārds"
-
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:89
-msgid "Collect.net password"
-msgstr "Collect.net parole"
-
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:102
-msgid "User Role"
-msgstr "Lietotāja loma"
-
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:105
-msgid "Which user role will be used to create tickets for Collect.net"
-msgstr ""
-"Kāda lietotāja loma tiks izmantota, lai izveidotu biļeti priekš Collect.net"
-
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:212
-#, php-format
-msgid "%s: Ticket created with ID %d."
-msgstr "%s: Biļete izveidota ar ID %d."
-
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:220
-#, php-format
-msgid "%s: Ticket creation failed: %s"
-msgstr "%s: Biļetes izveidošana neizdevās: %s"
-
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:235
-#, php-format
-msgid ""
-"%s: Could not create a session with entered credentials. %s to review your "
-"settings."
-msgstr ""
-"%s: Nevarēja izveidot sesiju izmantojot Jūsu datus. %s, lai apskatītu Jūsu "
-"iestatījumus"
-
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:235
-msgid "Click here"
-msgstr "Spied šeit"
-
 #: includes/methods/class-wc-estonian-shipping-method-dpd-shops-ee.php:20
 msgid "DPD Shops Estonia"
 msgstr "DPD Paku bode Igaunija"
@@ -283,15 +215,6 @@ msgstr "Tikai pasta iestādes"
 #: includes/methods/class-wc-estonian-shipping-method-smartpost-finland.php:42
 msgid "Both"
 msgstr "Abas"
-
-#: woocommerce/checkout/form-shipping-collect-net.php:2
-msgid "Choose packrobot"
-msgstr "Izvēlaties pakomātu"
-
-#: woocommerce/checkout/form-shipping-collect-net.php:5
-msgctxt "empty value label for terminals"
-msgid "- Choose packrobot -"
-msgstr "- Izvēlaties pakomātu -"
 
 #: woocommerce/checkout/form-shipping-dpd.php:2
 #: woocommerce/checkout/form-shipping-omniva.php:2

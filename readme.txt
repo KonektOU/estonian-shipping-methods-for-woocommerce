@@ -6,7 +6,7 @@ Tested up to: 7.0
 Requires PHP: 7.4
 WC requires at least: 7.0
 WC tested up to: 11.0
-Stable tag: 1.11.2
+Stable tag: 1.12.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -21,7 +21,7 @@ This plugin consists of several Estonian shipping methods:
 *   Omniva post offices (Estonia)
 *   SmartPOST parcel terminals (Estonia, Finland, Latvia, Lithuania)
 *   SmartPOST courier
-*   Collect.net packrobots (Estonia)
+*   Cleveron Office packrobots (Estonia)
 
 Supports WPML for multilingual sites. Current translations:
 
@@ -53,6 +53,16 @@ Since version 1.5.1 we have added an action that you could add to your code:
 `do_action( 'wc_estonian_shipping_method_show_terminal', $order_id );`
 
 == Changelog ==
+
+= 1.12.0 =
+* Collect.net is gone. The service's API has moved on from what this plugin
+  talks to, and the method spent its time making requests that no longer lead
+  anywhere - on every admin page load, and again on every shipping calculation
+  at the checkout. A shop that still has it in a shipping zone will find the
+  method missing from that zone after the update; its old settings stay in the
+  database and nothing is removed from orders that already used it.
+* Cleveron Office is a shipping zone method, priced and enabled per zone like
+  the rest of them.
 
 = 1.11.2 =
 * The terminal search box on the block checkout no longer has the "Choose
@@ -195,3 +205,10 @@ Since version 1.5.1 we have added an action that you could add to your code:
 
 = 1.0 =
 * Release
+
+== Upgrade Notice ==
+
+= 1.12.0 =
+Collect.net is removed - its API no longer answers what this plugin asked of
+it. If you offer Collect.net in a shipping zone, that method disappears from
+the zone when you update. Every other method is unaffected.

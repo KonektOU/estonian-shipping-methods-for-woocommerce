@@ -25,7 +25,7 @@
 - Omniva post offices (Estonia)
 - SmartPOST parcel terminals (Estonia, Finland, Latvia, Lithuania)
 - SmartPOST courier
-- Collect.net packrobots (Estonia)
+- Cleveron Office packrobots (Estonia)
 
 
 ## Multilingual (WPML support) ##

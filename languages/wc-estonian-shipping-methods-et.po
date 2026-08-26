@@ -134,85 +134,6 @@ msgstr "Ilma maksudeta"
 msgid "Please add country prefix to the phone number (eg. +372)."
 msgstr "Palun lisage telefoni numbrile riigi eesliide (näiteks +372)."
 
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:50
-msgid "Collect.net"
-msgstr "Collect.net pakirobotid"
-
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:63
-msgid "Chosen packrobot"
-msgstr "Valitud pakirobot"
-
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:83
-msgid "Order status"
-msgstr "Tellimuse staatus"
-
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:86
-msgid ""
-"Which order status will submit the data from WooCommerce to Collect.net "
-"application"
-msgstr ""
-"Millise tellimuse staatuse saavutamisel saadetakse informatsioon Collect.net "
-"iseteenindusse"
-
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:88
-msgid "Processing"
-msgstr "Töötluses"
-
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:89
-msgid "Completed"
-msgstr "Täidetud"
-
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:93
-msgid "Collect.net username"
-msgstr "Collect.net kasutajanimi"
-
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:97
-msgid "Collect.net password"
-msgstr "Collect.net salasõna"
-
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:101
-msgid "Hold days"
-msgstr "Hoiuaeg päevades"
-
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:103
-msgid ""
-"Defines for how many days the package will be held in PUDO point. After the "
-"days it will be automatically returned to sender."
-msgstr ""
-"Hoiuaeg määrab paki hoiustamise aja päevades. Hoiuaja möödudes tagastatakse "
-"pakk saatjale."
-
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:116
-msgid "User Role"
-msgstr "Kasutaja roll"
-
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:119
-msgid "Which user role will be used to create tickets for Collect.net"
-msgstr ""
-"Millise kasutaja rolli alla luuakse Collect.net keskkonda tellimuste piletid"
-
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:229
-#, php-format
-msgid "%1$s: Ticket created with ID %2$d."
-msgstr "%1$s: Pilet IDga %2$d on loodud."
-
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:237
-#, php-format
-msgid "%1$s: Ticket creation failed: %2$s"
-msgstr "%1$s: Pileti loomine ebaõnnestus: %2$s"
-
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:252
-#, php-format
-msgid ""
-"%s: Could not create a session with entered credentials. %s to review your "
-"settings."
-msgstr ""
-"%s: Sessiooni loomine iseteenindusega ebaõnnestus. %s, et muuta seadistusi."
-
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:252
-msgid "Click here"
-msgstr "Vajuta siia"
-
 #: includes/methods/class-wc-estonian-shipping-method-dpd-shops-ee.php:20
 msgid "DPD Shops Estonia"
 msgstr "DPD Eesti pakipoed"
@@ -297,15 +218,6 @@ msgstr "Ainult postkontorid"
 #: includes/methods/class-wc-estonian-shipping-method-smartpost-finland.php:42
 msgid "Both"
 msgstr "Mõlemad"
-
-#: woocommerce/checkout/form-shipping-collect-net.php:2
-msgid "Choose packrobot"
-msgstr "Vali pakirobot"
-
-#: woocommerce/checkout/form-shipping-collect-net.php:5
-msgctxt "empty value label for terminals"
-msgid "- Choose packrobot -"
-msgstr "- Vali pakirobot -"
 
 #: woocommerce/checkout/form-shipping-dpd.php:2
 #: woocommerce/checkout/form-shipping-omniva.php:2

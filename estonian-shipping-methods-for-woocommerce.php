@@ -3,7 +3,7 @@
  * Plugin Name: Estonian Shipping Methods for WooCommerce
  * Plugin URI: https://github.com/KonektOU/estonian-shipping-methods-for-woocommerce
  * Description: Extends WooCommerce with most commonly used Estonian shipping methods.
- * Version: 1.11.2
+ * Version: 1.12.0
  * Author: Konekt OÜ
  * Author URI: https://www.konekt.ee
  * Developer: Risto Niinemets
@@ -37,7 +37,7 @@ define( 'WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH', plugin_dir_path( WC_ESTONI
 /**
  * Plugin path and URL, for the checkout block's scripts
  */
-define( 'WC_ESTONIAN_SHIPPING_METHODS_VERSION', '1.11.2' );
+define( 'WC_ESTONIAN_SHIPPING_METHODS_VERSION', '1.12.0' );
 define( 'WC_ESTONIAN_SHIPPING_METHODS_PATH', untrailingslashit( plugin_dir_path( WC_ESTONIAN_SHIPPING_METHODS_MAIN_FILE ) ) );
 define( 'WC_ESTONIAN_SHIPPING_METHODS_PLUGIN_URL', untrailingslashit( plugin_dir_url( WC_ESTONIAN_SHIPPING_METHODS_MAIN_FILE ) ) );
 
@@ -80,9 +80,6 @@ class Estonian_Shipping_Methods_For_WooCommerce {
 		'WC_Estonian_Shipping_Method_DPD_Shops_EE' => false,
 		'WC_Estonian_Shipping_Method_DPD_Shops_LV' => false,
 		'WC_Estonian_Shipping_Method_DPD_Shops_LT' => false,
-
-		// Collect.net.
-		'WC_Estonian_Shipping_Method_Collect_Net' => false,
 
 		// Cleveron.
 		'WC_Estonian_Shipping_Method_Cleveron_Office' => false,
@@ -217,8 +214,6 @@ class Estonian_Shipping_Methods_For_WooCommerce {
 		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/methods/class-wc-estonian-shipping-method-dpd-shops-ee.php';
 		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/methods/class-wc-estonian-shipping-method-dpd-shops-lv.php';
 		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/methods/class-wc-estonian-shipping-method-dpd-shops-lt.php';
-
-		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/methods/class-wc-estonian-shipping-method-collect-net.php';
 
 		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/methods/class-wc-estonian-shipping-method-cleveron-office.php';
 	}

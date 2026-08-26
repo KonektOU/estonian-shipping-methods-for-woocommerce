@@ -131,79 +131,6 @@ msgstr ""
 msgid "Please add country prefix to the phone number (eg. +372)."
 msgstr ""
 
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:50
-msgid "Collect.net"
-msgstr ""
-
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:63
-msgid "Chosen packrobot"
-msgstr ""
-
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:83
-msgid "Order status"
-msgstr ""
-
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:86
-msgid ""
-"Which order status will submit the data from WooCommerce to Collect.net "
-"application"
-msgstr ""
-
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:88
-msgid "Processing"
-msgstr ""
-
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:89
-msgid "Completed"
-msgstr ""
-
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:93
-msgid "Collect.net username"
-msgstr ""
-
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:97
-msgid "Collect.net password"
-msgstr ""
-
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:101
-msgid "Hold days"
-msgstr ""
-
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:103
-msgid ""
-"Defines for how many days the package will be held in PUDO point. After "
-"the days it will be automatically returned to sender."
-msgstr ""
-
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:116
-msgid "User Role"
-msgstr ""
-
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:119
-msgid "Which user role will be used to create tickets for Collect.net"
-msgstr ""
-
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:229
-#, php-format
-msgid "%1$s: Ticket created with ID %2$d."
-msgstr ""
-
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:237
-#, php-format
-msgid "%1$s: Ticket creation failed: %2$s"
-msgstr ""
-
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:252
-#, php-format
-msgid ""
-"%s: Could not create a session with entered credentials. %s to review "
-"your settings."
-msgstr ""
-
-#: includes/methods/class-wc-estonian-shipping-method-collect-net.php:252
-msgid "Click here"
-msgstr ""
-
 #: includes/methods/class-wc-estonian-shipping-method-dpd-shops-ee.php:20
 msgid "DPD Shops Estonia"
 msgstr ""
@@ -287,15 +214,6 @@ msgstr ""
 
 #: includes/methods/class-wc-estonian-shipping-method-smartpost-finland.php:42
 msgid "Both"
-msgstr ""
-
-#: woocommerce/checkout/form-shipping-collect-net.php:2
-msgid "Choose packrobot"
-msgstr ""
-
-#: woocommerce/checkout/form-shipping-collect-net.php:5
-msgctxt "empty value label for terminals"
-msgid "- Choose packrobot -"
 msgstr ""
 
 #: woocommerce/checkout/form-shipping-dpd.php:2
