@@ -63,6 +63,12 @@ Since version 1.5.1 we have added an action that you could add to your code:
   database and nothing is removed from orders that already used it.
 * Cleveron Office is a shipping zone method, priced and enabled per zone like
   the rest of them.
+* A carrier that cannot be reached no longer costs a request per visitor. The
+  terminal list used to be re-fetched on every checkout while the carrier was
+  down, because the empty result of a failed request was written to the cache
+  and an empty cache read as no cache at all. A failed fetch is now left out of
+  the cache, the last list the carrier gave is served in its place, and the
+  carrier is left alone for five minutes before being asked again.
 
 = 1.11.2 =
 * The terminal search box on the block checkout no longer has the "Choose

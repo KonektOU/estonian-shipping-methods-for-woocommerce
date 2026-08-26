@@ -54,6 +54,11 @@ abstract class WC_Estonian_Shipping_Method_DPD_Shops extends WC_Estonian_Shippin
 			return $cached_terminals;
 		}
 
+		// A fetch that just failed is not worth repeating for every visitor.
+		if ( $this->terminals_fetch_recently_failed() ) {
+			return $this->get_terminals_fallback();
+		}
+
 		$filter_country = $filter_country ? $filter_country : $this->get_shipping_country();
 		$locations      = array();
 
@@ -67,18 +72,22 @@ abstract class WC_Estonian_Shipping_Method_DPD_Shops extends WC_Estonian_Shippin
 		);
 		$terminals_request = $this->request_remote_url( $this->get_terminals_url(), 'GET', null, $request_args );
 
-		if ( true === $terminals_request['success'] ) {
-			$terminals = json_decode( $terminals_request['data'] );
+		$terminals = true === $terminals_request['success'] ? json_decode( $terminals_request['data'] ) : null;
 
-			foreach ( $terminals as $data ) {
-				$locations[] = (object) array(
-					'place_id' => $data->id,
-					'zipcode'  => $data->address->postalCode,
-					'name'     => $data->name,
-					'address'  => sprintf( '%s, %s', $data->address->street, $data->address->city ),
-					'city'     => $data->address->city,
-				);
-			}
+		// Nothing usable came back. An empty list is not the carrier's answer,
+		// so it is not cached as one.
+		if ( ! is_array( $terminals ) ) {
+			return $this->handle_failed_terminals_fetch();
+		}
+
+		foreach ( $terminals as $data ) {
+			$locations[] = (object) array(
+				'place_id' => $data->id,
+				'zipcode'  => $data->address->postalCode,
+				'name'     => $data->name,
+				'address'  => sprintf( '%s, %s', $data->address->street, $data->address->city ),
+				'city'     => $data->address->city,
+			);
 		}
 
 		// Save terminals to cache.

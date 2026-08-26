@@ -30,6 +30,12 @@ abstract class WC_Estonian_Shipping_Method_Terminals extends WC_Estonian_Shippin
 	public $terminals = array();
 
 	/**
+	 * Seconds to leave a carrier alone after a fetch that failed
+	 * @var integer
+	 */
+	protected $terminals_retry_delay = 300;
+
+	/**
 	 * Meta and input field name
 	 * @var string
 	 */
@@ -545,8 +551,11 @@ abstract class WC_Estonian_Shipping_Method_Terminals extends WC_Estonian_Shippin
 		// Fetch transient cache
 		$terminals_transient = get_transient( $this->get_terminals_cache_transient_name() );
 
-		// Check if terminals transient exists
-		if ( $terminals_transient ) {
+		// A carrier that answers with nothing has still answered, and that
+		// answer is worth caching for the day like any other. get_transient()
+		// says false when there is no cache at all, which is the only thing
+		// that should send us back out to the API.
+		if ( false !== $terminals_transient ) {
 			// Return cached terminals
 			return $terminals_transient;
 		}
@@ -564,6 +573,85 @@ abstract class WC_Estonian_Shipping_Method_Terminals extends WC_Estonian_Shippin
 	function save_terminals_cache( $terminals ) {
 		// Set transient for cache
 		set_transient( $this->get_terminals_cache_transient_name(), $terminals, 86400 );
+
+		// And keep a copy well past the day the cache lives, to fall back on
+		// when the next fetch cannot reach the carrier.
+		set_transient( $this->get_terminals_fallback_transient_name(), $terminals, MONTH_IN_SECONDS );
+	}
+
+	/**
+	 * Transient holding the last list the carrier gave us
+	 *
+	 * @return string Transient name
+	 */
+	function get_terminals_fallback_transient_name() {
+		return $this->get_terminals_cache_transient_name() . '_last_good';
+	}
+
+	/**
+	 * Transient marking a fetch that did not come back
+	 *
+	 * @return string Transient name
+	 */
+	function get_terminals_failure_transient_name() {
+		return $this->get_terminals_cache_transient_name() . '_failed';
+	}
+
+	/**
+	 * How long to leave a carrier alone after a fetch that failed
+	 *
+	 * Short enough that a blip costs one stale checkout, long enough that a
+	 * carrier which is properly down is not asked again by every visitor.
+	 *
+	 * @return integer Seconds
+	 */
+	function get_terminals_retry_delay() {
+		return (int) apply_filters( 'wc_shipping_' . $this->id . '_terminals_retry_delay', $this->terminals_retry_delay );
+	}
+
+	/**
+	 * Remember that a fetch failed
+	 *
+	 * @return void
+	 */
+	function save_terminals_fetch_failure() {
+		set_transient( $this->get_terminals_failure_transient_name(), 1, $this->get_terminals_retry_delay() );
+	}
+
+	/**
+	 * Did the last fetch fail recently enough that we should not try again?
+	 *
+	 * @return boolean
+	 */
+	function terminals_fetch_recently_failed() {
+		return (bool) get_transient( $this->get_terminals_failure_transient_name() );
+	}
+
+	/**
+	 * The last list the carrier gave us, whenever that was
+	 *
+	 * @return array Terminals
+	 */
+	function get_terminals_fallback() {
+		$terminals = get_transient( $this->get_terminals_fallback_transient_name() );
+
+		return is_array( $terminals ) || is_object( $terminals ) ? $terminals : array();
+	}
+
+	/**
+	 * What to serve when the carrier could not be reached
+	 *
+	 * The empty list a failed request produces is not an answer, so it does not
+	 * go into the cache: writing it there would either bury a good list for the
+	 * day, or - because an empty cache used to read as no cache at all - send
+	 * every following visitor straight back out to an API that is down.
+	 *
+	 * @return array Terminals
+	 */
+	function handle_failed_terminals_fetch() {
+		$this->save_terminals_fetch_failure();
+
+		return $this->get_terminals_fallback();
 	}
 
 	/**

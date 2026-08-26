@@ -91,18 +91,24 @@ abstract class WC_Estonian_Shipping_Method_Smartpost extends WC_Estonian_Shippin
 		if ( null !== $terminals_transient ) {
 			// Get terminals from transient.
 			$terminals = $terminals_transient;
+		} elseif ( $this->terminals_fetch_recently_failed() ) {
+			// A fetch that just failed is not worth repeating for every visitor.
+			$terminals = $this->get_terminals_fallback();
 		} else {
 			// Get all of the possible places.
 			$terminals_request = $this->request_remote_url( $this->get_terminals_url() );
+			$response          = true === $terminals_request['success'] ? json_decode( $terminals_request['data'] ) : null;
 
-			// Check if successful request.
-			if ( true === $terminals_request['success'] ) {
-				$terminals = json_decode( $terminals_request['data'] );
-				$terminals = $terminals->places->item;
+			if ( isset( $response->places->item ) ) {
+				$terminals = $response->places->item;
+
+				// Set transient for cache.
+				$this->save_terminals_cache( $terminals );
+			} else {
+				// Nothing usable came back. An empty list is not the carrier's
+				// answer, so it is not cached as one.
+				$terminals = $this->handle_failed_terminals_fetch();
 			}
-
-			// Set transient for cache.
-			$this->save_terminals_cache( $terminals );
 		}
 
 		// Set terminals locally.
