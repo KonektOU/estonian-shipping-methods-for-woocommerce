@@ -258,3 +258,8 @@ msgstr "- Vali ajavahemik -"
 
 #~ msgid "Chosen Smartpost terminal"
 #~ msgstr "Valitud SmartPosti pakiautomaat"
+
+#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:922
+#, php-format
+msgid "Terminal #%s"
+msgstr "Pakiautomaat #%s"

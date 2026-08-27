@@ -191,6 +191,7 @@ abstract class WC_Estonian_Shipping_Method_Terminals extends WC_Estonian_Shippin
 		if ( $terminal_id ) {
 			$order = wc_get_order( $order_id );
 			$order->update_meta_data( $this->field_name, $terminal_id );
+			$this->store_order_terminal_name( $order, $terminal_id );
 			$order->save();
 		}
 	}
@@ -229,7 +230,7 @@ abstract class WC_Estonian_Shipping_Method_Terminals extends WC_Estonian_Shippin
 		if ( $order->has_shipping_method( $this->id ) ) {
 			// Fetch selected terminal ID
 			$terminal_id   = $this->get_order_terminal( $this->order_id );
-			$terminal_name = $this->get_terminal_name( $terminal_id );
+			$terminal_name = $this->get_order_terminal_name( $order );
 
 			// Output selected terminal to user customer details
 			if( current_filter() == 'woocommerce_order_details_after_customer_details' ) {
@@ -287,9 +288,8 @@ abstract class WC_Estonian_Shipping_Method_Terminals extends WC_Estonian_Shippin
 
 		// Check if the order has our shipping method.
 		if ( $order->has_shipping_method( $this->id ) ) {
-			// Fetch selected terminal ID.
-			$terminal_id   = $this->get_order_terminal( $this->order_id );
-			$terminal_name = $this->get_terminal_name( $terminal_id );
+			// Fetch selected terminal name.
+			$terminal_name = $this->get_order_terminal_name( $order );
 		}
 
 		return $terminal_name;
@@ -326,9 +326,8 @@ abstract class WC_Estonian_Shipping_Method_Terminals extends WC_Estonian_Shippin
 
 		// Check if the order has our shipping method.
 		if ( $order->has_shipping_method( $this->id ) ) {
-			// Fetch selected terminal ID.
-			$terminal_id   = $this->get_order_terminal( $this->order_id );
-			$terminal_name = $this->get_terminal_name( $terminal_id );
+			// Fetch selected terminal name.
+			$terminal_name = $this->get_order_terminal_name( $order );
 
 			if ( isset( $order_details['shipping_via'] ) ) {
 				$order_details['shipping_via'] = sprintf( '%s (%s)', $order->get_shipping_method(), esc_html( $terminal_name ) );
@@ -848,6 +847,77 @@ abstract class WC_Estonian_Shipping_Method_Terminals extends WC_Estonian_Shippin
 		$order = wc_get_order( $order_id );
 
 		return $order ? $order->get_meta( $this->field_name, true ) : false;
+	}
+
+	/**
+	 * Remembers the terminal's name on the order.
+	 *
+	 * The ID alone is not enough to show the customer where their parcel went:
+	 * it only means something for as long as the carrier still lists that
+	 * terminal. Once it closes, the ID resolves to nothing and the name would
+	 * be gone from the order for good, so we write the name down while we
+	 * still know it.
+	 *
+	 * @param  WC_Order $order       Order.
+	 * @param  integer  $terminal_id Terminal ID.
+	 *
+	 * @return void
+	 */
+	public function store_order_terminal_name( $order, $terminal_id ) {
+		$terminal_name = $this->get_terminal_name( $terminal_id );
+
+		if ( $terminal_name ) {
+			$order->update_meta_data( $this->field_name . '_name', $terminal_name );
+		}
+	}
+
+	/**
+	 * The name to show for the terminal chosen on an order.
+	 *
+	 * Asks the carrier first, so a terminal that is still listed reads exactly
+	 * as it does everywhere else - renamed, and formatted to the method's
+	 * current setting. Only when that comes back empty (the terminal is gone,
+	 * or the carrier is unreachable and the cache is cold) does it fall back to
+	 * the name written down at checkout, and to the bare ID after that. What it
+	 * never returns for an order with a terminal on it is nothing at all.
+	 *
+	 * Nothing is written here on purpose: this runs while an order is being
+	 * rendered, e-mails included, and an order that saves itself mid-render is
+	 * a worse problem than a missing name.
+	 *
+	 * @param  mixed $order Order (ID or WC_Order).
+	 *
+	 * @return string       Terminal name.
+	 */
+	public function get_order_terminal_name( $order ) {
+		if ( ! is_object( $order ) ) {
+			$order = wc_get_order( $order );
+		}
+
+		if ( ! $order ) {
+			return '';
+		}
+
+		$terminal_id = $this->get_order_terminal( $order );
+
+		if ( ! $terminal_id ) {
+			return '';
+		}
+
+		$terminal_name = $this->get_terminal_name( $terminal_id );
+
+		if ( $terminal_name ) {
+			return $terminal_name;
+		}
+
+		$stored_name = $order->get_meta( $this->field_name . '_name', true );
+
+		if ( $stored_name ) {
+			return $stored_name;
+		}
+
+		/* translators: %s: terminal ID */
+		return sprintf( __( 'Terminal #%s', 'wc-estonian-shipping-methods' ), $terminal_id );
 	}
 
 	/**

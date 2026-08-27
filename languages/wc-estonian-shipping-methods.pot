@@ -246,3 +246,8 @@ msgstr ""
 msgctxt "empty value label for courier"
 msgid "- Choose timewindow -"
 msgstr ""
+
+#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:922
+#, php-format
+msgid "Terminal #%s"
+msgstr ""

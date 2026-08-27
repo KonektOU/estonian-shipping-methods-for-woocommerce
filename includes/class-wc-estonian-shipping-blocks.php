@@ -237,6 +237,7 @@ class WC_Estonian_Shipping_Blocks {
 		}
 
 		$order->update_meta_data( $method->field_name, $terminal_id );
+		$method->store_order_terminal_name( $order, $terminal_id );
 
 		WC()->session->set( $method->field_name, $terminal_id );
 	}
