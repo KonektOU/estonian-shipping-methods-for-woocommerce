@@ -6,7 +6,7 @@ Tested up to: 7.0
 Requires PHP: 7.4
 WC requires at least: 7.0
 WC tested up to: 11.0
-Stable tag: 1.12.0
+Stable tag: 1.12.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -27,6 +27,7 @@ Supports WPML for multilingual sites. Current translations:
 
 *   English (props @ristoniinemets)
 *   Estonian (props @ristoniinemets)
+*   Latvian
 *   Lithuanian (props @DomasWEB)
 *   Russian (props @avramchuk)
 
@@ -53,6 +54,19 @@ Since version 1.5.1 we have added an action that you could add to your code:
 `do_action( 'wc_estonian_shipping_method_show_terminal', $order_id );`
 
 == Changelog ==
+
+= 1.12.1 =
+* The chosen terminal keeps its name on the order. Only the terminal's ID was
+  stored, and the name was looked up afresh every time an order was shown, so a
+  terminal the carrier had since closed - or a carrier that happened to be
+  unreachable at that moment - left "Chosen terminal:" with nothing after it, in
+  the customer's order view, the admin order screen, the order email and the PDF
+  invoice alike. The name is now written onto the order at checkout and used
+  when the carrier no longer knows the terminal, with the ID shown as a last
+  resort instead of an empty line.
+* The Latvian translation loads. It shipped under the file name lv_LV, and
+  WordPress asks for Latvian as lv, so the translation was in the plugin but
+  never used.
 
 = 1.12.0 =
 * Collect.net is gone. The service's API has moved on from what this plugin
@@ -213,6 +227,10 @@ Since version 1.5.1 we have added an action that you could add to your code:
 * Release
 
 == Upgrade Notice ==
+
+= 1.12.1 =
+Fixes orders that showed "Chosen terminal:" with no terminal after it, and
+makes the Latvian translation load. Nothing to do after updating.
 
 = 1.12.0 =
 Collect.net is removed - its API no longer answers what this plugin asked of
