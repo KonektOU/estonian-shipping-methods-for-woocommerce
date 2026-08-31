@@ -14,7 +14,9 @@
 ## Checkout ##
 
 - Works on both checkouts: the classic one and the WooCommerce checkout block
-- The terminal list is searchable, by town or by name
+- The terminal list is searchable, by town or by name - turn it off with
+  `add_filter( 'wc_estonian_shipping_methods_terminal_search', '__return_false' );`
+  and both checkouts hand you a plain grouped select to dress yourself
 - Shipping zone methods: priced per zone, enabled per zone
 - Can be limited to shipping classes, or to a maximum cart weight
 

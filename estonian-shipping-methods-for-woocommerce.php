@@ -3,7 +3,7 @@
  * Plugin Name: Estonian Shipping Methods for WooCommerce
  * Plugin URI: https://github.com/KonektOU/estonian-shipping-methods-for-woocommerce
  * Description: Extends WooCommerce with most commonly used Estonian shipping methods.
- * Version: 1.12.1
+ * Version: 1.13.0
  * Author: Konekt OÜ
  * Author URI: https://www.konekt.ee
  * Developer: Risto Niinemets
@@ -37,7 +37,7 @@ define( 'WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH', plugin_dir_path( WC_ESTONI
 /**
  * Plugin path and URL, for the checkout block's scripts
  */
-define( 'WC_ESTONIAN_SHIPPING_METHODS_VERSION', '1.12.1' );
+define( 'WC_ESTONIAN_SHIPPING_METHODS_VERSION', '1.13.0' );
 define( 'WC_ESTONIAN_SHIPPING_METHODS_PATH', untrailingslashit( plugin_dir_path( WC_ESTONIAN_SHIPPING_METHODS_MAIN_FILE ) ) );
 define( 'WC_ESTONIAN_SHIPPING_METHODS_PLUGIN_URL', untrailingslashit( plugin_dir_url( WC_ESTONIAN_SHIPPING_METHODS_MAIN_FILE ) ) );
 
@@ -155,10 +155,22 @@ class Estonian_Shipping_Methods_For_WooCommerce {
 			WC_ESTONIAN_SHIPPING_METHODS_VERSION
 		);
 
+		// A theme that would rather dress the select itself - with Choices.js,
+		// or with whatever its own forms use - turns this off and is handed a
+		// plain grouped select. The stylesheet above stays either way: it is
+		// two rules about widths, and the block checkout uses them too.
+		if ( ! wc_esm_terminal_search_enabled() ) {
+			return;
+		}
+
 		wp_enqueue_script(
 			'wc-estonian-shipping-terminals-search',
 			WC_ESTONIAN_SHIPPING_METHODS_PLUGIN_URL . '/assets/js/terminals-search.js',
-			array(),
+			// selectWoo is WooCommerce's own fork of Select2 and is registered
+			// by WooCommerce; naming it here is what guarantees it has loaded
+			// by the time this runs, rather than hoping the checkout happened
+			// to need it first.
+			array( 'jquery', 'selectWoo' ),
 			WC_ESTONIAN_SHIPPING_METHODS_VERSION,
 			true
 		);

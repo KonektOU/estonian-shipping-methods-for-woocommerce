@@ -24,6 +24,25 @@
 	var _n = wp.i18n && wp.i18n._n ? wp.i18n._n : function ( single, plural, number ) { return 1 === number ? single : plural; };
 	var sprintf = wp.i18n && wp.i18n.sprintf ? wp.i18n.sprintf : function ( format, value ) { return format.replace( '%d', value ); };
 
+	/**
+	 * Whether the list should carry a search box.
+	 *
+	 * The same switch the classic checkout obeys - a theme that would rather
+	 * dress the select itself turns it off and is handed a plain grouped
+	 * select here too. Defaults to on: the list runs to hundreds of entries.
+	 *
+	 * @return {boolean} True unless a site turned the search off.
+	 */
+	function searchEnabled() {
+		var settings = wc.wcSettings && wc.wcSettings.getSetting
+			? wc.wcSettings.getSetting( 'wc-estonian-shipping-terminals_data', {} )
+			: {};
+
+		return false !== settings.search;
+	}
+
+	var SEARCHABLE = searchEnabled();
+
 	var registerCheckoutBlock = wc.blocksCheckout.registerCheckoutBlock;
 	var extensionCartUpdate = wc.blocksCheckout.extensionCartUpdate;
 	var ValidationInputError = wc.blocksCheckout.ValidationInputError;
@@ -105,7 +124,7 @@
 		// the classic checkout honours it. WordPress's ComboboxControl would
 		// have brought its own search for free, but it has no notion of groups,
 		// so the search here is a filter over the list rather than a component.
-		var terms = search.trim().toLowerCase().split( /\s+/ ).filter( Boolean );
+		var terms = SEARCHABLE ? search.trim().toLowerCase().split( /\s+/ ).filter( Boolean ) : [];
 
 		var filtered = useMemo( function () {
 			if ( ! terms.length ) {
@@ -189,17 +208,19 @@
 			/* The search box is a field of its own, outside the select. WooCommerce
 			   floats the select's label over the top of its container, so anything
 			   else put in there is rendered underneath the label. */
-			el( 'input', {
-				type: 'search',
-				className: 'wc-esm-terminals__search',
-				value: search,
-				placeholder: __( 'Search by town or terminal name', 'wc-estonian-shipping-methods' ),
-				'aria-label': __( 'Search terminals', 'wc-estonian-shipping-methods' ),
-				'aria-controls': 'wc-esm-terminal',
-				onChange: function ( event ) {
-					setSearch( event.target.value );
-				},
-			} ),
+			SEARCHABLE
+				? el( 'input', {
+					type: 'search',
+					className: 'wc-esm-terminals__search',
+					value: search,
+					placeholder: __( 'Search by town or terminal name', 'wc-estonian-shipping-methods' ),
+					'aria-label': __( 'Search terminals', 'wc-estonian-shipping-methods' ),
+					'aria-controls': 'wc-esm-terminal',
+					onChange: function ( event ) {
+						setSearch( event.target.value );
+					},
+				} )
+				: null,
 			el(
 				'div',
 				{ className: 'wc-blocks-components-select' },

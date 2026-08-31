@@ -6,7 +6,7 @@ Tested up to: 7.0
 Requires PHP: 7.4
 WC requires at least: 7.0
 WC tested up to: 11.0
-Stable tag: 1.12.1
+Stable tag: 1.13.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -54,6 +54,18 @@ Since version 1.5.1 we have added an action that you could add to your code:
 `do_action( 'wc_estonian_shipping_method_show_terminal', $order_id );`
 
 == Changelog ==
+
+= 1.13.0 =
+* The terminal search can be turned off. It is on by default and stays that
+  way - a parcel terminal list runs to hundreds of entries - but it is also the
+  one thing this plugin adds to a checkout that a theme can reasonably want to
+  do differently, and two enhancers on the same select leave a mess. Filter
+  `wc_estonian_shipping_methods_terminal_search` to false and both checkouts
+  hand you a plain grouped select to dress with Choices.js, or with whatever
+  the theme's own fields use:
+  `add_filter( 'wc_estonian_shipping_methods_terminal_search', '__return_false' );`
+* The classic checkout's search now names selectWoo as a dependency rather than
+  hoping WooCommerce had already loaded it for something else on the page.
 
 = 1.12.1 =
 * The chosen terminal keeps its name on the order. Only the terminal's ID was
@@ -227,6 +239,10 @@ Since version 1.5.1 we have added an action that you could add to your code:
 * Release
 
 == Upgrade Notice ==
+
+= 1.13.0 =
+Adds a filter for turning the terminal search off. Nothing changes for a shop
+that does not use it.
 
 = 1.12.1 =
 Fixes orders that showed "Chosen terminal:" with no terminal after it, and

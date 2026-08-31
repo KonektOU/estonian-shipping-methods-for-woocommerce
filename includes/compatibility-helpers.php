@@ -100,3 +100,30 @@ function wc_esm_get_element_class_name( $element ) {
 
 	return apply_filters( 'wc_estonian_shipping_methods_element_class_name', $class_name, $element );
 }
+
+/**
+ * Should the terminal list be made searchable?
+ *
+ * A parcel terminal list runs to hundreds of entries, so it is on by default.
+ * It is also the one thing this plugin adds to a checkout that a theme can
+ * reasonably want to do differently - dress the select with Choices.js, or with
+ * whatever the theme's own forms use - and two enhancers on one element leave
+ * a mess. Turning this off gives a theme a plain grouped <select> to work with
+ * on both checkouts, which is what every such library wants to be handed.
+ *
+ *     add_filter( 'wc_estonian_shipping_methods_terminal_search', '__return_false' );
+ *
+ * @since 1.13.0
+ *
+ * @return boolean
+ */
+function wc_esm_terminal_search_enabled() {
+	/**
+	 * Whether to enhance the terminal select with a search.
+	 *
+	 * @since 1.13.0
+	 *
+	 * @param boolean $enabled Default true.
+	 */
+	return (bool) apply_filters( 'wc_estonian_shipping_methods_terminal_search', true );
+}

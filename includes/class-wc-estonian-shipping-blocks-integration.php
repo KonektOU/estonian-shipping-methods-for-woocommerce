@@ -74,10 +74,17 @@ class WC_Estonian_Shipping_Blocks_Integration implements IntegrationInterface {
 	}
 
 	/**
+	 * Data the block script reads through wcSettings.
+	 *
 	 * @return array
 	 */
 	public function get_script_data() {
 
-		return array();
+		return array(
+			// The same switch the classic checkout obeys, so a theme that turns
+			// the search off gets a plain grouped select on both checkouts
+			// rather than on one of them.
+			'search' => wc_esm_terminal_search_enabled(),
+		);
 	}
 }
