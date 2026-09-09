@@ -24,7 +24,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 class WC_ESM_Dispatch_Screen {
 
 	const ACTION     = 'wc_esm_dispatch_action';
-	const LOG_OPTION = 'wc_esm_dispatch_log';
 	const PAGE       = 'wc-esm-dispatch';
 
 	/**
@@ -34,21 +33,6 @@ class WC_ESM_Dispatch_Screen {
 	 * @var string
 	 */
 	const LOG_TAB = 'log';
-
-	/**
-	 * Page size used to walk unmanifested orders.
-	 *
-	 * @var int
-	 */
-	const PAGE_SIZE = 200;
-
-	/**
-	 * Hard ceiling on how many unmanifested orders one screen load will
-	 * fetch, so a runaway query cannot hang the screen.
-	 *
-	 * @var int
-	 */
-	const MAX_ORDERS = 5000;
 
 	/**
 	 * Hook up.
@@ -169,97 +153,6 @@ class WC_ESM_Dispatch_Screen {
 	}
 
 	/**
-	 * The shipments not yet on a manifest, and whether the count is the
-	 * whole truth.
-	 *
-	 * Both facts come back together on purpose. They were a return value and
-	 * a flag on the class before, which meant the caller had to ask in the
-	 * right order to get an answer that matched.
-	 *
-	 * @param string $provider_id Provider id.
-	 *
-	 * @return array refs and truncated.
-	 */
-	public static function unmanifested( $provider_id ) {
-		$found = self::unmanifested_orders( $provider_id );
-		$refs  = array();
-
-		foreach ( $found['orders'] as $order ) {
-			$refs = array_merge( $refs, WC_ESM_Shipment::label_refs( $order ) );
-		}
-
-		return array(
-			'refs'      => array_values( array_unique( $refs ) ),
-			'truncated' => $found['truncated'],
-		);
-	}
-
-	/**
-	 * Orders carrying a shipment with this carrier that is not on a manifest.
-	 *
-	 * Walks every page rather than taking the first, so a shop with more
-	 * orders outstanding than one page holds is not told a smaller, wrong
-	 * number. The answer says whether MAX_ORDERS cut it short.
-	 *
-	 * @param string $provider_id Provider id.
-	 *
-	 * @return array orders and truncated.
-	 */
-	protected static function unmanifested_orders( $provider_id ) {
-		$provider = WC_ESM_Shipment_Registry::instance()->get_provider( $provider_id );
-
-		if ( ! $provider ) {
-			return array(
-				'orders'    => array(),
-				'truncated' => false,
-			);
-		}
-
-		$found     = array();
-		$truncated = false;
-		$page      = 1;
-
-		do {
-			$orders = wc_get_orders(
-				array(
-					'limit'      => self::PAGE_SIZE,
-					'page'       => $page,
-					'status'     => array( 'processing', 'completed', 'on-hold' ),
-					'meta_query' => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-						array(
-							'key'     => WC_ESM_Shipment::LABEL_REFS,
-							'compare' => 'EXISTS',
-						),
-						array(
-							'key'     => '_wc_esm_manifested',
-							'compare' => 'NOT EXISTS',
-						),
-					),
-				)
-			);
-
-			foreach ( $orders as $order ) {
-				if ( WC_ESM_Shipment_Registration::provider_for( $order ) === $provider ) {
-					$found[] = $order;
-				}
-			}
-
-			if ( count( $found ) >= self::MAX_ORDERS ) {
-				$truncated = true;
-
-				break;
-			}
-
-			$page++;
-		} while ( count( $orders ) === self::PAGE_SIZE );
-
-		return array(
-			'orders'    => $found,
-			'truncated' => $truncated,
-		);
-	}
-
-	/**
 	 * The screen.
 	 *
 	 * @return void
@@ -375,7 +268,7 @@ class WC_ESM_Dispatch_Screen {
 	 * @return void
 	 */
 	protected static function render_manifest( $id ) {
-		$outstanding = self::unmanifested( $id );
+		$outstanding = WC_ESM_Unmanifested_Orders::for_provider( $id );
 		$refs        = $outstanding['refs'];
 		?>
 		<h2><?php esc_html_e( 'Manifest', 'wc-estonian-shipping-methods' ); ?></h2>
@@ -415,7 +308,7 @@ class WC_ESM_Dispatch_Screen {
 	 * @return void
 	 */
 	protected static function render_log() {
-		$log = (array) get_option( self::LOG_OPTION, array() );
+		$log = WC_ESM_Dispatch_Log::entries();
 
 		echo '<h2>' . esc_html__( 'Recent dispatches', 'wc-estonian-shipping-methods' ) . '</h2>';
 
@@ -448,41 +341,6 @@ class WC_ESM_Dispatch_Screen {
 	}
 
 	/**
-	 * What a log row can offer: a manifest download, a pickup cancel, or
-	 * nothing at all.
-	 *
-	 * A button appears only where it would work. The carrier may have been
-	 * switched off since, or may no longer offer the feature, and the same
-	 * rule the rest of this screen follows applies: no button for something
-	 * that would fail.
-	 *
-	 * @param array                         $entry    Log entry.
-	 * @param WC_ESM_Shipment_Registry|null $registry Registry; the shared one when omitted.
-	 *
-	 * @return array
-	 */
-	public static function log_row_actions( $entry, $registry = null ) {
-		$registry = $registry ? $registry : WC_ESM_Shipment_Registry::instance();
-		$provider = $registry->get_provider( isset( $entry['provider'] ) ? $entry['provider'] : '' );
-
-		if ( ! $provider || ! empty( $entry['cancelled'] ) ) {
-			return array();
-		}
-
-		$type = isset( $entry['type'] ) ? $entry['type'] : '';
-
-		if ( 'manifest' === $type && $provider->supports( 'manifest' ) ) {
-			return array( 'manifest_download' );
-		}
-
-		if ( 'pickup' === $type && $provider->supports( 'pickup' ) ) {
-			return array( 'pickup_cancel' );
-		}
-
-		return array();
-	}
-
-	/**
 	 * The Actions cell for one log row.
 	 *
 	 * @param array $entry Log entry.
@@ -490,7 +348,7 @@ class WC_ESM_Dispatch_Screen {
 	 * @return string Escaped HTML.
 	 */
 	protected static function render_log_row_actions( $entry ) {
-		$actions = self::log_row_actions( $entry );
+		$actions = WC_ESM_Dispatch_Log::row_actions( $entry );
 
 		if ( in_array( 'manifest_download', $actions, true ) ) {
 			return self::log_row_form( 'manifest_download', $entry, esc_html__( 'Download', 'wc-estonian-shipping-methods' ) );
@@ -551,50 +409,22 @@ class WC_ESM_Dispatch_Screen {
 	}
 
 	/**
-	 * Find a log entry by carrier and reference.
+	 * What this screen can be asked to do: the capability each action needs,
+	 * and who does it.
 	 *
-	 * The log is keyed by nothing, so two entries with the same carrier and
-	 * reference are indistinguishable. The first is returned: the guard that
-	 * uses this only needs to know that a match exists and whether it has
-	 * already been cancelled.
-	 *
-	 * @param array  $log         The log.
-	 * @param string $provider_id Provider id.
-	 * @param string $reference   Reference.
-	 *
-	 * @return array|null
-	 */
-	public static function find_log_entry( $log, $provider_id, $reference ) {
-		foreach ( (array) $log as $entry ) {
-			if ( isset( $entry['provider'], $entry['reference'] ) && $entry['provider'] === $provider_id && $entry['reference'] === $reference ) {
-				return $entry;
-			}
-		}
-
-		return null;
-	}
-
-	/**
-	 * Mark every entry matching a carrier and reference as cancelled.
-	 *
-	 * Every one, not the first: two rows with the same reference are
-	 * indistinguishable, and marking only the oldest leaves the second row
-	 * still offering to cancel something that is already gone.
-	 *
-	 * @param array  $log         The log.
-	 * @param string $provider_id Provider id.
-	 * @param string $reference   Reference.
+	 * A table rather than a run of conditionals, so that adding a fifth thing
+	 * is a row and not another branch, and so that nothing can be handled
+	 * without the capability check beside it.
 	 *
 	 * @return array
 	 */
-	public static function mark_cancelled_in( $log, $provider_id, $reference ) {
-		foreach ( (array) $log as $index => $entry ) {
-			if ( isset( $entry['provider'], $entry['reference'] ) && $entry['provider'] === $provider_id && $entry['reference'] === $reference ) {
-				$log[ $index ]['cancelled'] = true;
-			}
-		}
-
-		return $log;
+	protected static function actions() {
+		return array(
+			'pickup'            => array( 'pickup', 'book_pickup' ),
+			'manifest'          => array( 'manifest', 'close_manifest' ),
+			'manifest_download' => array( 'manifest', 'download_manifest' ),
+			'pickup_cancel'     => array( 'pickup', 'cancel_pickup' ),
+		);
 	}
 
 	/**
@@ -612,76 +442,116 @@ class WC_ESM_Dispatch_Screen {
 		}
 
 		// phpcs:disable WordPress.Security.NonceVerification.Missing -- checked above.
-		$what     = sanitize_key( wp_unslash( $_POST[ self::ACTION ] ) );
+		$asked    = sanitize_key( wp_unslash( $_POST[ self::ACTION ] ) );
 		$provider = WC_ESM_Shipment_Registry::instance()->get_provider( sanitize_key( wc_get_var( $_POST['provider'], '' ) ) );
+		$actions  = self::actions();
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
-		if ( ! $provider ) {
+		if ( ! $provider || ! isset( $actions[ $asked ] ) ) {
 			return;
 		}
 
-		if ( 'pickup' === $what && $provider->supports( 'pickup' ) ) {
-			$result = $provider->request_pickup(
-				array(
-					'date'      => sanitize_text_field( wc_get_var( $_POST['date'], '' ) ),
-					'time_from' => sanitize_text_field( wc_get_var( $_POST['time_from'], '' ) ),
-					'time_to'   => sanitize_text_field( wc_get_var( $_POST['time_to'], '' ) ),
-					'comment'   => sanitize_text_field( wc_get_var( $_POST['comment'], '' ) ),
-				)
-			);
+		list( $feature, $handler ) = $actions[ $asked ];
 
-			if ( $result->is_success() ) {
-				self::record( $provider->get_id(), 'pickup', $result->get( 'reference', '' ) );
-			}
-
-			self::notify( $result );
+		// A request is not bound by what the screen chose to draw, so the
+		// capability is checked here rather than trusted from the post.
+		if ( $provider->supports( $feature ) ) {
+			self::notify( call_user_func( array( __CLASS__, $handler ), $provider ) );
 		}
-
-		if ( 'manifest' === $what && $provider->supports( 'manifest' ) ) {
-			$outstanding = self::unmanifested( $provider->get_id() );
-			$result      = $provider->close_manifest( $outstanding['refs'] );
-
-			if ( $result->is_success() ) {
-				self::mark_manifested( $provider->get_id() );
-				self::record( $provider->get_id(), 'manifest', $result->get( 'reference', '' ) );
-			}
-
-			self::notify( $result );
-		}
-
-		if ( 'manifest_download' === $what && $provider->supports( 'manifest' ) ) {
-			$result = $provider->fetch_manifest( sanitize_text_field( wc_get_var( $_POST['reference'], '' ) ) );
-
-			if ( $result->is_success() && '' !== $result->get( 'pdf', '' ) ) {
-				WC_ESM_Shipment_Labels::stream( $result->get( 'pdf' ), 'manifest.pdf' );
-			}
-
-			self::notify( $result );
-		}
-
-		if ( 'pickup_cancel' === $what && $provider->supports( 'pickup' ) ) {
-			$reference = sanitize_text_field( wc_get_var( $_POST['reference'], '' ) );
-			$log       = (array) get_option( self::LOG_OPTION, array() );
-			$entry     = self::find_log_entry( $log, $provider->get_id(), $reference );
-
-			// A repeated POST - the back button, a stale bookmark - would ask
-			// the carrier to cancel something already gone. The log is what
-			// tells us it is gone.
-			if ( ! $entry || ! empty( $entry['cancelled'] ) ) {
-				self::notify( WC_ESM_Shipment_Result::failure( __( 'That pickup has already been cancelled.', 'wc-estonian-shipping-methods' ) ) );
-			} else {
-				$result = $provider->cancel_pickup( $reference );
-
-				if ( $result->is_success() ) {
-					update_option( self::LOG_OPTION, self::mark_cancelled_in( $log, $provider->get_id(), $reference ) );
-				}
-
-				self::notify( $result );
-			}
-		}
-		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
 		wp_safe_redirect( self::screen_url( self::posted_tab() ) );
 		exit;
+	}
+
+	/**
+	 * Book a courier for the day and window the screen asked for.
+	 *
+	 * @param WC_ESM_Shipment_Provider $provider Carrier.
+	 *
+	 * @return WC_ESM_Shipment_Result
+	 */
+	protected static function book_pickup( $provider ) {
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- checked by handle_action().
+		$result = $provider->request_pickup(
+			array(
+				'date'      => sanitize_text_field( wc_get_var( $_POST['date'], '' ) ),
+				'time_from' => sanitize_text_field( wc_get_var( $_POST['time_from'], '' ) ),
+				'time_to'   => sanitize_text_field( wc_get_var( $_POST['time_to'], '' ) ),
+				'comment'   => sanitize_text_field( wc_get_var( $_POST['comment'], '' ) ),
+			)
+		);
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
+
+		if ( $result->is_success() ) {
+			WC_ESM_Dispatch_Log::record( $provider->get_id(), 'pickup', $result->get( 'reference', '' ) );
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Close a manifest over everything this carrier is holding.
+	 *
+	 * @param WC_ESM_Shipment_Provider $provider Carrier.
+	 *
+	 * @return WC_ESM_Shipment_Result
+	 */
+	protected static function close_manifest( $provider ) {
+		$outstanding = WC_ESM_Unmanifested_Orders::for_provider( $provider->get_id() );
+		$result      = $provider->close_manifest( $outstanding['refs'] );
+
+		if ( $result->is_success() ) {
+			WC_ESM_Unmanifested_Orders::mark_manifested( $provider->get_id() );
+			WC_ESM_Dispatch_Log::record( $provider->get_id(), 'manifest', $result->get( 'reference', '' ) );
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Send a manifest that was already closed down to the browser.
+	 *
+	 * @param WC_ESM_Shipment_Provider $provider Carrier.
+	 *
+	 * @return WC_ESM_Shipment_Result
+	 */
+	protected static function download_manifest( $provider ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- checked by handle_action().
+		$result = $provider->fetch_manifest( sanitize_text_field( wc_get_var( $_POST['reference'], '' ) ) );
+
+		if ( $result->is_success() && '' !== $result->get( 'pdf', '' ) ) {
+			WC_ESM_Shipment_Labels::stream( $result->get( 'pdf' ), 'manifest.pdf' );
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Call a booked courier off.
+	 *
+	 * @param WC_ESM_Shipment_Provider $provider Carrier.
+	 *
+	 * @return WC_ESM_Shipment_Result
+	 */
+	protected static function cancel_pickup( $provider ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- checked by handle_action().
+		$reference = sanitize_text_field( wc_get_var( $_POST['reference'], '' ) );
+		$entry     = WC_ESM_Dispatch_Log::find( $provider->get_id(), $reference );
+
+		// A repeated POST - the back button, a stale bookmark - would ask the
+		// carrier to cancel a courier that is already gone. The log is what
+		// tells us it is gone.
+		if ( ! $entry || ! empty( $entry['cancelled'] ) ) {
+			return WC_ESM_Shipment_Result::failure( __( 'That pickup has already been cancelled.', 'wc-estonian-shipping-methods' ) );
+		}
+
+		$result = $provider->cancel_pickup( $reference );
+
+		if ( $result->is_success() ) {
+			WC_ESM_Dispatch_Log::mark_cancelled( $provider->get_id(), $reference );
+		}
+
+		return $result;
 	}
 
 	/**
@@ -702,41 +572,4 @@ class WC_ESM_Dispatch_Screen {
 		);
 	}
 
-	/**
-	 * Stamp the orders a manifest was closed over, so they are not counted
-	 * again tomorrow.
-	 *
-	 * @param string $provider_id Provider id.
-	 *
-	 * @return void
-	 */
-	protected static function mark_manifested( $provider_id ) {
-		foreach ( self::unmanifested_orders( $provider_id )['orders'] as $order ) {
-			$order->update_meta_data( '_wc_esm_manifested', gmdate( 'c' ) );
-			$order->save();
-		}
-	}
-
-	/**
-	 * Write one line in the dispatch log.
-	 *
-	 * @param string $provider_id Provider id.
-	 * @param string $type        pickup or manifest.
-	 * @param string $reference   What the carrier called it.
-	 *
-	 * @return void
-	 */
-	protected static function record( $provider_id, $type, $reference ) {
-		$log   = (array) get_option( self::LOG_OPTION, array() );
-		$log[] = array(
-			'provider'   => $provider_id,
-			'type'       => $type,
-			'reference'  => (string) $reference,
-			'created_at' => gmdate( 'Y-m-d H:i' ),
-		);
-
-		// Twenty is a screen's worth; this is a convenience, not an audit
-		// trail, and the carrier's own portal is where the real record lives.
-		update_option( self::LOG_OPTION, array_slice( $log, -20 ) );
-	}
 }

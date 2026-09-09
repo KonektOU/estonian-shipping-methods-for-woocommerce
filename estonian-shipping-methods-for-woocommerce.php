@@ -263,6 +263,8 @@ class Estonian_Shipping_Methods_For_WooCommerce {
 		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/class-wc-esm-shipment-labels.php';
 		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/class-wc-esm-shipment-tracking.php';
 		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/class-wc-esm-shipment-admin.php';
+		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/class-wc-esm-dispatch-log.php';
+		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/class-wc-esm-unmanifested-orders.php';
 		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/class-wc-esm-dispatch-screen.php';
 		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/class-wc-esm-cleveron-migration.php';
 

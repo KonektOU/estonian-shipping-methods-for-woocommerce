@@ -91,6 +91,50 @@ class WC_ESM_Bare_Test_Provider extends WC_ESM_Shipment_Provider {
 }
 
 /**
+ * A carrier offering pickups and manifests.
+ */
+class WC_ESM_Dispatch_Test_Provider extends WC_ESM_Test_Provider {
+
+	/**
+	 * Declared features.
+	 *
+	 * @var array
+	 */
+	protected $features = array( 'pickup', 'manifest' );
+
+	/**
+	 * Id.
+	 *
+	 * @return string
+	 */
+	public function get_id() {
+		return 'withmanifest';
+	}
+}
+
+/**
+ * A carrier offering nothing beyond the label.
+ */
+class WC_ESM_Plain_Test_Provider extends WC_ESM_Test_Provider {
+
+	/**
+	 * Declared features.
+	 *
+	 * @var array
+	 */
+	protected $features = array();
+
+	/**
+	 * Id.
+	 *
+	 * @return string
+	 */
+	public function get_id() {
+		return 'plain';
+	}
+}
+
+/**
  * A carrier that offers everything.
  */
 class WC_ESM_Full_Feature_Test_Provider extends WC_ESM_Test_Provider {
