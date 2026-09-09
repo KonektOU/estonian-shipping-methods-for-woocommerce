@@ -34,6 +34,13 @@ class WC_ESM_Payload_Smartpost extends WC_ESM_Payload {
 	const COURIER_METHOD = 'smartpost_courier';
 
 	/**
+	 * The place id that means "to an address, not to a machine".
+	 *
+	 * @var int
+	 */
+	const COURIER_PLACE_ID = 1;
+
+	/**
 	 * The request body for one order.
 	 *
 	 * @param array $snapshot Order snapshot.
@@ -50,11 +57,7 @@ class WC_ESM_Payload_Smartpost extends WC_ESM_Payload {
 			'source'      => array(
 				'country' => $snapshot['base_country'],
 			),
-			'recipient'   => array(
-				'name'  => $snapshot['recipient']['name'],
-				'phone' => $snapshot['recipient']['phone'],
-				'email' => $snapshot['recipient']['email'],
-			),
+			'recipient'   => self::recipient( $snapshot ),
 		);
 
 		// Smartposti wants a size and a sender together or not at all: a size
@@ -79,6 +82,31 @@ class WC_ESM_Payload_Smartpost extends WC_ESM_Payload {
 	}
 
 	/**
+	 * Who the parcel is for, and what they owe.
+	 *
+	 * Smartposti calls the cash-on-delivery amount "goods": it is the money
+	 * it collects at the door or the machine and transfers back to the shop.
+	 * An order with nothing to collect says nothing about money at all.
+	 *
+	 * @param array $snapshot Order snapshot.
+	 *
+	 * @return array
+	 */
+	protected static function recipient( $snapshot ) {
+		$recipient = array(
+			'name'  => $snapshot['recipient']['name'],
+			'phone' => $snapshot['recipient']['phone'],
+			'email' => $snapshot['recipient']['email'],
+		);
+
+		if ( WC_ESM_Order_Snapshot::has_cod( $snapshot ) ) {
+			$recipient['goods'] = (float) $snapshot['cod_amount'];
+		}
+
+		return $recipient;
+	}
+
+	/**
 	 * Which of the three destination shapes this parcel needs.
 	 *
 	 * @param array $snapshot Order snapshot.
@@ -88,9 +116,13 @@ class WC_ESM_Payload_Smartpost extends WC_ESM_Payload {
 	protected static function destination( $snapshot ) {
 		if ( self::COURIER_METHOD === $snapshot['method_id'] ) {
 			return array(
+				// A courier delivery is place_id 1: that is how Smartposti is
+				// told this one goes to an address rather than to a machine.
+				'place_id'   => self::COURIER_PLACE_ID,
 				'timewindow' => $snapshot['timewindow'],
 				'street'     => $snapshot['address']['street'],
 				'house'      => $snapshot['address']['house'],
+				'apartment'  => $snapshot['address']['apartment'],
 				'city'       => $snapshot['address']['city'],
 				'country'    => $snapshot['address']['country'],
 				'postalcode' => $snapshot['address']['postcode'],

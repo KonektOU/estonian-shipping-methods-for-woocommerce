@@ -98,7 +98,6 @@ class Test_Payload_Smartpost extends WC_ESM_Test_Case {
 		$this->assertSame( '12', $destination['house'] );
 		$this->assertSame( 'Tallinn', $destination['city'] );
 		$this->assertSame( '10123', $destination['postalcode'] );
-		$this->assertArrayNotHasKey( 'place_id', $destination );
 	}
 
 	/**
@@ -187,5 +186,59 @@ class Test_Payload_Smartpost extends WC_ESM_Test_Case {
 
 		$this->assertStringContainsString( 'Testpood', $content );
 		$this->assertStringContainsString( '1234', $content );
+	}
+
+	/**
+	 * An order with money to collect carries the amount as goods: that is
+	 * what Smartposti transfers back to the sender. Without it the parcel
+	 * goes out and nobody collects anything.
+	 *
+	 * @return void
+	 */
+	public function test_cash_on_delivery_travels_as_goods() {
+		$this->assertSame( 19.90, $this->item( array( 'cod_amount' => 19.90 ) )['recipient']['goods'] );
+	}
+
+	/**
+	 * An order with nothing to collect says nothing about money.
+	 *
+	 * @return void
+	 */
+	public function test_an_order_with_nothing_to_collect_says_nothing_about_money() {
+		$this->assertArrayNotHasKey( 'goods', $this->item()['recipient'] );
+	}
+
+	/**
+	 * A courier delivery carries place_id 1, which is how Smartposti is told
+	 * this one goes to an address rather than to a machine.
+	 *
+	 * @return void
+	 */
+	public function test_a_courier_delivery_carries_place_id_one() {
+		$destination = $this->item(
+			array(
+				'method_id'   => 'smartpost_courier',
+				'terminal_id' => '',
+			)
+		)['destination'];
+
+		$this->assertSame( 1, $destination['place_id'] );
+	}
+
+	/**
+	 * An apartment number reaches the courier. A block of flats without one
+	 * is a parcel left downstairs.
+	 *
+	 * @return void
+	 */
+	public function test_the_apartment_number_reaches_the_courier() {
+		$destination = $this->item(
+			array(
+				'method_id'   => 'smartpost_courier',
+				'terminal_id' => '',
+			)
+		)['destination'];
+
+		$this->assertSame( '3', $destination['apartment'] );
 	}
 }

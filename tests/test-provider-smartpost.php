@@ -108,7 +108,7 @@ class Test_Provider_Smartpost extends WC_ESM_Test_Case {
 		$this->assertFalse( $provider->supports( 'manifest' ) );
 		// No endpoint for reading back what was collected is documented, so
 		// the capability is not claimed. See the provider's docblock.
-		$this->assertFalse( $provider->supports( 'cod_report' ) );
+		$this->assertTrue( $provider->supports( 'cod_report' ) );
 	}
 
 	/**
@@ -191,15 +191,15 @@ class Test_Provider_Smartpost extends WC_ESM_Test_Case {
 	public function test_labels_are_fetched_by_barcode() {
 		$provider = $this->provider(
 			array( array( 200, '%PDF-1.4 label' ) ),
-			array( 'label_format' => 'A6' )
+			array( 'label_format' => '6' )
 		);
 
 		$result = $provider->fetch_labels( array( 'B1', 'B2' ) );
 
 		$this->assertTrue( $result->is_success() );
-		$this->assertSame( '%PDF-1.4 label', $result->get( 'pdf' ) );
+		$this->assertSame( array( '%PDF-1.4 label' ), $result->get( 'pdfs' ) );
 		$this->assertSame( 'GET', $provider->fake->calls[0]['method'] );
-		$this->assertStringContainsString( 'format=A6', $provider->fake->endpoint() );
+		$this->assertStringContainsString( 'format=6', $provider->fake->endpoint() );
 		$this->assertStringContainsString( 'barcode=B1&barcode=B2', $provider->fake->endpoint() );
 	}
 
@@ -235,5 +235,84 @@ class Test_Provider_Smartpost extends WC_ESM_Test_Case {
 	 */
 	public function test_no_barcode_means_no_tracking_link() {
 		$this->assertSame( '', ( new WC_ESM_Provider_Smartpost() )->get_tracking_url( '' ) );
+	}
+
+	/**
+	 * Smartposti caps a label request at a hundred barcodes, so a bulk print
+	 * of more than that is asked for in batches rather than silently losing
+	 * the rest.
+	 *
+	 * @return void
+	 */
+	public function test_a_large_print_is_asked_for_in_batches() {
+		$barcodes = array();
+
+		for ( $i = 0; $i < 150; $i++ ) {
+			$barcodes[] = 'B' . $i;
+		}
+
+		$provider = $this->provider(
+			array(
+				array( 200, '%PDF-first' ),
+				array( 200, '%PDF-second' ),
+			)
+		);
+
+		$result = $provider->fetch_labels( $barcodes );
+
+		$this->assertTrue( $result->is_success() );
+		$this->assertCount( 2, $provider->fake->calls );
+		$this->assertSame( array( '%PDF-first', '%PDF-second' ), $result->get( 'pdfs' ) );
+	}
+
+	/**
+	 * A batch that fails takes the whole print with it rather than handing
+	 * back half a job the shopkeeper would not notice was half.
+	 *
+	 * @return void
+	 */
+	public function test_a_failed_batch_fails_the_print() {
+		$barcodes = array();
+
+		for ( $i = 0; $i < 150; $i++ ) {
+			$barcodes[] = 'B' . $i;
+		}
+
+		$provider = $this->provider(
+			array(
+				array( 200, '%PDF-first' ),
+				array( 500, 'boom' ),
+			)
+		);
+
+		$this->assertTrue( $provider->fetch_labels( $barcodes )->is_failure() );
+	}
+
+	/**
+	 * What the carrier says it collected, for a single day.
+	 *
+	 * @return void
+	 */
+	public function test_the_cod_report_asks_for_a_day() {
+		$provider = $this->provider( array( array( 200, '{"payments":[]}' ) ) );
+
+		$result = $provider->fetch_cod_report( '2026-09-01', '2026-09-01' );
+
+		$this->assertTrue( $result->is_success() );
+		$this->assertStringContainsString( 'cod-payments', $provider->fake->endpoint() );
+		$this->assertStringContainsString( 'bank_transaction_date=2026-09-01', $provider->fake->endpoint() );
+		$this->assertStringContainsString( 'get_one_day=1', $provider->fake->endpoint() );
+	}
+
+	/**
+	 * A range of days is not one day, and Smartposti is told so.
+	 *
+	 * @return void
+	 */
+	public function test_a_range_is_not_one_day() {
+		$provider = $this->provider( array( array( 200, '{"payments":[]}' ) ) );
+		$provider->fetch_cod_report( '2026-09-01', '2026-09-30' );
+
+		$this->assertStringContainsString( 'get_one_day=0', $provider->fake->endpoint() );
 	}
 }

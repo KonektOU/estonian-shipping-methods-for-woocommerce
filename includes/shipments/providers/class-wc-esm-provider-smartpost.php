@@ -33,18 +33,18 @@ class WC_ESM_Provider_Smartpost extends WC_ESM_Shipment_Provider {
 	const TRACKING_URL = 'https://itella.ee/eraklient/saadetise-jalgimine/?trackingCode=%s';
 
 	/**
-	 * Declared features.
+	 * How many barcodes one label request may carry.
 	 *
-	 * cod_report is deliberately absent. Smartposti carries cash on delivery,
-	 * but the published API documentation available here describes no
-	 * endpoint for reading back what was collected, and a capability that
-	 * cannot work must not be declared - every screen gates its buttons on
-	 * supports(), so declaring it would put a button there that fails when
-	 * pressed. Add it here once the endpoint is confirmed.
+	 * @var int
+	 */
+	const LABELS_PER_REQUEST = 100;
+
+	/**
+	 * Declared features.
 	 *
 	 * @var array
 	 */
-	protected $features = array( 'labels', 'tracking', 'cod' );
+	protected $features = array( 'labels', 'tracking', 'cod', 'cod_report' );
 
 	/**
 	 * Id.
@@ -103,13 +103,13 @@ class WC_ESM_Provider_Smartpost extends WC_ESM_Shipment_Provider {
 				'group'       => 'shipments',
 				'title'   => __( 'Label format', 'wc-estonian-shipping-methods' ),
 				'type'    => 'select',
-				'default' => 'A4-4',
+				'default' => '5',
 				'options' => array(
-					'A4-4' => __( 'A4, four to a page', 'wc-estonian-shipping-methods' ),
-					'A4-8' => __( 'A4, eight to a page', 'wc-estonian-shipping-methods' ),
-					'A5'   => 'A5',
-					'A6'   => 'A6',
-					'A7'   => 'A7',
+					'4/4' => __( 'A4, four to a page', 'wc-estonian-shipping-methods' ),
+					'4/8' => __( 'A4, eight to a page', 'wc-estonian-shipping-methods' ),
+					'5'   => 'A5',
+					'6'   => 'A6',
+					'7'   => 'A7',
 				),
 			),
 			'package_size'         => array(
@@ -188,19 +188,53 @@ class WC_ESM_Provider_Smartpost extends WC_ESM_Shipment_Provider {
 			return WC_ESM_Shipment_Result::failure( __( 'There is nothing to print.', 'wc-estonian-shipping-methods' ) );
 		}
 
-		$endpoint = sprintf(
-			'labels?format=%s&barcode=%s',
-			rawurlencode( $this->get_setting( 'label_format', 'A4-4' ) ),
-			implode( '&barcode=', array_map( 'rawurlencode', $refs ) )
-		);
+		$pdfs = array();
 
-		$response = $this->client()->get( $endpoint );
+		// Smartposti takes a hundred barcodes per request, so a bulk print of
+		// more is asked for in batches. Printing the first hundred and
+		// stopping would be worse than failing: the shopkeeper would post
+		// what came out and never notice the rest.
+		foreach ( array_chunk( $refs, self::LABELS_PER_REQUEST ) as $batch ) {
+			$response = $this->client()->get(
+				sprintf(
+					'labels?format=%s&barcode=%s',
+					rawurlencode( $this->get_setting( 'label_format', '5' ) ),
+					implode( '&barcode=', array_map( 'rawurlencode', $batch ) )
+				)
+			);
+
+			if ( ! $response->ok() ) {
+				return $this->refusal( $response );
+			}
+
+			$pdfs[] = $response->raw();
+		}
+
+		return WC_ESM_Shipment_Result::success( array( 'pdfs' => $pdfs ) );
+	}
+
+	/**
+	 * What Smartposti says it collected in cash on delivery.
+	 *
+	 * @param string $from Start date, Y-m-d.
+	 * @param string $to   End date, Y-m-d.
+	 *
+	 * @return WC_ESM_Shipment_Result
+	 */
+	public function fetch_cod_report( $from, $to ) {
+		$response = $this->client()->get(
+			sprintf(
+				'cod-payments?bank_transaction_date=%s&get_one_day=%d',
+				rawurlencode( $from ),
+				$from === $to ? 1 : 0
+			)
+		);
 
 		if ( ! $response->ok() ) {
 			return $this->refusal( $response );
 		}
 
-		return WC_ESM_Shipment_Result::success( array( 'pdf' => $response->raw() ) );
+		return WC_ESM_Shipment_Result::success( $response->json() );
 	}
 
 	/**
