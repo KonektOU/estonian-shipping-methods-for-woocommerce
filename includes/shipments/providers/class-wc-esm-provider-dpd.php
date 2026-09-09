@@ -127,7 +127,7 @@ class WC_ESM_Provider_Dpd extends WC_ESM_Shipment_Provider {
 					'desc_tip'    => true,
 				),
 				'service_alias'     => array(
-				'group'       => 'shipments',
+					'group'       => 'shipments',
 					'title'       => __( 'Service name', 'wc-estonian-shipping-methods' ),
 					'type'        => 'text',
 					'default'     => 'DPD CLASSIC',
@@ -135,7 +135,7 @@ class WC_ESM_Provider_Dpd extends WC_ESM_Shipment_Provider {
 					'desc_tip'    => true,
 				),
 				'cod_service_alias' => array(
-				'group'       => 'shipments',
+					'group'       => 'shipments',
 					'title'       => __( 'Cash on delivery service name', 'wc-estonian-shipping-methods' ),
 					'type'        => 'text',
 					'default'     => '',
@@ -143,7 +143,7 @@ class WC_ESM_Provider_Dpd extends WC_ESM_Shipment_Provider {
 					'desc_tip'    => true,
 				),
 				'label_format'      => array(
-				'group'       => 'shipments',
+					'group'       => 'shipments',
 					'title'   => __( 'Label paper', 'wc-estonian-shipping-methods' ),
 					'type'    => 'select',
 					'default' => 'A4',

@@ -58,11 +58,22 @@ class WC_ESM_Payload_Omniva extends WC_ESM_Payload {
 			$shipment['contentDescription'] = $snapshot['content'];
 		}
 
-		// Omniva issues the additional service list per customer, so the code
-		// for cash on delivery is the shop's own and not something to guess.
+		// The amount travels with the service, not merely the code. A code on
+		// its own is the dangerous shape: Omniva would take the parcel and
+		// nobody would collect the cash.
 		if ( WC_ESM_Order_Snapshot::has_cod( $snapshot ) ) {
 			$shipment['addServices'] = array(
-				array( 'code' => self::setting( $settings, 'cod_service_code', 'BP' ) ),
+				array(
+					// Omniva issues the additional service list per customer,
+					// so a contract may name this differently.
+					'code'   => self::setting( $settings, 'cod_service_code', 'COD' ),
+					'params' => array(
+						'COD_RECEIVER'        => self::setting( $settings, 'sender_name' ),
+						'COD_AMOUNT'          => (string) (float) $snapshot['cod_amount'],
+						'COD_BANK_ACCOUNT_NO' => self::setting( $settings, 'cod_bank_account' ),
+						'COD_REFERENCE_NO'    => (string) $snapshot['order_number'],
+					),
+				),
 			);
 		}
 

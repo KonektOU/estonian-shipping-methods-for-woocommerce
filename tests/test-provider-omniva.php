@@ -195,7 +195,7 @@ class Test_Provider_Omniva extends WC_ESM_Test_Case {
 	 * @return void
 	 */
 	public function test_a_courier_is_booked_for_a_window() {
-		$provider = $this->provider( array( array( 200, array( 'orderNumber' => 'P-1' ) ) ) );
+		$provider = $this->provider( array( array( 200, array( 'courierOrderNumber' => '4141146' ) ) ) );
 
 		$result = $provider->request_pickup(
 			array(
@@ -207,13 +207,51 @@ class Test_Provider_Omniva extends WC_ESM_Test_Case {
 		);
 
 		$this->assertTrue( $result->is_success() );
-		$this->assertSame( 'P-1', $result->get( 'reference' ) );
+		$this->assertSame( '4141146', $result->get( 'reference' ) );
 		$this->assertSame( 'courierorders/create-pickup-order', $provider->fake->endpoint() );
 
 		$body = $provider->fake->body();
-		$this->assertSame( '2026-09-10T09:00:00.000', $body['startTime'] );
-		$this->assertSame( '2026-09-10T17:00:00.000', $body['endTime'] );
 		$this->assertSame( 'Tallinn', $body['pickupAddress']['deliverypoint'] );
+	}
+
+	/**
+	 * Omniva reads the window in UTC. A shop in Tallinn asking for nine in
+	 * the morning means nine local, and sending the wall clock unconverted
+	 * puts the courier there three hours late in summer.
+	 *
+	 * @return void
+	 */
+	public function test_the_window_is_sent_in_utc() {
+		$this->assertSame(
+			'2026-09-10T06:00:00.000',
+			WC_ESM_Provider_Omniva::utc_moment( '2026-09-10', '09:00', 'Europe/Tallinn' )
+		);
+		$this->assertSame(
+			'2026-01-10T07:00:00.000',
+			WC_ESM_Provider_Omniva::utc_moment( '2026-01-10', '09:00', 'Europe/Tallinn' )
+		);
+	}
+
+	/**
+	 * A shop that runs on UTC already is not shifted.
+	 *
+	 * @return void
+	 */
+	public function test_a_shop_already_on_utc_is_not_shifted() {
+		$this->assertSame( '2026-09-10T09:00:00.000', WC_ESM_Provider_Omniva::utc_moment( '2026-09-10', '09:00', 'UTC' ) );
+	}
+
+	/**
+	 * A booked courier is called off by the number Omniva files it under,
+	 * and Omniva asks for it by that name.
+	 *
+	 * @return void
+	 */
+	public function test_a_cancellation_names_the_courier_order() {
+		$provider = $this->provider( array( array( 200, array() ) ) );
+		$provider->cancel_pickup( '4141146' );
+
+		$this->assertSame( '4141146', $provider->fake->body()['courierOrderNumber'] );
 	}
 
 	/**

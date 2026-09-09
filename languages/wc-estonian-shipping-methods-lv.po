@@ -422,43 +422,61 @@ msgstr "Smartpost Igaunija"
 msgid "Smartpost Lithuania"
 msgstr "Smartpost Igaunija"
 
-#: includes/shipments/class-wc-esm-dispatch-screen.php:104
-#: includes/shipments/class-wc-esm-dispatch-screen.php:421
+#. translators: 1: carrier name, 2: why the request did not arrive.
+#: includes/shipments/abstracts/class-wc-esm-shipment-provider.php:258
+#, php-format
+msgid "%1$s could not be reached: %2$s"
+msgstr ""
+
+#. translators: 1: carrier name, 2: HTTP status code, 3: what the carrier said.
+#: includes/shipments/abstracts/class-wc-esm-shipment-provider.php:269
+#, php-format
+msgid "%1$s refused the request (HTTP %2$d): %3$s"
+msgstr ""
+
+#. translators: 1: carrier name, 2: HTTP status code.
+#: includes/shipments/abstracts/class-wc-esm-shipment-provider.php:280
+#, php-format
+msgid "%1$s refused the request (HTTP %2$d)."
+msgstr ""
+
+#: includes/shipments/class-wc-esm-dispatch-screen.php:81
+#: includes/shipments/class-wc-esm-dispatch-screen.php:313
 msgid "Recent dispatches"
 msgstr ""
 
-#: includes/shipments/class-wc-esm-dispatch-screen.php:170
-#: includes/shipments/class-wc-esm-dispatch-screen.php:171
-#: includes/shipments/class-wc-esm-dispatch-screen.php:274
+#: includes/shipments/class-wc-esm-dispatch-screen.php:147
+#: includes/shipments/class-wc-esm-dispatch-screen.php:148
+#: includes/shipments/class-wc-esm-dispatch-screen.php:165
 msgid "Parcel dispatch"
 msgstr ""
 
-#: includes/shipments/class-wc-esm-dispatch-screen.php:344
+#: includes/shipments/class-wc-esm-dispatch-screen.php:235
 msgid "Courier pickup"
 msgstr ""
 
-#: includes/shipments/class-wc-esm-dispatch-screen.php:352
+#: includes/shipments/class-wc-esm-dispatch-screen.php:243
 msgid "Pickup date"
 msgstr ""
 
-#: includes/shipments/class-wc-esm-dispatch-screen.php:356
+#: includes/shipments/class-wc-esm-dispatch-screen.php:247
 msgid "Between"
 msgstr ""
 
-#: includes/shipments/class-wc-esm-dispatch-screen.php:363
+#: includes/shipments/class-wc-esm-dispatch-screen.php:254
 msgid "Message to the courier"
 msgstr ""
 
-#: includes/shipments/class-wc-esm-dispatch-screen.php:367
+#: includes/shipments/class-wc-esm-dispatch-screen.php:258
 msgid "Book a pickup"
 msgstr ""
 
-#: includes/shipments/class-wc-esm-dispatch-screen.php:382
+#: includes/shipments/class-wc-esm-dispatch-screen.php:274
 msgid "Manifest"
 msgstr ""
 
 #. translators: %d: number of shipments.
-#: includes/shipments/class-wc-esm-dispatch-screen.php:387
+#: includes/shipments/class-wc-esm-dispatch-screen.php:279
 #, php-format
 msgid "%d shipment is not on a manifest yet."
 msgid_plural "%d shipments are not on a manifest yet."
@@ -467,63 +485,63 @@ msgstr[1] ""
 msgstr[2] ""
 
 #. translators: %d: the ceiling that was hit.
-#: includes/shipments/class-wc-esm-dispatch-screen.php:397
+#: includes/shipments/class-wc-esm-dispatch-screen.php:289
 #, php-format
 msgid "Stopped after %d orders; there may be more not shown here."
 msgstr ""
 
-#: includes/shipments/class-wc-esm-dispatch-screen.php:408
+#: includes/shipments/class-wc-esm-dispatch-screen.php:300
 msgid "Close the manifest"
 msgstr ""
 
-#: includes/shipments/class-wc-esm-dispatch-screen.php:424
+#: includes/shipments/class-wc-esm-dispatch-screen.php:316
 msgid "Nothing has been booked or manifested yet."
 msgstr ""
 
-#: includes/shipments/class-wc-esm-dispatch-screen.php:430
+#: includes/shipments/class-wc-esm-dispatch-screen.php:322
 msgid "Carrier"
 msgstr ""
 
-#: includes/shipments/class-wc-esm-dispatch-screen.php:431
+#: includes/shipments/class-wc-esm-dispatch-screen.php:323
 msgid "Kind"
 msgstr ""
 
-#: includes/shipments/class-wc-esm-dispatch-screen.php:432
+#: includes/shipments/class-wc-esm-dispatch-screen.php:324
 msgid "Reference"
 msgstr ""
 
-#: includes/shipments/class-wc-esm-dispatch-screen.php:433
+#: includes/shipments/class-wc-esm-dispatch-screen.php:325
 msgid "When"
 msgstr ""
 
-#: includes/shipments/class-wc-esm-dispatch-screen.php:434
+#: includes/shipments/class-wc-esm-dispatch-screen.php:326
 msgid "Actions"
 msgstr ""
 
-#: includes/shipments/class-wc-esm-dispatch-screen.php:497
+#: includes/shipments/class-wc-esm-dispatch-screen.php:354
 msgid "Download"
 msgstr ""
 
 #. translators: 1: carrier name, 2: pickup reference.
-#: includes/shipments/class-wc-esm-dispatch-screen.php:509
+#: includes/shipments/class-wc-esm-dispatch-screen.php:366
 #, php-format
 msgid "Cancel the pickup %2$s booked with %1$s?"
 msgstr ""
 
-#: includes/shipments/class-wc-esm-dispatch-screen.php:517
+#: includes/shipments/class-wc-esm-dispatch-screen.php:374
 msgid "Cancel"
 msgstr ""
 
-#: includes/shipments/class-wc-esm-dispatch-screen.php:523
+#: includes/shipments/class-wc-esm-dispatch-screen.php:380
 msgid "Cancelled"
 msgstr ""
 
-#: includes/shipments/class-wc-esm-dispatch-screen.php:612
-#: includes/shipments/class-wc-esm-shipment-admin.php:184
+#: includes/shipments/class-wc-esm-dispatch-screen.php:441
+#: includes/shipments/class-wc-esm-shipment-admin.php:176
 msgid "You are not allowed to do that."
 msgstr ""
 
-#: includes/shipments/class-wc-esm-dispatch-screen.php:671
+#: includes/shipments/class-wc-esm-dispatch-screen.php:545
 msgid "That pickup has already been cancelled."
 msgstr ""
 
@@ -542,35 +560,35 @@ msgid ""
 "way."
 msgstr ""
 
-#: includes/shipments/class-wc-esm-shipment-admin.php:100
+#: includes/shipments/class-wc-esm-shipment-admin.php:92
 msgid "Shipment"
 msgstr ""
 
-#: includes/shipments/class-wc-esm-shipment-admin.php:126
+#: includes/shipments/class-wc-esm-shipment-admin.php:118
 msgid "This order is not shipped by a carrier this plugin handles."
 msgstr ""
 
-#: includes/shipments/class-wc-esm-shipment-admin.php:132
+#: includes/shipments/class-wc-esm-shipment-admin.php:124
 msgid "Barcode:"
 msgstr ""
 
-#: includes/shipments/class-wc-esm-shipment-admin.php:136
+#: includes/shipments/class-wc-esm-shipment-admin.php:128
 msgid "Last attempt failed:"
 msgstr ""
 
-#: includes/shipments/class-wc-esm-shipment-admin.php:140
+#: includes/shipments/class-wc-esm-shipment-admin.php:132
 msgid "Send to the carrier"
 msgstr ""
 
-#: includes/shipments/class-wc-esm-shipment-admin.php:141
+#: includes/shipments/class-wc-esm-shipment-admin.php:133
 msgid "Print the label"
 msgstr ""
 
-#: includes/shipments/class-wc-esm-shipment-admin.php:168
+#: includes/shipments/class-wc-esm-shipment-admin.php:160
 msgid "Follow the parcel"
 msgstr ""
 
-#: includes/shipments/class-wc-esm-shipment-admin.php:224
+#: includes/shipments/class-wc-esm-shipment-admin.php:216
 msgid "Print shipping labels"
 msgstr ""
 
@@ -588,24 +606,24 @@ msgid ""
 "label."
 msgstr ""
 
-#: includes/shipments/class-wc-esm-shipment-registration.php:180
+#: includes/shipments/class-wc-esm-shipment-registration.php:170
 msgid "This order has already been sent to the carrier."
 msgstr ""
 
 #. translators: 1: carrier name, 2: what went wrong.
-#: includes/shipments/class-wc-esm-shipment-registration.php:211
+#: includes/shipments/class-wc-esm-shipment-registration.php:201
 #, php-format
 msgid "%1$s: the shipment was not registered. %2$s"
 msgstr ""
 
 #. translators: 1: carrier name, 2: barcodes.
-#: includes/shipments/class-wc-esm-shipment-registration.php:222
+#: includes/shipments/class-wc-esm-shipment-registration.php:212
 #, php-format
 msgid "%1$s: shipment registered. Barcode %2$s."
 msgstr ""
 
 #. translators: %s: carrier name.
-#: includes/shipments/class-wc-esm-shipment-registration.php:230
+#: includes/shipments/class-wc-esm-shipment-registration.php:220
 #, php-format
 msgid "%s: shipment registered."
 msgstr ""
@@ -730,18 +748,6 @@ msgstr ""
 msgid "Cleveron created the order but returned no id for it."
 msgstr ""
 
-#. translators: 1: HTTP status code, 2: what the carrier said.
-#: includes/shipments/providers/class-wc-esm-provider-cleveron.php:177
-#, php-format
-msgid "Cleveron refused the order (HTTP %1$d): %2$s"
-msgstr ""
-
-#. translators: %d: HTTP status code.
-#: includes/shipments/providers/class-wc-esm-provider-cleveron.php:185
-#, php-format
-msgid "Cleveron refused the order (HTTP %d)."
-msgstr ""
-
 #: includes/shipments/providers/class-wc-esm-provider-dpd.php:78
 msgid "DPD"
 msgstr ""
@@ -816,8 +822,8 @@ msgid "DPD accepted the parcel but returned no shipment id for it."
 msgstr ""
 
 #: includes/shipments/providers/class-wc-esm-provider-dpd.php:210
-#: includes/shipments/providers/class-wc-esm-provider-omniva.php:175
-#: includes/shipments/providers/class-wc-esm-provider-smartpost.php:194
+#: includes/shipments/providers/class-wc-esm-provider-omniva.php:183
+#: includes/shipments/providers/class-wc-esm-provider-smartpost.php:188
 msgid "There is nothing to print."
 msgstr ""
 
@@ -831,18 +837,6 @@ msgstr ""
 
 #: includes/shipments/providers/class-wc-esm-provider-dpd.php:273
 msgid "There is no manifest to fetch."
-msgstr ""
-
-#. translators: 1: HTTP status code, 2: what the carrier said.
-#: includes/shipments/providers/class-wc-esm-provider-dpd.php:457
-#, php-format
-msgid "DPD refused the request (HTTP %1$d): %2$s"
-msgstr ""
-
-#. translators: %d: HTTP status code.
-#: includes/shipments/providers/class-wc-esm-provider-dpd.php:465
-#, php-format
-msgid "DPD refused the request (HTTP %d)."
 msgstr ""
 
 #: includes/shipments/providers/class-wc-esm-provider-omniva.php:54
@@ -887,24 +881,22 @@ msgid ""
 "with them before charging cash on delivery."
 msgstr ""
 
-#: includes/shipments/providers/class-wc-esm-provider-omniva.php:152
+#: includes/shipments/providers/class-wc-esm-provider-omniva.php:129
+msgid "Cash on delivery bank account"
+msgstr ""
+
+#: includes/shipments/providers/class-wc-esm-provider-omniva.php:132
+msgid ""
+"The IBAN Omniva pays the collected money into. Cash on delivery does not "
+"work without it."
+msgstr ""
+
+#: includes/shipments/providers/class-wc-esm-provider-omniva.php:160
 msgid "Omniva accepted the parcel but returned no barcode for it."
 msgstr ""
 
-#: includes/shipments/providers/class-wc-esm-provider-omniva.php:194
+#: includes/shipments/providers/class-wc-esm-provider-omniva.php:202
 msgid "Omniva returned no labels."
-msgstr ""
-
-#. translators: 1: HTTP status code, 2: what the carrier said.
-#: includes/shipments/providers/class-wc-esm-provider-omniva.php:319
-#, php-format
-msgid "Omniva refused the request (HTTP %1$d): %2$s"
-msgstr ""
-
-#. translators: %d: HTTP status code.
-#: includes/shipments/providers/class-wc-esm-provider-omniva.php:327
-#, php-format
-msgid "Omniva refused the request (HTTP %d)."
 msgstr ""
 
 #: includes/shipments/providers/class-wc-esm-provider-smartpost.php:64
@@ -951,20 +943,8 @@ msgstr ""
 msgid "Leave empty for the carrier default."
 msgstr ""
 
-#. translators: %d: HTTP status code.
-#: includes/shipments/providers/class-wc-esm-provider-smartpost.php:156
-#, php-format
-msgid "Smartposti refused the parcel (HTTP %d)."
-msgstr ""
-
-#: includes/shipments/providers/class-wc-esm-provider-smartpost.php:169
+#: includes/shipments/providers/class-wc-esm-provider-smartpost.php:163
 msgid "Smartposti accepted the parcel but returned no barcode for it."
-msgstr ""
-
-#. translators: %d: HTTP status code.
-#: includes/shipments/providers/class-wc-esm-provider-smartpost.php:209
-#, php-format
-msgid "Smartposti would not give the labels (HTTP %d)."
 msgstr ""
 
 #: woocommerce/checkout/form-shipping-dpd.php:25

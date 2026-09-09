@@ -117,11 +117,19 @@ class WC_ESM_Provider_Omniva extends WC_ESM_Shipment_Provider {
 			WC_ESM_Shop_Address::fields(),
 			array(
 				'cod_service_code' => array(
-				'group'       => 'shipments',
+					'group'       => 'shipments',
 					'title'       => __( 'Cash on delivery service code', 'wc-estonian-shipping-methods' ),
 					'type'        => 'text',
-					'default'     => 'BP',
+					'default'     => 'COD',
 					'description' => __( 'Omniva issues the additional service list per customer. Confirm this code with them before charging cash on delivery.', 'wc-estonian-shipping-methods' ),
+					'desc_tip'    => true,
+				),
+				'cod_bank_account' => array(
+					'group'       => 'shipments',
+					'title'       => __( 'Cash on delivery bank account', 'wc-estonian-shipping-methods' ),
+					'type'        => 'text',
+					'default'     => '',
+					'description' => __( 'The IBAN Omniva pays the collected money into. Cash on delivery does not work without it.', 'wc-estonian-shipping-methods' ),
 					'desc_tip'    => true,
 				),
 			)
@@ -236,7 +244,7 @@ class WC_ESM_Provider_Omniva extends WC_ESM_Shipment_Provider {
 		}
 
 		return WC_ESM_Shipment_Result::success(
-			array( 'reference' => (string) $response->get( 'orderNumber', '' ) )
+			array( 'reference' => (string) $response->get( 'courierOrderNumber', '' ) )
 		);
 	}
 
@@ -251,8 +259,8 @@ class WC_ESM_Provider_Omniva extends WC_ESM_Shipment_Provider {
 		$response = $this->client()->post(
 			'courierorders/cancel-pickup-order',
 			array(
-				'customerCode' => $this->get_setting( 'customer_code' ),
-				'orderNumber'  => (string) $reference,
+				'customerCode'       => $this->get_setting( 'customer_code' ),
+				'courierOrderNumber' => (string) $reference,
 			)
 		);
 
@@ -289,7 +297,35 @@ class WC_ESM_Provider_Omniva extends WC_ESM_Shipment_Provider {
 		$date = isset( $args['date'] ) && '' !== $args['date'] ? $args['date'] : gmdate( 'Y-m-d' );
 		$time = isset( $args[ $key ] ) && '' !== $args[ $key ] ? $args[ $key ] : $default;
 
-		return sprintf( '%sT%s:00.000', $date, $time );
+		return self::utc_moment( $date, $time, function_exists( 'wp_timezone_string' ) ? wp_timezone_string() : 'UTC' );
+	}
+
+	/**
+	 * A local date and time as OMX reads it.
+	 *
+	 * Omniva reads the pickup window in UTC. A shop in Tallinn asking for
+	 * nine in the morning means nine o'clock where the courier is going, and
+	 * sending the wall clock unconverted puts them there three hours late all
+	 * summer.
+	 *
+	 * @param string $date     Y-m-d, in the shop's own timezone.
+	 * @param string $time     H:i, in the shop's own timezone.
+	 * @param string $timezone The shop's timezone.
+	 *
+	 * @return string
+	 */
+	public static function utc_moment( $date, $time, $timezone ) {
+		try {
+			$moment = new DateTime( $date . ' ' . $time, new DateTimeZone( $timezone ) );
+		} catch ( \Throwable $e ) {
+			// An unusable timezone must not stop a shop booking a courier;
+			// the times were typed by hand and UTC is the honest fallback.
+			$moment = new DateTime( $date . ' ' . $time, new DateTimeZone( 'UTC' ) );
+		}
+
+		$moment->setTimezone( new DateTimeZone( 'UTC' ) );
+
+		return $moment->format( 'Y-m-d\TH:i:s' ) . '.000';
 	}
 
 	/**

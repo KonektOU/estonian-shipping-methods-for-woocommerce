@@ -186,18 +186,45 @@ class Test_Payload_Omniva extends WC_ESM_Test_Case {
 	}
 
 	/**
-	 * An order with money to collect carries the service code the shop's
-	 * own contract names, because Omniva issues that list per customer.
+	 * An order with money to collect carries the amount. A service code with
+	 * no amount behind it is the dangerous shape: Omniva would take the
+	 * parcel and nobody would collect the cash.
 	 *
 	 * @return void
 	 */
-	public function test_cash_on_delivery_uses_the_shops_own_service_code() {
-		$shipment = $this->shipment(
+	public function test_cash_on_delivery_carries_the_amount() {
+		$service = $this->shipment(
 			array( 'cod_amount' => 19.90 ),
-			array( 'cod_service_code' => 'BP' )
-		);
+			array( 'cod_bank_account' => 'EE382200221020145685' )
+		)['addServices'][0];
 
-		$this->assertSame( array( array( 'code' => 'BP' ) ), $shipment['addServices'] );
+		$this->assertSame( 'COD', $service['code'] );
+		$this->assertSame( '19.9', $service['params']['COD_AMOUNT'] );
+		$this->assertSame( 'EE382200221020145685', $service['params']['COD_BANK_ACCOUNT_NO'] );
+	}
+
+	/**
+	 * The money is paid to the shop, under the order's own number, so an
+	 * accountant can match a payment to an order.
+	 *
+	 * @return void
+	 */
+	public function test_the_money_is_paid_to_the_shop_under_the_order_number() {
+		$service = $this->shipment( array( 'cod_amount' => 19.90 ) )['addServices'][0];
+
+		$this->assertSame( 'Testpood', $service['params']['COD_RECEIVER'] );
+		$this->assertSame( '1234', $service['params']['COD_REFERENCE_NO'] );
+	}
+
+	/**
+	 * A shop whose contract names a different code for it may say so.
+	 *
+	 * @return void
+	 */
+	public function test_a_contract_may_name_a_different_code() {
+		$shipment = $this->shipment( array( 'cod_amount' => 19.90 ), array( 'cod_service_code' => 'BP' ) );
+
+		$this->assertSame( 'BP', $shipment['addServices'][0]['code'] );
 	}
 
 	/**
