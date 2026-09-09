@@ -262,6 +262,7 @@ class Estonian_Shipping_Methods_For_WooCommerce {
 		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/class-wc-esm-shipment-tracking.php';
 		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/class-wc-esm-shipment-admin.php';
 		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/class-wc-esm-dispatch-screen.php';
+		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/class-wc-esm-cleveron-migration.php';
 
 		// The PDF library, when the shop ran composer install. Merging labels
 		// from several carriers needs it; everything else works without.
@@ -300,6 +301,7 @@ class Estonian_Shipping_Methods_For_WooCommerce {
 		WC_ESM_Shipment_Tracking::init();
 		WC_ESM_Shipment_Admin::init();
 		WC_ESM_Dispatch_Screen::init();
+		WC_ESM_Cleveron_Migration::init();
 	}
 
 	/**

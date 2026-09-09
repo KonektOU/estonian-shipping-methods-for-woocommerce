@@ -35,9 +35,16 @@ class WC_ESM_Provider_Smartpost extends WC_ESM_Shipment_Provider {
 	/**
 	 * Declared features.
 	 *
+	 * cod_report is deliberately absent. Smartposti carries cash on delivery,
+	 * but the published API documentation available here describes no
+	 * endpoint for reading back what was collected, and a capability that
+	 * cannot work must not be declared - every screen gates its buttons on
+	 * supports(), so declaring it would put a button there that fails when
+	 * pressed. Add it here once the endpoint is confirmed.
+	 *
 	 * @var array
 	 */
-	protected $features = array( 'labels', 'tracking', 'cod', 'cod_report' );
+	protected $features = array( 'labels', 'tracking', 'cod' );
 
 	/**
 	 * Id.
