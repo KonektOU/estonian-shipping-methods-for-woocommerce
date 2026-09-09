@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.6/phpunit.xsd"
+         bootstrap="tests/bootstrap.php"
+         colors="true"
+         convertErrorsToExceptions="true"
+         convertNoticesToExceptions="true"
+         convertWarningsToExceptions="true"
+         beStrictAboutTestsThatDoNotTestAnything="false">
+    <testsuites>
+        <testsuite name="Estonian Shipping Methods">
+            <directory suffix=".php">tests</directory>
+            <exclude>tests/bootstrap.php</exclude>
+            <exclude>tests/class-wc-esm-test-case.php</exclude>
+            <exclude>tests/fixtures</exclude>
+        </testsuite>
+    </testsuites>
+</phpunit>

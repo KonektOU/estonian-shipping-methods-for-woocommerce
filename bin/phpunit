@@ -1,0 +1,24 @@
+#!/usr/bin/env php
+<?php
+/**
+ * PHPUnit runner for a PHP build without ext-mbstring.
+ *
+ * The machine this plugin is developed on has no mbstring extension and no way
+ * to install one, and PHPUnit's own binary refuses to start without it. The
+ * functions it actually needs come from symfony/polyfill-mbstring, which the
+ * autoloader below brings in, so this boots PHPUnit's runner directly and
+ * skips the binary's extension check.
+ *
+ * Use `php bin/phpunit` in place of `vendor/bin/phpunit`.
+ *
+ * @package Estonian_Shipping_Methods_For_WooCommerce
+ */
+
+require __DIR__ . '/../vendor/autoload.php';
+
+if ( ! function_exists( 'mb_strlen' ) ) {
+	fwrite( STDERR, "The mbstring polyfill is missing; run composer install.\n" );
+	exit( 1 );
+}
+
+exit( ( new PHPUnit\TextUI\Command() )->run( $_SERVER['argv'], false ) );
