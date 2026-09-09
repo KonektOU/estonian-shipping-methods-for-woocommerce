@@ -29,6 +29,37 @@
 - SmartPOST courier
 - Cleveron Office packrobots (Estonia)
 
+## Carrier integrations ##
+
+Beyond offering a method at the checkout, the plugin can send the parcel:
+
+- Orders go to the carrier automatically when they reach a status you choose,
+  or by hand from the order screen. The work is queued, so the carrier's API is
+  never on a customer's checkout however you configure it.
+- Parcel labels per order and as a bulk action on the orders list. A selection
+  spanning several carriers is merged into one PDF - that part needs
+  `composer install`; printing one carrier at a time works without it.
+- A tracking sentence for the customer, in the order e-mails you choose and
+  under My account, with `{tracking_code}`, `{tracking_url}`, `{tracking_link}`
+  and `{carrier}` to write it with. An order whose parcel has no barcode yet
+  shows nothing rather than an empty block.
+- Courier pickups (Omniva, DPD) and manifests (DPD), under WooCommerce ->
+  Parcel dispatch. A carrier that offers neither is simply absent from it.
+
+Settings live under WooCommerce -> Settings -> Shipping, one section per
+carrier, divided into Connection, Sender, Shipments and Automation. The sender
+address arrives filled in from the shop address you already gave WooCommerce.
+
+Carriers differ in what they can do, and nothing is offered where it would
+fail: Cleveron prints no labels and tracks nothing, only DPD closes manifests,
+and only Omniva and DPD send a courier.
+
+**What has been proven, and what has not.** Smartposti has been exercised end
+to end against a real contract. Omniva and DPD are written from their published
+API documentation and their own client libraries, and are covered by unit tests
+that build the requests and read the responses - but no request has been made
+against a live account of theirs.
+
 
 ## Multilingual (WPML support) ##
 

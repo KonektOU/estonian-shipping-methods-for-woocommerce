@@ -32,6 +32,25 @@ Supports WPML for multilingual sites. Current translations:
 *   Russian (props @avramchuk)
 
 
+= Carrier integrations =
+
+The plugin can also send the parcel, not only offer the method: orders go to
+the carrier on a status you choose or by hand, labels print per order and in
+bulk (a selection spanning several carriers merges into one PDF, which needs
+`composer install`), the customer gets a tracking sentence in the order e-mails
+you choose and under My account, and courier pickups and manifests live under
+WooCommerce - Parcel dispatch. Registration is queued, so a carrier's API is
+never on a customer's checkout.
+
+Carriers differ in what they offer and nothing is shown where it would fail:
+Cleveron prints no labels and tracks nothing, only DPD closes manifests, only
+Omniva and DPD send a courier.
+
+Smartposti has been exercised end to end against a real contract. Omniva and
+DPD are written from their published documentation and covered by unit tests,
+but no request has been made against a live account of theirs.
+
+
 Code is maintained and developed at Github. Contributions and discussions are very welcome at [Github](https://github.com/KonektOU/estonian-shipping-methods-for-woocommerce)
 
 
