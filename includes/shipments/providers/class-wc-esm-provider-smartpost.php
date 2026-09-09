@@ -40,6 +40,15 @@ class WC_ESM_Provider_Smartpost extends WC_ESM_Shipment_Provider {
 	const LABELS_PER_REQUEST = 100;
 
 	/**
+	 * Verified against the live API, so that none of it has to be guessed
+	 * at again: the format of a response follows the Content-Type header and
+	 * not Accept; a parcel machine's place_id travels as a string with its
+	 * leading zeros, because the same id as a number is an unknown
+	 * destination; and there is no endpoint of any kind for cancelling or
+	 * deleting an order once it is registered.
+	 */
+
+	/**
 	 * Declared features.
 	 *
 	 * @var array
@@ -103,13 +112,19 @@ class WC_ESM_Provider_Smartpost extends WC_ESM_Shipment_Provider {
 				'group'       => 'shipments',
 				'title'   => __( 'Label format', 'wc-estonian-shipping-methods' ),
 				'type'    => 'select',
-				'default' => '5',
+				// The published documentation lists these as 4/4, 4/8, 5, 6 and
+				// 7. The live API rejects every one of those with "Invalid
+				// label format" and accepts only the names below, which is
+				// what the carrier's own older plugin always sent. Checked
+				// against gateway.posti.fi, so do not "correct" these back to
+				// what the PDF says.
+				'default' => 'A4-4',
 				'options' => array(
-					'4/4' => __( 'A4, four to a page', 'wc-estonian-shipping-methods' ),
-					'4/8' => __( 'A4, eight to a page', 'wc-estonian-shipping-methods' ),
-					'5'   => 'A5',
-					'6'   => 'A6',
-					'7'   => 'A7',
+					'A4-4' => __( 'A4, four to a page', 'wc-estonian-shipping-methods' ),
+					'A4-8' => __( 'A4, eight to a page', 'wc-estonian-shipping-methods' ),
+					'A5'   => 'A5',
+					'A6'   => 'A6',
+					'A7'   => 'A7',
 				),
 			),
 			'package_size'         => array(
@@ -198,7 +213,7 @@ class WC_ESM_Provider_Smartpost extends WC_ESM_Shipment_Provider {
 			$response = $this->client()->get(
 				sprintf(
 					'labels?format=%s&barcode=%s',
-					rawurlencode( $this->get_setting( 'label_format', '5' ) ),
+					rawurlencode( $this->get_setting( 'label_format', 'A4-4' ) ),
 					implode( '&barcode=', array_map( 'rawurlencode', $batch ) )
 				)
 			);

@@ -191,7 +191,7 @@ class Test_Provider_Smartpost extends WC_ESM_Test_Case {
 	public function test_labels_are_fetched_by_barcode() {
 		$provider = $this->provider(
 			array( array( 200, '%PDF-1.4 label' ) ),
-			array( 'label_format' => '6' )
+			array( 'label_format' => 'A6' )
 		);
 
 		$result = $provider->fetch_labels( array( 'B1', 'B2' ) );
@@ -199,7 +199,7 @@ class Test_Provider_Smartpost extends WC_ESM_Test_Case {
 		$this->assertTrue( $result->is_success() );
 		$this->assertSame( array( '%PDF-1.4 label' ), $result->get( 'pdfs' ) );
 		$this->assertSame( 'GET', $provider->fake->calls[0]['method'] );
-		$this->assertStringContainsString( 'format=6', $provider->fake->endpoint() );
+		$this->assertStringContainsString( 'format=A6', $provider->fake->endpoint() );
 		$this->assertStringContainsString( 'barcode=B1&barcode=B2', $provider->fake->endpoint() );
 	}
 
