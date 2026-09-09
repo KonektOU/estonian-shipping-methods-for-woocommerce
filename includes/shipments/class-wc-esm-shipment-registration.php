@@ -142,24 +142,14 @@ class WC_ESM_Shipment_Registration {
 	}
 
 	/**
-	 * The carrier that carries an order's shipping method.
+	 * The carrier that carries an order.
 	 *
 	 * @param WC_Order $order Order.
 	 *
 	 * @return WC_ESM_Shipment_Provider|null
 	 */
 	public static function provider_for( $order ) {
-		$registry = WC_ESM_Shipment_Registry::instance();
-
-		foreach ( $order->get_shipping_methods() as $item ) {
-			$provider = $registry->provider_for_method( $item->get_method_id() );
-
-			if ( $provider ) {
-				return $provider;
-			}
-		}
-
-		return null;
+		return WC_ESM_Shipment_Registry::instance()->provider_for_order( $order );
 	}
 
 	/**

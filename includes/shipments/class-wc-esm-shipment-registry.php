@@ -102,6 +102,29 @@ class WC_ESM_Shipment_Registry {
 	}
 
 	/**
+	 * The carrier that carries an order.
+	 *
+	 * An order is shipped by one line, and that line names a method. Three
+	 * screens and the registration all needed this and each kept its own copy
+	 * of the loop; it belongs here, beside provider_for_method().
+	 *
+	 * @param WC_Order $order Order.
+	 *
+	 * @return WC_ESM_Shipment_Provider|null
+	 */
+	public function provider_for_order( $order ) {
+		foreach ( $order->get_shipping_methods() as $item ) {
+			$provider = $this->provider_for_method( $item->get_method_id() );
+
+			if ( $provider ) {
+				return $provider;
+			}
+		}
+
+		return null;
+	}
+
+	/**
 	 * The carrier that carries a shipping method.
 	 *
 	 * @param string $method_id Shipping method id.

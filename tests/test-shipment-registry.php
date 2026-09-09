@@ -7,6 +7,7 @@
 
 require_once WC_ESM_PLUGIN_DIR . '/includes/shipments/class-wc-esm-shipment-registry.php';
 require_once __DIR__ . '/test-shipment-provider.php';
+require_once __DIR__ . '/test-shipment-labels.php';
 
 /**
  * Tests for WC_ESM_Shipment_Registry.
@@ -116,5 +117,41 @@ class Test_Shipment_Registry extends WC_ESM_Test_Case {
 	 */
 	public function test_the_shared_registry_is_one_object() {
 		$this->assertSame( WC_ESM_Shipment_Registry::instance(), WC_ESM_Shipment_Registry::instance() );
+	}
+
+	/**
+	 * An order finds its carrier through its shipping line. Three screens
+	 * and the registration all asked this question with their own copy of
+	 * the loop; it belongs here, next to provider_for_method().
+	 *
+	 * @return void
+	 */
+	public function test_an_order_finds_its_carrier() {
+		$this->assertSame(
+			'testcarrier',
+			$this->registry()->provider_for_order( new WC_ESM_Shipped_Order( 'testcarrier_terminal' ) )->get_id()
+		);
+	}
+
+	/**
+	 * An order shipped by something else is null: not ours.
+	 *
+	 * @return void
+	 */
+	public function test_an_order_shipped_by_something_else_is_null() {
+		$this->assertNull( $this->registry()->provider_for_order( new WC_ESM_Shipped_Order( 'flat_rate' ) ) );
+	}
+
+	/**
+	 * An order with no shipping line at all - a local pickup, a free order -
+	 * is null rather than a warning.
+	 *
+	 * @return void
+	 */
+	public function test_an_order_with_no_shipping_line_is_null() {
+		$order           = new WC_ESM_Shipped_Order( 'flat_rate' );
+		$order->shipping = array();
+
+		$this->assertNull( $this->registry()->provider_for_order( $order ) );
 	}
 }

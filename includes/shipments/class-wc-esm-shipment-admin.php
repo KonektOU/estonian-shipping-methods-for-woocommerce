@@ -46,15 +46,7 @@ class WC_ESM_Shipment_Admin {
 	 */
 	public static function available_actions( $order, $registry = null ) {
 		$registry = $registry ? $registry : WC_ESM_Shipment_Registry::instance();
-		$provider = null;
-
-		foreach ( $order->get_shipping_methods() as $item ) {
-			$provider = $registry->provider_for_method( $item->get_method_id() );
-
-			if ( $provider ) {
-				break;
-			}
-		}
+		$provider = $registry->provider_for_order( $order );
 
 		if ( ! $provider ) {
 			// Somebody else's order. Not ours to offer anything on.

@@ -35,7 +35,7 @@ class WC_ESM_Shipment_Labels {
 		$groups = array();
 
 		foreach ( $orders as $order ) {
-			$provider = self::provider_for( $order, $registry );
+			$provider = $registry->provider_for_order( $order );
 
 			if ( ! $provider ) {
 				// Not a carrier this plugin handles; somebody else's order.
@@ -163,26 +163,6 @@ class WC_ESM_Shipment_Labels {
 		}
 
 		return $unsent;
-	}
-
-	/**
-	 * The carrier that carries an order.
-	 *
-	 * @param WC_Order                 $order    Order.
-	 * @param WC_ESM_Shipment_Registry $registry Registry.
-	 *
-	 * @return WC_ESM_Shipment_Provider|null
-	 */
-	protected static function provider_for( $order, $registry ) {
-		foreach ( $order->get_shipping_methods() as $item ) {
-			$provider = $registry->provider_for_method( $item->get_method_id() );
-
-			if ( $provider ) {
-				return $provider;
-			}
-		}
-
-		return null;
 	}
 
 	/**
