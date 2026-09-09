@@ -51,13 +51,6 @@ class WC_ESM_Dispatch_Screen {
 	const MAX_ORDERS = 5000;
 
 	/**
-	 * Whether the last unmanifested_orders() call hit MAX_ORDERS.
-	 *
-	 * @var bool
-	 */
-	protected static $truncated = false;
-
-	/**
 	 * Hook up.
 	 *
 	 * @return void
@@ -176,29 +169,29 @@ class WC_ESM_Dispatch_Screen {
 	}
 
 	/**
-	 * Whether the last count stopped short of the real total.
+	 * The shipments not yet on a manifest, and whether the count is the
+	 * whole truth.
 	 *
-	 * @return bool
-	 */
-	public static function was_truncated() {
-		return self::$truncated;
-	}
-
-	/**
-	 * The label references of shipments not yet on a manifest.
+	 * Both facts come back together on purpose. They were a return value and
+	 * a flag on the class before, which meant the caller had to ask in the
+	 * right order to get an answer that matched.
 	 *
 	 * @param string $provider_id Provider id.
 	 *
-	 * @return array
+	 * @return array refs and truncated.
 	 */
-	public static function unmanifested_refs( $provider_id ) {
-		$refs = array();
+	public static function unmanifested( $provider_id ) {
+		$found = self::unmanifested_orders( $provider_id );
+		$refs  = array();
 
-		foreach ( self::unmanifested_orders( $provider_id ) as $order ) {
+		foreach ( $found['orders'] as $order ) {
 			$refs = array_merge( $refs, WC_ESM_Shipment::label_refs( $order ) );
 		}
 
-		return array_values( array_unique( $refs ) );
+		return array(
+			'refs'      => array_values( array_unique( $refs ) ),
+			'truncated' => $found['truncated'],
+		);
 	}
 
 	/**
@@ -206,23 +199,25 @@ class WC_ESM_Dispatch_Screen {
 	 *
 	 * Walks every page rather than taking the first, so a shop with more
 	 * orders outstanding than one page holds is not told a smaller, wrong
-	 * number. was_truncated() reports whether MAX_ORDERS cut this short.
+	 * number. The answer says whether MAX_ORDERS cut it short.
 	 *
 	 * @param string $provider_id Provider id.
 	 *
-	 * @return array
+	 * @return array orders and truncated.
 	 */
 	protected static function unmanifested_orders( $provider_id ) {
-		self::$truncated = false;
-
 		$provider = WC_ESM_Shipment_Registry::instance()->get_provider( $provider_id );
 
 		if ( ! $provider ) {
-			return array();
+			return array(
+				'orders'    => array(),
+				'truncated' => false,
+			);
 		}
 
-		$found = array();
-		$page  = 1;
+		$found     = array();
+		$truncated = false;
+		$page      = 1;
 
 		do {
 			$orders = wc_get_orders(
@@ -250,7 +245,7 @@ class WC_ESM_Dispatch_Screen {
 			}
 
 			if ( count( $found ) >= self::MAX_ORDERS ) {
-				self::$truncated = true;
+				$truncated = true;
 
 				break;
 			}
@@ -258,7 +253,10 @@ class WC_ESM_Dispatch_Screen {
 			$page++;
 		} while ( count( $orders ) === self::PAGE_SIZE );
 
-		return $found;
+		return array(
+			'orders'    => $found,
+			'truncated' => $truncated,
+		);
 	}
 
 	/**
@@ -377,7 +375,8 @@ class WC_ESM_Dispatch_Screen {
 	 * @return void
 	 */
 	protected static function render_manifest( $id ) {
-		$refs = self::unmanifested_refs( $id );
+		$outstanding = self::unmanifested( $id );
+		$refs        = $outstanding['refs'];
 		?>
 		<h2><?php esc_html_e( 'Manifest', 'wc-estonian-shipping-methods' ); ?></h2>
 		<p>
@@ -389,7 +388,7 @@ class WC_ESM_Dispatch_Screen {
 			);
 			?>
 		</p>
-		<?php if ( self::was_truncated() ) : ?>
+		<?php if ( $outstanding['truncated'] ) : ?>
 			<p class="description">
 				<?php
 				printf(
@@ -638,8 +637,8 @@ class WC_ESM_Dispatch_Screen {
 		}
 
 		if ( 'manifest' === $what && $provider->supports( 'manifest' ) ) {
-			$refs   = self::unmanifested_refs( $provider->get_id() );
-			$result = $provider->close_manifest( $refs );
+			$outstanding = self::unmanifested( $provider->get_id() );
+			$result      = $provider->close_manifest( $outstanding['refs'] );
 
 			if ( $result->is_success() ) {
 				self::mark_manifested( $provider->get_id() );
@@ -712,7 +711,7 @@ class WC_ESM_Dispatch_Screen {
 	 * @return void
 	 */
 	protected static function mark_manifested( $provider_id ) {
-		foreach ( self::unmanifested_orders( $provider_id ) as $order ) {
+		foreach ( self::unmanifested_orders( $provider_id )['orders'] as $order ) {
 			$order->update_meta_data( '_wc_esm_manifested', gmdate( 'c' ) );
 			$order->save();
 		}
