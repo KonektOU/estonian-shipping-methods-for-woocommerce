@@ -228,6 +228,62 @@ class Test_Provider_Cleveron extends WC_ESM_Test_Case {
 	}
 
 	/**
+	 * Cleveron says which field it disliked in extraData and puts only
+	 * "wrong_data" in the message. The field is the half a shopkeeper can act
+	 * on, so it is the half they are shown.
+	 *
+	 * @return void
+	 */
+	public function test_a_refusal_names_the_field_cleveron_disliked() {
+		$provider = $this->provider(
+			array(
+				array(
+					400,
+					array(
+						'code'      => 11,
+						'message'   => 'wrong_data',
+						'extraData' => array(
+							array( 'field' => 'destination.apm', 'message' => 'Unknown destination.apm' ),
+						),
+					),
+				),
+			)
+		);
+
+		$message = $provider->register( $this->order() )->get_message();
+
+		$this->assertStringContainsString( 'destination.apm', $message );
+		$this->assertStringContainsString( 'Unknown destination.apm', $message );
+	}
+
+	/**
+	 * Several complaints are all shown, not just the first.
+	 *
+	 * @return void
+	 */
+	public function test_every_complaint_is_shown() {
+		$provider = $this->provider(
+			array(
+				array(
+					400,
+					array(
+						'message'   => 'wrong_data',
+						'extraData' => array(
+							array( 'field' => 'service', 'message' => 'Value must not be null' ),
+							array( 'field' => 'destination', 'message' => 'Value must not be null' ),
+						),
+					),
+				),
+			)
+		);
+
+		$message = $provider->register( $this->order() )->get_message();
+
+		$this->assertStringContainsString( 'service', $message );
+		$this->assertStringContainsString( 'destination', $message );
+	}
+
+	/**
 	 * There is no update path. The old version re-sent an already-sent order
 	 * as a PUT; this refuses instead, because a review found the browser back
 	 * button registering and billing a second real parcel. Recorded here so

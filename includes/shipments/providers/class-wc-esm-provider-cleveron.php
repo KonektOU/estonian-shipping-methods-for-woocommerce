@@ -107,7 +107,7 @@ class WC_ESM_Provider_Cleveron extends WC_ESM_Shipment_Provider {
 		);
 
 		if ( ! $response->is( 201 ) ) {
-			return $this->refusal( $response, (string) $response->get( 'message', '' ) );
+			return $this->refusal( $response, $this->what_it_said( $response ) );
 		}
 
 		$id = (string) $response->get( 'id', '' );
@@ -126,6 +126,33 @@ class WC_ESM_Provider_Cleveron extends WC_ESM_Shipment_Provider {
 				'label_refs' => array( $id ),
 			)
 		);
+	}
+
+	/**
+	 * What Cleveron said was wrong.
+	 *
+	 * Its message is a category - "wrong_data" - and the useful half is in
+	 * extraData, which names the field it disliked. That is the half a
+	 * shopkeeper can act on, so it is the half they are shown.
+	 *
+	 * @param WC_ESM_Api_Response $response What came back.
+	 *
+	 * @return string
+	 */
+	protected function what_it_said( $response ) {
+		$said = array();
+
+		foreach ( (array) $response->get( 'extraData', array() ) as $problem ) {
+			if ( isset( $problem['field'] ) ) {
+				$said[] = trim( $problem['field'] . ': ' . ( isset( $problem['message'] ) ? $problem['message'] : '' ), ': ' );
+			}
+		}
+
+		if ( $said ) {
+			return implode( '; ', $said );
+		}
+
+		return (string) $response->get( 'message', '' );
 	}
 
 	/**
