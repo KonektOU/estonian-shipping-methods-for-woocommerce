@@ -147,21 +147,15 @@ class WC_ESM_Provider_Smartpost extends WC_ESM_Shipment_Provider {
 	 * @return WC_ESM_Shipment_Result
 	 */
 	public function register( $snapshot ) {
-		$response = $this->request( 'orders', wp_json_encode( WC_ESM_Payload_Smartpost::build( $snapshot, $this->get_settings() ) ) );
+		$response = $this->client()->post( 'orders', WC_ESM_Payload_Smartpost::build( $snapshot, $this->get_settings() ) );
 
-		if ( 200 !== (int) $response['code'] ) {
-			return WC_ESM_Shipment_Result::failure(
-				sprintf(
-					/* translators: %d: HTTP status code. */
-					__( 'Smartposti refused the parcel (HTTP %d).', 'wc-estonian-shipping-methods' ),
-					(int) $response['code']
-				)
-			);
+		if ( ! $response->ok() ) {
+			return $this->refusal( $response );
 		}
 
-		$body = json_decode( $response['body'], true );
+		$body = $response->json();
 
-		if ( ! is_array( $body ) || empty( $body['orders']['item'][0]['barcode'] ) ) {
+		if ( empty( $body['orders']['item'][0]['barcode'] ) ) {
 			// A parcel with no barcode can be neither printed nor tracked, so
 			// calling this sent would strand the order: the shop would think
 			// it had gone and the button to send it would be gone too.
@@ -200,19 +194,13 @@ class WC_ESM_Provider_Smartpost extends WC_ESM_Shipment_Provider {
 			implode( '&barcode=', array_map( 'rawurlencode', $refs ) )
 		);
 
-		$response = $this->request( $endpoint, null, 'GET' );
+		$response = $this->client()->get( $endpoint );
 
-		if ( 200 !== (int) $response['code'] ) {
-			return WC_ESM_Shipment_Result::failure(
-				sprintf(
-					/* translators: %d: HTTP status code. */
-					__( 'Smartposti would not give the labels (HTTP %d).', 'wc-estonian-shipping-methods' ),
-					(int) $response['code']
-				)
-			);
+		if ( ! $response->ok() ) {
+			return $this->refusal( $response );
 		}
 
-		return WC_ESM_Shipment_Result::success( array( 'pdf' => $response['body'] ) );
+		return WC_ESM_Shipment_Result::success( array( 'pdf' => $response->raw() ) );
 	}
 
 	/**
@@ -229,44 +217,14 @@ class WC_ESM_Provider_Smartpost extends WC_ESM_Shipment_Provider {
 	}
 
 	/**
-	 * One call to Smartposti.
+	 * Smartposti's API, with the shop's key on it.
 	 *
-	 * The only place this class touches the network, so a test subclasses it
-	 * and the rest of the carrier is exercised for real.
-	 *
-	 * @param string      $endpoint Endpoint, with any query string.
-	 * @param string|null $body     Request body, for a POST.
-	 * @param string      $method   HTTP method.
-	 *
-	 * @return array code and body.
+	 * @return WC_ESM_Carrier_Client
 	 */
-	protected function request( $endpoint, $body = null, $method = 'POST' ) {
-		$args = array(
-			'timeout' => 30,
-			'headers' => array(
-				'Authorization' => $this->get_setting( 'api_key' ),
-				'Content-Type'  => 'application/json',
-				'Accept'        => 'application/json',
-			),
-		);
-
-		if ( 'POST' === $method ) {
-			$args['body'] = $body;
-			$response     = wp_remote_post( self::API_URL . $endpoint, $args );
-		} else {
-			$response = wp_remote_get( self::API_URL . $endpoint, $args );
-		}
-
-		if ( is_wp_error( $response ) ) {
-			return array(
-				'code' => 0,
-				'body' => $response->get_error_message(),
-			);
-		}
-
-		return array(
-			'code' => wp_remote_retrieve_response_code( $response ),
-			'body' => wp_remote_retrieve_body( $response ),
+	protected function client() {
+		return new WC_ESM_Carrier_Client(
+			self::API_URL,
+			array( 'Authorization' => $this->get_setting( 'api_key' ) )
 		);
 	}
 }

@@ -101,16 +101,16 @@ class WC_ESM_Provider_Cleveron extends WC_ESM_Shipment_Provider {
 	 * @return WC_ESM_Shipment_Result
 	 */
 	public function register( $snapshot ) {
-		$response = $this->request(
+		$response = $this->client()->post(
 			'orders',
 			WC_ESM_Payload_Cleveron::build( $snapshot, array_merge( $this->get_settings(), $this->zone_options( $snapshot ) ) )
 		);
 
-		if ( 201 !== (int) $response['code'] ) {
-			return WC_ESM_Shipment_Result::failure( $this->error_message( $response ) );
+		if ( ! $response->is( 201 ) ) {
+			return $this->refusal( $response, (string) $response->get( 'message', '' ) );
 		}
 
-		$id = isset( $response['body']['id'] ) ? (string) $response['body']['id'] : '';
+		$id = (string) $response->get( 'id', '' );
 
 		if ( '' === $id ) {
 			return WC_ESM_Shipment_Result::failure(
@@ -162,68 +162,17 @@ class WC_ESM_Provider_Cleveron extends WC_ESM_Shipment_Provider {
 	}
 
 	/**
-	 * What to tell the shopkeeper when Cleveron refuses.
+	 * Cleveron's integration API, on the host this shop was given.
 	 *
-	 * @param array $response Response.
-	 *
-	 * @return string
+	 * @return WC_ESM_Carrier_Client
 	 */
-	protected function error_message( $response ) {
-		$said = isset( $response['body']['message'] ) ? (string) $response['body']['message'] : '';
-
-		if ( '' !== $said ) {
-			return sprintf(
-				/* translators: 1: HTTP status code, 2: what the carrier said. */
-				__( 'Cleveron refused the order (HTTP %1$d): %2$s', 'wc-estonian-shipping-methods' ),
-				(int) $response['code'],
-				$said
-			);
-		}
-
-		return sprintf(
-			/* translators: %d: HTTP status code. */
-			__( 'Cleveron refused the order (HTTP %d).', 'wc-estonian-shipping-methods' ),
-			(int) $response['code']
-		);
-	}
-
-	/**
-	 * One call to Cleveron.
-	 *
-	 * The only place this class touches the network.
-	 *
-	 * @param string $endpoint Endpoint under the integration base.
-	 * @param array  $body     Request body.
-	 *
-	 * @return array code and decoded body.
-	 */
-	protected function request( $endpoint, $body = array() ) {
-		$url = trailingslashit( $this->get_setting( 'api_url' ) ) . 'integration/v2/' . $endpoint;
-
-		$response = wp_remote_post(
-			$url,
+	protected function client() {
+		return new WC_ESM_Carrier_Client(
+			trailingslashit( $this->get_setting( 'api_url' ) ) . 'integration/v2/',
 			array(
-				'timeout' => 30,
-				'headers' => array(
-					'Content-Type'        => 'application/json',
-					'Accept'              => 'application/json',
-					'Cleveron-Api-Key'    => $this->get_setting( 'api_key' ),
-					'Cleveron-User-Token' => $this->get_setting( 'api_token' ),
-				),
-				'body'    => wp_json_encode( $body ),
+				'Cleveron-Api-Key'    => $this->get_setting( 'api_key' ),
+				'Cleveron-User-Token' => $this->get_setting( 'api_token' ),
 			)
-		);
-
-		if ( is_wp_error( $response ) ) {
-			return array(
-				'code' => 0,
-				'body' => array(),
-			);
-		}
-
-		return array(
-			'code' => wp_remote_retrieve_response_code( $response ),
-			'body' => (array) json_decode( wp_remote_retrieve_body( $response ), true ),
 		);
 	}
 }

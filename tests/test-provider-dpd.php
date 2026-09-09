@@ -12,41 +12,37 @@ require_once WC_ESM_PLUGIN_DIR . '/includes/shipments/abstracts/class-wc-esm-shi
 require_once WC_ESM_PLUGIN_DIR . '/includes/shipments/abstracts/class-wc-esm-payload.php';
 require_once WC_ESM_PLUGIN_DIR . '/includes/shipments/payloads/class-wc-esm-payload-dpd.php';
 require_once WC_ESM_PLUGIN_DIR . '/includes/shipments/providers/class-wc-esm-provider-dpd.php';
+require_once __DIR__ . '/class-wc-esm-fake-client.php';
 
 /**
- * The provider with the network taken out. Everything above request() -
- * the token, the retry, the parsing - runs for real.
+ * The provider with the network taken out. Everything above the call - the
+ * token, the retry, the parsing - runs for real.
  */
 class WC_ESM_Dpd_Test_Provider extends WC_ESM_Provider_Dpd {
 
 	/**
-	 * Requests made.
+	 * The stand-in for the network.
 	 *
-	 * @var array
+	 * @var WC_ESM_Fake_Client
 	 */
-	public $requests = array();
+	public $fake;
 
 	/**
-	 * Answers to give, in order.
+	 * Constructor.
 	 *
-	 * @var array
+	 * @param array $answers Answers to give.
 	 */
-	public $answers = array();
+	public function __construct( $answers = array() ) {
+		$this->fake = new WC_ESM_Fake_Client( $answers );
+	}
 
 	/**
-	 * Record and answer.
+	 * The stand-in.
 	 *
-	 * @param string $endpoint Endpoint.
-	 * @param string $method   HTTP method.
-	 * @param array  $body     Request body.
-	 * @param string $token    Bearer token, empty while logging in.
-	 *
-	 * @return array
+	 * @return WC_ESM_Carrier_Client
 	 */
-	protected function request( $endpoint, $method = 'POST', $body = array(), $token = '' ) {
-		$this->requests[] = compact( 'endpoint', 'method', 'body', 'token' );
-
-		return array_shift( $this->answers );
+	protected function client() {
+		return $this->fake;
 	}
 }
 
@@ -92,8 +88,7 @@ class Test_Provider_Dpd extends WC_ESM_Test_Case {
 	 * @return WC_ESM_Dpd_Test_Provider
 	 */
 	protected function provider( $answers = array() ) {
-		$provider          = new WC_ESM_Dpd_Test_Provider();
-		$provider->answers = $answers;
+		$provider = new WC_ESM_Dpd_Test_Provider( $answers );
 		$provider->set_settings(
 			array(
 				'country'         => 'EE',
@@ -124,7 +119,7 @@ class Test_Provider_Dpd extends WC_ESM_Test_Case {
 	 * @return array
 	 */
 	protected function login( $token = 'tok-1' ) {
-		return array( 'code' => 200, 'body' => array( 'token' => $token ) );
+		return array( 200, array( 'token' => $token ) );
 	}
 
 	/**
@@ -164,16 +159,16 @@ class Test_Provider_Dpd extends WC_ESM_Test_Case {
 		$provider = $this->provider(
 			array(
 				$this->login( 'tok-1' ),
-				array( 'code' => 201, 'body' => array( 'id' => 'ship-1', 'parcels' => array( array( 'parcelNumber' => 'P1' ) ) ) ),
+				array( 201, array( 'id' => 'ship-1', 'parcels' => array( array( 'parcelNumber' => 'P1' ) ) ) ),
 			)
 		);
 
 		$result = $provider->register( WC_ESM_Order_Snapshot::make( $this->snapshot() ) );
 
 		$this->assertTrue( $result->is_success() );
-		$this->assertSame( 'auth/tokens', $provider->requests[0]['endpoint'] );
-		$this->assertSame( 'shipments', $provider->requests[1]['endpoint'] );
-		$this->assertSame( 'tok-1', $provider->requests[1]['token'] );
+		$this->assertSame( 'auth/tokens', $provider->fake->endpoint( 0 ) );
+		$this->assertSame( 'shipments', $provider->fake->endpoint( 1 ) );
+		$this->assertSame( 'tok-1', $provider->fake->token( 1 ) );
 	}
 
 	/**
@@ -184,12 +179,12 @@ class Test_Provider_Dpd extends WC_ESM_Test_Case {
 	 */
 	public function test_a_remembered_token_is_reused() {
 		WC_ESM_Dpd_Token::remember( WC_ESM_Dpd_Token::cache_key( 'telli.dpd.ee', 'shop' ), 'tok-cached' );
-		$provider = $this->provider( array( array( 'code' => 201, 'body' => array( 'id' => 'ship-1' ) ) ) );
+		$provider = $this->provider( array( array( 201, array( 'id' => 'ship-1' ) ) ) );
 
 		$provider->register( WC_ESM_Order_Snapshot::make( $this->snapshot() ) );
 
-		$this->assertCount( 1, $provider->requests );
-		$this->assertSame( 'tok-cached', $provider->requests[0]['token'] );
+		$this->assertCount( 1, $provider->fake->calls );
+		$this->assertSame( 'tok-cached', $provider->fake->token( 0 ) );
 	}
 
 	/**
@@ -202,18 +197,18 @@ class Test_Provider_Dpd extends WC_ESM_Test_Case {
 		WC_ESM_Dpd_Token::remember( WC_ESM_Dpd_Token::cache_key( 'telli.dpd.ee', 'shop' ), 'tok-dead' );
 		$provider = $this->provider(
 			array(
-				array( 'code' => 401, 'body' => array() ),
+				array( 401, array() ),
 				$this->login( 'tok-fresh' ),
-				array( 'code' => 201, 'body' => array( 'id' => 'ship-1' ) ),
+				array( 201, array( 'id' => 'ship-1' ) ),
 			)
 		);
 
 		$result = $provider->register( WC_ESM_Order_Snapshot::make( $this->snapshot() ) );
 
 		$this->assertTrue( $result->is_success() );
-		$this->assertSame( 'tok-dead', $provider->requests[0]['token'] );
-		$this->assertSame( 'auth/tokens', $provider->requests[1]['endpoint'] );
-		$this->assertSame( 'tok-fresh', $provider->requests[2]['token'] );
+		$this->assertSame( 'tok-dead', $provider->fake->token( 0 ) );
+		$this->assertSame( 'auth/tokens', $provider->fake->endpoint( 1 ) );
+		$this->assertSame( 'tok-fresh', $provider->fake->token( 2 ) );
 	}
 
 	/**
@@ -226,16 +221,16 @@ class Test_Provider_Dpd extends WC_ESM_Test_Case {
 		$provider = $this->provider(
 			array(
 				$this->login( 'tok-1' ),
-				array( 'code' => 401, 'body' => array() ),
+				array( 401, array() ),
 				$this->login( 'tok-2' ),
-				array( 'code' => 401, 'body' => array() ),
+				array( 401, array() ),
 			)
 		);
 
 		$result = $provider->register( WC_ESM_Order_Snapshot::make( $this->snapshot() ) );
 
 		$this->assertTrue( $result->is_failure() );
-		$this->assertCount( 4, $provider->requests );
+		$this->assertCount( 4, $provider->fake->calls );
 	}
 
 	/**
@@ -245,12 +240,12 @@ class Test_Provider_Dpd extends WC_ESM_Test_Case {
 	 * @return void
 	 */
 	public function test_a_refused_login_stops_there() {
-		$provider = $this->provider( array( array( 'code' => 401, 'body' => array() ) ) );
+		$provider = $this->provider( array( array( 401, array() ) ) );
 
 		$result = $provider->register( WC_ESM_Order_Snapshot::make( $this->snapshot() ) );
 
 		$this->assertTrue( $result->is_failure() );
-		$this->assertCount( 1, $provider->requests );
+		$this->assertCount( 1, $provider->fake->calls );
 	}
 
 	/**
@@ -264,8 +259,8 @@ class Test_Provider_Dpd extends WC_ESM_Test_Case {
 			array(
 				$this->login(),
 				array(
-					'code' => 201,
-					'body' => array(
+					201,
+					array(
 						'id'      => 'ship-1',
 						'parcels' => array( array( 'parcelNumber' => 'P1' ), array( 'parcelNumber' => 'P2' ) ),
 					),
@@ -289,7 +284,7 @@ class Test_Provider_Dpd extends WC_ESM_Test_Case {
 		$provider = $this->provider(
 			array(
 				$this->login(),
-				array( 'code' => 200, 'body' => '%PDF-label' ),
+				array( 200, '%PDF-label' ),
 			)
 		);
 
@@ -297,9 +292,9 @@ class Test_Provider_Dpd extends WC_ESM_Test_Case {
 
 		$this->assertTrue( $result->is_success() );
 		$this->assertSame( '%PDF-label', $result->get( 'pdf' ) );
-		$this->assertSame( 'shipments/labels', $provider->requests[1]['endpoint'] );
-		$this->assertSame( array( 'ship-1' ), $provider->requests[1]['body']['shipmentIds'] );
-		$this->assertSame( 'A6', $provider->requests[1]['body']['paperSize'] );
+		$this->assertSame( 'shipments/labels', $provider->fake->endpoint( 1 ) );
+		$this->assertSame( array( 'ship-1' ), $provider->fake->body( 1 )['shipmentIds'] );
+		$this->assertSame( 'A6', $provider->fake->body( 1 )['paperSize'] );
 	}
 
 	/**
@@ -312,7 +307,7 @@ class Test_Provider_Dpd extends WC_ESM_Test_Case {
 		$provider = $this->provider(
 			array(
 				$this->login(),
-				array( 'code' => 201, 'body' => array( 'id' => 'man-1' ) ),
+				array( 201, array( 'id' => 'man-1' ) ),
 			)
 		);
 
@@ -320,7 +315,7 @@ class Test_Provider_Dpd extends WC_ESM_Test_Case {
 
 		$this->assertTrue( $result->is_success() );
 		$this->assertSame( 'man-1', $result->get( 'reference' ) );
-		$this->assertSame( 'shipments/manifests', $provider->requests[1]['endpoint'] );
+		$this->assertSame( 'shipments/manifests', $provider->fake->endpoint( 1 ) );
 	}
 
 	/**
@@ -332,7 +327,7 @@ class Test_Provider_Dpd extends WC_ESM_Test_Case {
 		$provider = $this->provider();
 
 		$this->assertTrue( $provider->close_manifest( array() )->is_failure() );
-		$this->assertSame( array(), $provider->requests );
+		$this->assertSame( array(), $provider->fake->calls );
 	}
 
 	/**
@@ -344,7 +339,7 @@ class Test_Provider_Dpd extends WC_ESM_Test_Case {
 		$provider = $this->provider(
 			array(
 				$this->login(),
-				array( 'code' => 200, 'body' => '%PDF-manifest' ),
+				array( 200, '%PDF-manifest' ),
 			)
 		);
 
@@ -352,7 +347,7 @@ class Test_Provider_Dpd extends WC_ESM_Test_Case {
 
 		$this->assertTrue( $result->is_success() );
 		$this->assertSame( '%PDF-manifest', $result->get( 'pdf' ) );
-		$this->assertStringContainsString( 'man-1', $provider->requests[1]['endpoint'] );
+		$this->assertStringContainsString( 'man-1', $provider->fake->endpoint( 1 ) );
 	}
 
 	/**
@@ -364,7 +359,7 @@ class Test_Provider_Dpd extends WC_ESM_Test_Case {
 		$provider = $this->provider(
 			array(
 				$this->login(),
-				array( 'code' => 201, 'body' => array( 'id' => 'pick-1' ) ),
+				array( 201, array( 'id' => 'pick-1' ) ),
 			)
 		);
 
@@ -380,8 +375,8 @@ class Test_Provider_Dpd extends WC_ESM_Test_Case {
 		$this->assertTrue( $result->is_success() );
 		$this->assertSame( 'pick-1', $result->get( 'reference' ) );
 
-		$body = $provider->requests[1]['body'];
-		$this->assertSame( 'pickups', $provider->requests[1]['endpoint'] );
+		$body = $provider->fake->body( 1 );
+		$this->assertSame( 'pickups', $provider->fake->endpoint( 1 ) );
 		$this->assertSame( '2026-09-10', $body['pickupDate'] );
 		$this->assertSame( '09:00', $body['pickupTimeFrom'] );
 		$this->assertSame( '17:00', $body['pickupTimeTo'] );

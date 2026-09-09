@@ -11,40 +11,37 @@ require_once WC_ESM_PLUGIN_DIR . '/includes/shipments/abstracts/class-wc-esm-shi
 require_once WC_ESM_PLUGIN_DIR . '/includes/shipments/abstracts/class-wc-esm-payload.php';
 require_once WC_ESM_PLUGIN_DIR . '/includes/shipments/payloads/class-wc-esm-payload-smartpost.php';
 require_once WC_ESM_PLUGIN_DIR . '/includes/shipments/providers/class-wc-esm-provider-smartpost.php';
+require_once __DIR__ . '/class-wc-esm-fake-client.php';
 
 /**
- * The provider with the network taken out: every request is recorded and the
+ * The provider with the network taken out: every call is recorded and the
  * answer is whatever the test put there.
  */
 class WC_ESM_Smartpost_Test_Provider extends WC_ESM_Provider_Smartpost {
 
 	/**
-	 * Requests made.
+	 * The stand-in for the network.
 	 *
-	 * @var array
+	 * @var WC_ESM_Fake_Client
 	 */
-	public $requests = array();
+	public $fake;
 
 	/**
-	 * Answers to give, in order.
+	 * Constructor.
 	 *
-	 * @var array
+	 * @param array $answers Answers to give.
 	 */
-	public $answers = array();
+	public function __construct( $answers = array() ) {
+		$this->fake = new WC_ESM_Fake_Client( $answers );
+	}
 
 	/**
-	 * Record the request and hand back the next prepared answer.
+	 * The stand-in.
 	 *
-	 * @param string      $endpoint Endpoint.
-	 * @param string|null $body     Request body.
-	 * @param string      $method   HTTP method.
-	 *
-	 * @return array
+	 * @return WC_ESM_Carrier_Client
 	 */
-	protected function request( $endpoint, $body = null, $method = 'POST' ) {
-		$this->requests[] = compact( 'endpoint', 'body', 'method' );
-
-		return array_shift( $this->answers );
+	protected function client() {
+		return $this->fake;
 	}
 }
 
@@ -62,8 +59,7 @@ class Test_Provider_Smartpost extends WC_ESM_Test_Case {
 	 * @return WC_ESM_Smartpost_Test_Provider
 	 */
 	protected function provider( $answers = array(), $settings = array() ) {
-		$provider = new WC_ESM_Smartpost_Test_Provider();
-		$provider->answers = $answers;
+		$provider = new WC_ESM_Smartpost_Test_Provider( $answers );
 		$provider->set_settings( array_merge( array( 'api_key' => 'test-key' ), $settings ) );
 
 		return $provider;
@@ -122,12 +118,7 @@ class Test_Provider_Smartpost extends WC_ESM_Test_Case {
 	 */
 	public function test_an_accepted_parcel_comes_back_with_its_barcode() {
 		$provider = $this->provider(
-			array(
-				array(
-					'code' => 200,
-					'body' => '{"orders":{"item":[{"barcode":"00364300487158212149"}]}}',
-				),
-			)
+			array( array( 200, '{"orders":{"item":[{"barcode":"00364300487158212149"}]}}' ) )
 		);
 
 		$result = $provider->register( WC_ESM_Order_Snapshot::make( $this->snapshot() ) );
@@ -142,12 +133,12 @@ class Test_Provider_Smartpost extends WC_ESM_Test_Case {
 	 * @return void
 	 */
 	public function test_the_parcel_is_posted_to_the_orders_endpoint() {
-		$provider = $this->provider( array( array( 'code' => 200, 'body' => '{"orders":{"item":[{"barcode":"B1"}]}}' ) ) );
+		$provider = $this->provider( array( array( 200, '{"orders":{"item":[{"barcode":"B1"}]}}' ) ) );
 		$provider->register( WC_ESM_Order_Snapshot::make( $this->snapshot() ) );
 
-		$this->assertSame( 'orders', $provider->requests[0]['endpoint'] );
-		$this->assertSame( 'POST', $provider->requests[0]['method'] );
-		$this->assertSame( '01007220', json_decode( $provider->requests[0]['body'], true )['orders']['item'][0]['destination']['place_id'] );
+		$this->assertSame( 'orders', $provider->fake->endpoint() );
+		$this->assertSame( 'POST', $provider->fake->calls[0]['method'] );
+		$this->assertSame( '01007220', $provider->fake->body()['orders']['item'][0]['destination']['place_id'] );
 	}
 
 	/**
@@ -157,7 +148,7 @@ class Test_Provider_Smartpost extends WC_ESM_Test_Case {
 	 * @return void
 	 */
 	public function test_a_refused_parcel_is_a_failure() {
-		$provider = $this->provider( array( array( 'code' => 400, 'body' => 'Bad request' ) ) );
+		$provider = $this->provider( array( array( 400, 'Bad request' ) ) );
 
 		$result = $provider->register( WC_ESM_Order_Snapshot::make( $this->snapshot() ) );
 
@@ -173,7 +164,7 @@ class Test_Provider_Smartpost extends WC_ESM_Test_Case {
 	 * @return void
 	 */
 	public function test_a_200_without_a_barcode_is_a_failure() {
-		$provider = $this->provider( array( array( 'code' => 200, 'body' => '{"orders":{"item":[{}]}}' ) ) );
+		$provider = $this->provider( array( array( 200, '{"orders":{"item":[{}]}}' ) ) );
 
 		$result = $provider->register( WC_ESM_Order_Snapshot::make( $this->snapshot() ) );
 
@@ -186,7 +177,7 @@ class Test_Provider_Smartpost extends WC_ESM_Test_Case {
 	 * @return void
 	 */
 	public function test_a_body_that_is_not_json_is_a_failure() {
-		$provider = $this->provider( array( array( 'code' => 200, 'body' => '<html>maintenance</html>' ) ) );
+		$provider = $this->provider( array( array( 200, '<html>maintenance</html>' ) ) );
 
 		$this->assertTrue( $provider->register( WC_ESM_Order_Snapshot::make( $this->snapshot() ) )->is_failure() );
 	}
@@ -199,7 +190,7 @@ class Test_Provider_Smartpost extends WC_ESM_Test_Case {
 	 */
 	public function test_labels_are_fetched_by_barcode() {
 		$provider = $this->provider(
-			array( array( 'code' => 200, 'body' => '%PDF-1.4 label' ) ),
+			array( array( 200, '%PDF-1.4 label' ) ),
 			array( 'label_format' => 'A6' )
 		);
 
@@ -207,9 +198,9 @@ class Test_Provider_Smartpost extends WC_ESM_Test_Case {
 
 		$this->assertTrue( $result->is_success() );
 		$this->assertSame( '%PDF-1.4 label', $result->get( 'pdf' ) );
-		$this->assertSame( 'GET', $provider->requests[0]['method'] );
-		$this->assertStringContainsString( 'format=A6', $provider->requests[0]['endpoint'] );
-		$this->assertStringContainsString( 'barcode=B1&barcode=B2', $provider->requests[0]['endpoint'] );
+		$this->assertSame( 'GET', $provider->fake->calls[0]['method'] );
+		$this->assertStringContainsString( 'format=A6', $provider->fake->endpoint() );
+		$this->assertStringContainsString( 'barcode=B1&barcode=B2', $provider->fake->endpoint() );
 	}
 
 	/**
@@ -221,7 +212,7 @@ class Test_Provider_Smartpost extends WC_ESM_Test_Case {
 		$provider = $this->provider();
 
 		$this->assertTrue( $provider->fetch_labels( array() )->is_failure() );
-		$this->assertSame( array(), $provider->requests );
+		$this->assertSame( array(), $provider->fake->calls );
 	}
 
 	/**

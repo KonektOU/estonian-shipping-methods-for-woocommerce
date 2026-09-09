@@ -167,14 +167,14 @@ class WC_ESM_Provider_Dpd extends WC_ESM_Shipment_Provider {
 	public function register( $snapshot ) {
 		$response = $this->authed( 'shipments', 'POST', WC_ESM_Payload_Dpd::build( $snapshot, $this->get_settings() ) );
 
-		if ( ! $this->is_ok( $response ) ) {
-			return WC_ESM_Shipment_Result::failure( $this->error_message( $response ) );
+		if ( ! $response->ok() ) {
+			return $this->refusal( $response, (string) $response->get( 'message', '' ) );
 		}
 
-		$id       = isset( $response['body']['id'] ) ? (string) $response['body']['id'] : '';
+		$id       = (string) $response->get( 'id', '' );
 		$barcodes = array();
 
-		foreach ( isset( $response['body']['parcels'] ) ? (array) $response['body']['parcels'] : array() as $parcel ) {
+		foreach ( (array) $response->get( 'parcels', array() ) as $parcel ) {
 			if ( ! empty( $parcel['parcelNumber'] ) ) {
 				$barcodes[] = (string) $parcel['parcelNumber'];
 			}
@@ -221,11 +221,11 @@ class WC_ESM_Provider_Dpd extends WC_ESM_Shipment_Provider {
 			)
 		);
 
-		if ( ! $this->is_ok( $response ) ) {
-			return WC_ESM_Shipment_Result::failure( $this->error_message( $response ) );
+		if ( ! $response->ok() ) {
+			return $this->refusal( $response, (string) $response->get( 'message', '' ) );
 		}
 
-		return WC_ESM_Shipment_Result::success( array( 'pdf' => $response['body'] ) );
+		return WC_ESM_Shipment_Result::success( array( 'pdf' => $response->raw() ) );
 	}
 
 	/**
@@ -244,11 +244,11 @@ class WC_ESM_Provider_Dpd extends WC_ESM_Shipment_Provider {
 
 		$response = $this->authed( 'shipments/manifests', 'POST', array( 'shipmentIds' => $refs ) );
 
-		if ( ! $this->is_ok( $response ) ) {
-			return WC_ESM_Shipment_Result::failure( $this->error_message( $response ) );
+		if ( ! $response->ok() ) {
+			return $this->refusal( $response, (string) $response->get( 'message', '' ) );
 		}
 
-		$reference = isset( $response['body']['id'] ) ? (string) $response['body']['id'] : '';
+		$reference = (string) $response->get( 'id', '' );
 
 		if ( '' === $reference ) {
 			return WC_ESM_Shipment_Result::failure(
@@ -275,11 +275,11 @@ class WC_ESM_Provider_Dpd extends WC_ESM_Shipment_Provider {
 
 		$response = $this->authed( 'shipments/manifests/' . rawurlencode( $reference ), 'GET' );
 
-		if ( ! $this->is_ok( $response ) ) {
-			return WC_ESM_Shipment_Result::failure( $this->error_message( $response ) );
+		if ( ! $response->ok() ) {
+			return $this->refusal( $response, (string) $response->get( 'message', '' ) );
 		}
 
-		return WC_ESM_Shipment_Result::success( array( 'pdf' => $response['body'] ) );
+		return WC_ESM_Shipment_Result::success( array( 'pdf' => $response->raw() ) );
 	}
 
 	/**
@@ -312,12 +312,12 @@ class WC_ESM_Provider_Dpd extends WC_ESM_Shipment_Provider {
 			)
 		);
 
-		if ( ! $this->is_ok( $response ) ) {
-			return WC_ESM_Shipment_Result::failure( $this->error_message( $response ) );
+		if ( ! $response->ok() ) {
+			return $this->refusal( $response, (string) $response->get( 'message', '' ) );
 		}
 
 		return WC_ESM_Shipment_Result::success(
-			array( 'reference' => isset( $response['body']['id'] ) ? (string) $response['body']['id'] : '' )
+			array( 'reference' => (string) $response->get( 'id', '' ) )
 		);
 	}
 
@@ -331,8 +331,8 @@ class WC_ESM_Provider_Dpd extends WC_ESM_Shipment_Provider {
 	public function cancel_pickup( $reference ) {
 		$response = $this->authed( 'pickups', 'DELETE', array( 'ids' => (string) $reference ) );
 
-		if ( ! $this->is_ok( $response ) ) {
-			return WC_ESM_Shipment_Result::failure( $this->error_message( $response ) );
+		if ( ! $response->ok() ) {
+			return $this->refusal( $response, (string) $response->get( 'message', '' ) );
 		}
 
 		return WC_ESM_Shipment_Result::success();
@@ -374,16 +374,13 @@ class WC_ESM_Provider_Dpd extends WC_ESM_Shipment_Provider {
 			$token = $this->log_in( $key );
 
 			if ( '' === $token ) {
-				return array(
-					'code' => 401,
-					'body' => array(),
-				);
+				return new WC_ESM_Api_Response( 401, '' );
 			}
 		}
 
-		$response = $this->request( $endpoint, $method, $body, $token );
+		$response = $this->call( $endpoint, $method, $body, $token );
 
-		if ( 401 !== (int) $response['code'] ) {
+		if ( ! $response->is( 401 ) ) {
 			return $response;
 		}
 
@@ -394,7 +391,26 @@ class WC_ESM_Provider_Dpd extends WC_ESM_Shipment_Provider {
 			return $response;
 		}
 
-		return $this->request( $endpoint, $method, $body, $token );
+		return $this->call( $endpoint, $method, $body, $token );
+	}
+
+	/**
+	 * One call with a token on it.
+	 *
+	 * @param string $endpoint Endpoint.
+	 * @param string $method   HTTP method.
+	 * @param array  $body     Request body.
+	 * @param string $token    Bearer token.
+	 *
+	 * @return WC_ESM_Api_Response
+	 */
+	protected function call( $endpoint, $method, $body, $token ) {
+		return $this->client()->request(
+			$method,
+			$endpoint,
+			'GET' === $method ? null : $body,
+			array( 'Authorization' => 'Bearer ' . $token )
+		);
 	}
 
 	/**
@@ -405,116 +421,32 @@ class WC_ESM_Provider_Dpd extends WC_ESM_Shipment_Provider {
 	 * @return string Empty when DPD refused.
 	 */
 	protected function log_in( $key ) {
-		$response = $this->request(
+		$response = $this->client()->post(
 			'auth/tokens',
-			'POST',
 			array(
 				'username' => $this->get_setting( 'username' ),
 				'password' => $this->get_setting( 'password' ),
 			)
 		);
 
-		if ( ! $this->is_ok( $response ) || empty( $response['body']['token'] ) ) {
+		if ( ! $response->ok() || '' === (string) $response->get( 'token', '' ) ) {
 			return '';
 		}
 
-		$token = (string) $response['body']['token'];
+		$token = (string) $response->get( 'token' );
 		WC_ESM_Dpd_Token::remember( $key, $token );
 
 		return $token;
 	}
 
 	/**
-	 * Whether DPD answered with a success.
+	 * The portal this shop's contract is with.
 	 *
-	 * @param array $response Response.
-	 *
-	 * @return bool
+	 * @return WC_ESM_Carrier_Client
 	 */
-	protected function is_ok( $response ) {
-		$code = (int) $response['code'];
-
-		return $code >= 200 && $code < 300;
-	}
-
-	/**
-	 * What to tell the shopkeeper when DPD refuses.
-	 *
-	 * @param array $response Response.
-	 *
-	 * @return string
-	 */
-	protected function error_message( $response ) {
-		$said = '';
-
-		if ( is_array( $response['body'] ) && ! empty( $response['body']['message'] ) ) {
-			$said = (string) $response['body']['message'];
-		}
-
-		if ( '' !== $said ) {
-			return sprintf(
-				/* translators: 1: HTTP status code, 2: what the carrier said. */
-				__( 'DPD refused the request (HTTP %1$d): %2$s', 'wc-estonian-shipping-methods' ),
-				(int) $response['code'],
-				$said
-			);
-		}
-
-		return sprintf(
-			/* translators: %d: HTTP status code. */
-			__( 'DPD refused the request (HTTP %d).', 'wc-estonian-shipping-methods' ),
-			(int) $response['code']
-		);
-	}
-
-	/**
-	 * One call to the portal.
-	 *
-	 * The only place this class touches the network.
-	 *
-	 * @param string $endpoint Endpoint under the API base.
-	 * @param string $method   HTTP method.
-	 * @param array  $body     Request body.
-	 * @param string $token    Bearer token; empty while logging in.
-	 *
-	 * @return array code and body, decoded when it is JSON.
-	 */
-	protected function request( $endpoint, $method = 'POST', $body = array(), $token = '' ) {
-		$url  = sprintf( 'https://%s/api/v1/%s', self::host_for( $this->get_setting( 'country', 'EE' ) ), $endpoint );
-		$args = array(
-			'method'  => $method,
-			'timeout' => 30,
-			'headers' => array(
-				'Content-Type' => 'application/json',
-				'Accept'       => 'application/json',
-			),
-		);
-
-		if ( '' !== $token ) {
-			$args['headers']['Authorization'] = 'Bearer ' . $token;
-		}
-
-		if ( 'GET' !== $method ) {
-			$args['body'] = wp_json_encode( $body );
-		}
-
-		$response = wp_remote_request( $url, $args );
-
-		if ( is_wp_error( $response ) ) {
-			return array(
-				'code' => 0,
-				'body' => array(),
-			);
-		}
-
-		$raw     = wp_remote_retrieve_body( $response );
-		$decoded = json_decode( $raw, true );
-
-		// A label and a manifest come back as PDF bytes rather than JSON, so
-		// the raw body is what a caller gets when it is not JSON.
-		return array(
-			'code' => wp_remote_retrieve_response_code( $response ),
-			'body' => null === $decoded ? $raw : $decoded,
+	protected function client() {
+		return new WC_ESM_Carrier_Client(
+			sprintf( 'https://%s/api/v1/', self::host_for( $this->get_setting( 'country', 'EE' ) ) )
 		);
 	}
 }

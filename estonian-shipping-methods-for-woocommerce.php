@@ -236,6 +236,8 @@ class Estonian_Shipping_Methods_For_WooCommerce {
 		// The carrier integrations: sending a parcel, printing its label,
 		// telling the customer where it is.
 		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/class-wc-esm-shipment-result.php';
+		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/class-wc-esm-api-response.php';
+		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/class-wc-esm-carrier-client.php';
 		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/class-wc-esm-shipment.php';
 		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/class-wc-esm-order-snapshot.php';
 		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/class-wc-esm-shop-address.php';

@@ -226,6 +226,65 @@ abstract class WC_ESM_Shipment_Provider {
 	}
 
 	/**
+	 * The carrier this integration talks to.
+	 *
+	 * Every provider that reaches a network says what its base URL and its
+	 * headers are, and nothing else about how a call is made. A provider that
+	 * talks to nothing does not implement this.
+	 *
+	 * @return WC_ESM_Carrier_Client
+	 */
+	protected function client() {
+		return new WC_ESM_Carrier_Client( '' );
+	}
+
+	/**
+	 * A refusal, in words a shopkeeper can act on.
+	 *
+	 * The status alone tells them nothing about which field the carrier
+	 * disliked, so the carrier's own words are used wherever it gave any.
+	 * Where it gave none, the status at least says whether to try again.
+	 *
+	 * @param WC_ESM_Api_Response $response What came back.
+	 * @param string              $said     What the carrier said, if anything.
+	 *
+	 * @return WC_ESM_Shipment_Result
+	 */
+	protected function refusal( $response, $said = '' ) {
+		if ( 0 === $response->code() ) {
+			return WC_ESM_Shipment_Result::failure(
+				sprintf(
+					/* translators: 1: carrier name, 2: why the request did not arrive. */
+					__( '%1$s could not be reached: %2$s', 'wc-estonian-shipping-methods' ),
+					$this->get_title(),
+					$response->raw()
+				)
+			);
+		}
+
+		if ( '' !== $said ) {
+			return WC_ESM_Shipment_Result::failure(
+				sprintf(
+					/* translators: 1: carrier name, 2: HTTP status code, 3: what the carrier said. */
+					__( '%1$s refused the request (HTTP %2$d): %3$s', 'wc-estonian-shipping-methods' ),
+					$this->get_title(),
+					$response->code(),
+					$said
+				)
+			);
+		}
+
+		return WC_ESM_Shipment_Result::failure(
+			sprintf(
+				/* translators: 1: carrier name, 2: HTTP status code. */
+				__( '%1$s refused the request (HTTP %2$d).', 'wc-estonian-shipping-methods' ),
+				$this->get_title(),
+				$response->code()
+			)
+		);
+	}
+
+	/**
 	 * What the carrier says it collected in cash on delivery.
 	 *
 	 * @param string $from Start date, Y-m-d.

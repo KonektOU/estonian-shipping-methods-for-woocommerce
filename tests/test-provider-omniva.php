@@ -11,6 +11,7 @@ require_once WC_ESM_PLUGIN_DIR . '/includes/shipments/abstracts/class-wc-esm-shi
 require_once WC_ESM_PLUGIN_DIR . '/includes/shipments/abstracts/class-wc-esm-payload.php';
 require_once WC_ESM_PLUGIN_DIR . '/includes/shipments/payloads/class-wc-esm-payload-omniva.php';
 require_once WC_ESM_PLUGIN_DIR . '/includes/shipments/providers/class-wc-esm-provider-omniva.php';
+require_once __DIR__ . '/class-wc-esm-fake-client.php';
 
 /**
  * The provider with the network taken out.
@@ -18,32 +19,28 @@ require_once WC_ESM_PLUGIN_DIR . '/includes/shipments/providers/class-wc-esm-pro
 class WC_ESM_Omniva_Test_Provider extends WC_ESM_Provider_Omniva {
 
 	/**
-	 * Requests made.
+	 * The stand-in for the network.
 	 *
-	 * @var array
+	 * @var WC_ESM_Fake_Client
 	 */
-	public $requests = array();
+	public $fake;
 
 	/**
-	 * Answers to give, in order.
+	 * Constructor.
 	 *
-	 * @var array
+	 * @param array $answers Answers to give.
 	 */
-	public $answers = array();
+	public function __construct( $answers = array() ) {
+		$this->fake = new WC_ESM_Fake_Client( $answers );
+	}
 
 	/**
-	 * Record and answer.
+	 * The stand-in.
 	 *
-	 * @param string $endpoint Endpoint.
-	 * @param array  $body     Request body.
-	 * @param string $method   HTTP method.
-	 *
-	 * @return array
+	 * @return WC_ESM_Carrier_Client
 	 */
-	protected function request( $endpoint, $body = array(), $method = 'POST' ) {
-		$this->requests[] = compact( 'endpoint', 'body', 'method' );
-
-		return array_shift( $this->answers );
+	protected function client() {
+		return $this->fake;
 	}
 }
 
@@ -60,8 +57,7 @@ class Test_Provider_Omniva extends WC_ESM_Test_Case {
 	 * @return WC_ESM_Omniva_Test_Provider
 	 */
 	protected function provider( $answers = array() ) {
-		$provider          = new WC_ESM_Omniva_Test_Provider();
-		$provider->answers = $answers;
+		$provider = new WC_ESM_Omniva_Test_Provider( $answers );
 		$provider->set_settings(
 			array(
 				'username'        => 'user',
@@ -127,13 +123,13 @@ class Test_Provider_Omniva extends WC_ESM_Test_Case {
 	 * @return void
 	 */
 	public function test_an_accepted_parcel_comes_back_with_its_barcode() {
-		$provider = $this->provider( array( array( 'code' => 200, 'body' => array( 'barcodes' => array( 'CE123456789EE' ) ) ) ) );
+		$provider = $this->provider( array( array( 200, array( 'barcodes' => array( 'CE123456789EE' ) ) ) ) );
 
 		$result = $provider->register( WC_ESM_Order_Snapshot::make( $this->snapshot() ) );
 
 		$this->assertTrue( $result->is_success() );
 		$this->assertSame( array( 'CE123456789EE' ), $result->get( 'barcodes' ) );
-		$this->assertSame( 'shipments/business-to-client', $provider->requests[0]['endpoint'] );
+		$this->assertSame( 'shipments/business-to-client', $provider->fake->endpoint() );
 	}
 
 	/**
@@ -146,8 +142,8 @@ class Test_Provider_Omniva extends WC_ESM_Test_Case {
 		$provider = $this->provider(
 			array(
 				array(
-					'code' => 400,
-					'body' => array( 'errors' => array( array( 'msg' => 'offloadPostcode is invalid' ) ) ),
+					400,
+					array( 'errors' => array( array( 'msg' => 'offloadPostcode is invalid' ) ) ),
 				),
 			)
 		);
@@ -164,7 +160,7 @@ class Test_Provider_Omniva extends WC_ESM_Test_Case {
 	 * @return void
 	 */
 	public function test_a_200_without_a_barcode_is_a_failure() {
-		$provider = $this->provider( array( array( 'code' => 200, 'body' => array( 'barcodes' => array() ) ) ) );
+		$provider = $this->provider( array( array( 200, array( 'barcodes' => array() ) ) ) );
 
 		$this->assertTrue( $provider->register( WC_ESM_Order_Snapshot::make( $this->snapshot() ) )->is_failure() );
 	}
@@ -179,8 +175,8 @@ class Test_Provider_Omniva extends WC_ESM_Test_Case {
 		$provider = $this->provider(
 			array(
 				array(
-					'code' => 200,
-					'body' => array( 'labels' => array( 'CE1' => base64_encode( '%PDF-one' ), 'CE2' => base64_encode( '%PDF-two' ) ) ),
+					200,
+					array( 'labels' => array( 'CE1' => base64_encode( '%PDF-one' ), 'CE2' => base64_encode( '%PDF-two' ) ) ),
 				),
 			)
 		);
@@ -189,8 +185,8 @@ class Test_Provider_Omniva extends WC_ESM_Test_Case {
 
 		$this->assertTrue( $result->is_success() );
 		$this->assertSame( array( '%PDF-one', '%PDF-two' ), $result->get( 'pdfs' ) );
-		$this->assertSame( 'shipments/package-labels', $provider->requests[0]['endpoint'] );
-		$this->assertSame( array( 'CE1', 'CE2' ), $provider->requests[0]['body']['barcodes'] );
+		$this->assertSame( 'shipments/package-labels', $provider->fake->endpoint() );
+		$this->assertSame( array( 'CE1', 'CE2' ), $provider->fake->body()['barcodes'] );
 	}
 
 	/**
@@ -199,7 +195,7 @@ class Test_Provider_Omniva extends WC_ESM_Test_Case {
 	 * @return void
 	 */
 	public function test_a_courier_is_booked_for_a_window() {
-		$provider = $this->provider( array( array( 'code' => 200, 'body' => array( 'orderNumber' => 'P-1' ) ) ) );
+		$provider = $this->provider( array( array( 200, array( 'orderNumber' => 'P-1' ) ) ) );
 
 		$result = $provider->request_pickup(
 			array(
@@ -212,9 +208,9 @@ class Test_Provider_Omniva extends WC_ESM_Test_Case {
 
 		$this->assertTrue( $result->is_success() );
 		$this->assertSame( 'P-1', $result->get( 'reference' ) );
-		$this->assertSame( 'courierorders/create-pickup-order', $provider->requests[0]['endpoint'] );
+		$this->assertSame( 'courierorders/create-pickup-order', $provider->fake->endpoint() );
 
-		$body = $provider->requests[0]['body'];
+		$body = $provider->fake->body();
 		$this->assertSame( '2026-09-10T09:00:00.000', $body['startTime'] );
 		$this->assertSame( '2026-09-10T17:00:00.000', $body['endTime'] );
 		$this->assertSame( 'Tallinn', $body['pickupAddress']['deliverypoint'] );
@@ -226,10 +222,10 @@ class Test_Provider_Omniva extends WC_ESM_Test_Case {
 	 * @return void
 	 */
 	public function test_a_booked_courier_can_be_called_off() {
-		$provider = $this->provider( array( array( 'code' => 200, 'body' => array() ) ) );
+		$provider = $this->provider( array( array( 200, array() ) ) );
 
 		$this->assertTrue( $provider->cancel_pickup( 'P-1' )->is_success() );
-		$this->assertSame( 'courierorders/cancel-pickup-order', $provider->requests[0]['endpoint'] );
+		$this->assertSame( 'courierorders/cancel-pickup-order', $provider->fake->endpoint() );
 	}
 
 	/**

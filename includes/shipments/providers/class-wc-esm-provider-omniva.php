@@ -136,16 +136,16 @@ class WC_ESM_Provider_Omniva extends WC_ESM_Shipment_Provider {
 	 * @return WC_ESM_Shipment_Result
 	 */
 	public function register( $snapshot ) {
-		$response = $this->request(
+		$response = $this->client()->post(
 			'shipments/business-to-client',
 			WC_ESM_Payload_Omniva::build( $snapshot, $this->get_settings() )
 		);
 
-		if ( 200 !== (int) $response['code'] ) {
-			return WC_ESM_Shipment_Result::failure( $this->error_message( $response ) );
+		if ( ! $response->ok() ) {
+			return $this->refusal( $response, $this->what_it_said( $response ) );
 		}
 
-		$barcodes = isset( $response['body']['barcodes'] ) ? array_values( (array) $response['body']['barcodes'] ) : array();
+		$barcodes = array_values( (array) $response->get( 'barcodes', array() ) );
 
 		if ( ! $barcodes ) {
 			return WC_ESM_Shipment_Result::failure(
@@ -175,7 +175,7 @@ class WC_ESM_Provider_Omniva extends WC_ESM_Shipment_Provider {
 			return WC_ESM_Shipment_Result::failure( __( 'There is nothing to print.', 'wc-estonian-shipping-methods' ) );
 		}
 
-		$response = $this->request(
+		$response = $this->client()->post(
 			'shipments/package-labels',
 			array(
 				'customerCode'      => $this->get_setting( 'customer_code' ),
@@ -184,11 +184,11 @@ class WC_ESM_Provider_Omniva extends WC_ESM_Shipment_Provider {
 			)
 		);
 
-		if ( 200 !== (int) $response['code'] ) {
-			return WC_ESM_Shipment_Result::failure( $this->error_message( $response ) );
+		if ( ! $response->ok() ) {
+			return $this->refusal( $response, $this->what_it_said( $response ) );
 		}
 
-		$labels = isset( $response['body']['labels'] ) ? (array) $response['body']['labels'] : array();
+		$labels = (array) $response->get( 'labels', array() );
 
 		if ( ! $labels ) {
 			return WC_ESM_Shipment_Result::failure( __( 'Omniva returned no labels.', 'wc-estonian-shipping-methods' ) );
@@ -210,7 +210,7 @@ class WC_ESM_Provider_Omniva extends WC_ESM_Shipment_Provider {
 	 * @return WC_ESM_Shipment_Result
 	 */
 	public function request_pickup( $args ) {
-		$response = $this->request(
+		$response = $this->client()->post(
 			'courierorders/create-pickup-order',
 			array(
 				'customerCode'      => $this->get_setting( 'customer_code' ),
@@ -231,12 +231,12 @@ class WC_ESM_Provider_Omniva extends WC_ESM_Shipment_Provider {
 			)
 		);
 
-		if ( 200 !== (int) $response['code'] ) {
-			return WC_ESM_Shipment_Result::failure( $this->error_message( $response ) );
+		if ( ! $response->ok() ) {
+			return $this->refusal( $response, $this->what_it_said( $response ) );
 		}
 
 		return WC_ESM_Shipment_Result::success(
-			array( 'reference' => isset( $response['body']['orderNumber'] ) ? (string) $response['body']['orderNumber'] : '' )
+			array( 'reference' => (string) $response->get( 'orderNumber', '' ) )
 		);
 	}
 
@@ -248,7 +248,7 @@ class WC_ESM_Provider_Omniva extends WC_ESM_Shipment_Provider {
 	 * @return WC_ESM_Shipment_Result
 	 */
 	public function cancel_pickup( $reference ) {
-		$response = $this->request(
+		$response = $this->client()->post(
 			'courierorders/cancel-pickup-order',
 			array(
 				'customerCode' => $this->get_setting( 'customer_code' ),
@@ -256,8 +256,8 @@ class WC_ESM_Provider_Omniva extends WC_ESM_Shipment_Provider {
 			)
 		);
 
-		if ( 200 !== (int) $response['code'] ) {
-			return WC_ESM_Shipment_Result::failure( $this->error_message( $response ) );
+		if ( ! $response->ok() ) {
+			return $this->refusal( $response, $this->what_it_said( $response ) );
 		}
 
 		return WC_ESM_Shipment_Result::success();
@@ -293,83 +293,40 @@ class WC_ESM_Provider_Omniva extends WC_ESM_Shipment_Provider {
 	}
 
 	/**
-	 * What to tell the shopkeeper when Omniva refuses.
+	 * What Omniva said was wrong, if it said anything.
 	 *
-	 * Omniva's own words where it gave any: "HTTP 400" alone tells a
-	 * shopkeeper nothing about which field it disliked.
-	 *
-	 * @param array $response Response.
+	 * @param WC_ESM_Api_Response $response What came back.
 	 *
 	 * @return string
 	 */
-	protected function error_message( $response ) {
+	protected function what_it_said( $response ) {
 		$said = array();
 
-		if ( isset( $response['body']['errors'] ) && is_array( $response['body']['errors'] ) ) {
-			foreach ( $response['body']['errors'] as $error ) {
-				if ( isset( $error['msg'] ) ) {
-					$said[] = (string) $error['msg'];
-				}
+		foreach ( (array) $response->get( 'errors', array() ) as $error ) {
+			if ( isset( $error['msg'] ) ) {
+				$said[] = (string) $error['msg'];
 			}
 		}
 
-		if ( $said ) {
-			return sprintf(
-				/* translators: 1: HTTP status code, 2: what the carrier said. */
-				__( 'Omniva refused the request (HTTP %1$d): %2$s', 'wc-estonian-shipping-methods' ),
-				(int) $response['code'],
-				implode( '; ', $said )
-			);
-		}
-
-		return sprintf(
-			/* translators: %d: HTTP status code. */
-			__( 'Omniva refused the request (HTTP %d).', 'wc-estonian-shipping-methods' ),
-			(int) $response['code']
-		);
+		return implode( '; ', $said );
 	}
 
 	/**
-	 * One call to OMX.
+	 * OMX, on the host and the contract this shop was given.
 	 *
-	 * The only place this class touches the network.
+	 * Authentication is two things at once: the contract's own credentials,
+	 * and an agent id Omniva issues to whoever wrote the integration. A
+	 * request missing either is refused.
 	 *
-	 * @param string $endpoint Endpoint under the OMX base.
-	 * @param array  $body     Request body.
-	 * @param string $method   HTTP method.
-	 *
-	 * @return array code and decoded body.
+	 * @return WC_ESM_Carrier_Client
 	 */
-	protected function request( $endpoint, $body = array(), $method = 'POST' ) {
-		$url = sprintf( 'https://%s/api/v01/omx/%s', $this->get_setting( 'tenant', 'omx.omniva.eu' ), $endpoint );
-
-		$args = array(
-			'timeout' => 30,
-			'headers' => array(
+	protected function client() {
+		return new WC_ESM_Carrier_Client(
+			sprintf( 'https://%s/api/v01/omx/', $this->get_setting( 'tenant', 'omx.omniva.eu' ) ),
+			array(
 				'Authorization'          => 'Basic ' . base64_encode( $this->get_setting( 'username' ) . ':' . $this->get_setting( 'password' ) ),
 				'X-Integration-Agent-Id' => $this->get_setting( 'agent_id' ),
-				'Content-Type'           => 'application/json',
-				'Accept'                 => 'application/json',
-			),
-		);
-
-		if ( 'POST' === $method ) {
-			$args['body'] = wp_json_encode( $body );
-			$response     = wp_remote_post( $url, $args );
-		} else {
-			$response = wp_remote_get( $url, $args );
-		}
-
-		if ( is_wp_error( $response ) ) {
-			return array(
-				'code' => 0,
-				'body' => array(),
-			);
-		}
-
-		return array(
-			'code' => wp_remote_retrieve_response_code( $response ),
-			'body' => (array) json_decode( wp_remote_retrieve_body( $response ), true ),
+			)
 		);
 	}
 }

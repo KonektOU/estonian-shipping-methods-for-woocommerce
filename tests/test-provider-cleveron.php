@@ -11,6 +11,7 @@ require_once WC_ESM_PLUGIN_DIR . '/includes/shipments/abstracts/class-wc-esm-shi
 require_once WC_ESM_PLUGIN_DIR . '/includes/shipments/abstracts/class-wc-esm-payload.php';
 require_once WC_ESM_PLUGIN_DIR . '/includes/shipments/payloads/class-wc-esm-payload-cleveron.php';
 require_once WC_ESM_PLUGIN_DIR . '/includes/shipments/providers/class-wc-esm-provider-cleveron.php';
+require_once __DIR__ . '/class-wc-esm-fake-client.php';
 
 /**
  * The provider with the network and the shipping zone taken out.
@@ -18,18 +19,29 @@ require_once WC_ESM_PLUGIN_DIR . '/includes/shipments/providers/class-wc-esm-pro
 class WC_ESM_Cleveron_Test_Provider extends WC_ESM_Provider_Cleveron {
 
 	/**
-	 * Requests made.
+	 * The stand-in for the network.
 	 *
-	 * @var array
+	 * @var WC_ESM_Fake_Client
 	 */
-	public $requests = array();
+	public $fake;
 
 	/**
-	 * Answers to give, in order.
+	 * Constructor.
 	 *
-	 * @var array
+	 * @param array $answers Answers to give.
 	 */
-	public $answers = array();
+	public function __construct( $answers = array() ) {
+		$this->fake = new WC_ESM_Fake_Client( $answers );
+	}
+
+	/**
+	 * The stand-in.
+	 *
+	 * @return WC_ESM_Carrier_Client
+	 */
+	protected function client() {
+		return $this->fake;
+	}
 
 	/**
 	 * The zone's own options, as a test decides them.
@@ -37,20 +49,6 @@ class WC_ESM_Cleveron_Test_Provider extends WC_ESM_Provider_Cleveron {
 	 * @var array
 	 */
 	public $zone = array( 'slot_size' => 'S' );
-
-	/**
-	 * Record and answer.
-	 *
-	 * @param string $endpoint Endpoint.
-	 * @param array  $body     Request body.
-	 *
-	 * @return array
-	 */
-	protected function request( $endpoint, $body = array() ) {
-		$this->requests[] = compact( 'endpoint', 'body' );
-
-		return array_shift( $this->answers );
-	}
 
 	/**
 	 * The zone's own options.
@@ -77,8 +75,7 @@ class Test_Provider_Cleveron extends WC_ESM_Test_Case {
 	 * @return WC_ESM_Cleveron_Test_Provider
 	 */
 	protected function provider( $answers = array() ) {
-		$provider          = new WC_ESM_Cleveron_Test_Provider();
-		$provider->answers = $answers;
+		$provider = new WC_ESM_Cleveron_Test_Provider( $answers );
 		$provider->set_settings(
 			array(
 				'api_url'   => 'https://office.cleveron.com',
@@ -161,7 +158,7 @@ class Test_Provider_Cleveron extends WC_ESM_Test_Case {
 	 * @return void
 	 */
 	public function test_a_created_order_comes_back_with_its_id() {
-		$provider = $this->provider( array( array( 'code' => 201, 'body' => array( 'id' => 'cl-1' ) ) ) );
+		$provider = $this->provider( array( array( 201, array( 'id' => 'cl-1' ) ) ) );
 
 		$result = $provider->register( $this->order() );
 
@@ -177,11 +174,11 @@ class Test_Provider_Cleveron extends WC_ESM_Test_Case {
 	 * @return void
 	 */
 	public function test_the_order_goes_to_the_integration_endpoint() {
-		$provider = $this->provider( array( array( 'code' => 201, 'body' => array( 'id' => 'cl-1' ) ) ) );
+		$provider = $this->provider( array( array( 201, array( 'id' => 'cl-1' ) ) ) );
 		$provider->register( $this->order() );
 
-		$this->assertSame( 'orders', $provider->requests[0]['endpoint'] );
-		$this->assertSame( 'APM-7', $provider->requests[0]['body']['destination']['apm'] );
+		$this->assertSame( 'orders', $provider->fake->endpoint() );
+		$this->assertSame( 'APM-7', $provider->fake->body()['destination']['apm'] );
 	}
 
 	/**
@@ -191,13 +188,13 @@ class Test_Provider_Cleveron extends WC_ESM_Test_Case {
 	 * @return void
 	 */
 	public function test_the_zones_options_reach_the_payload() {
-		$provider       = $this->provider( array( array( 'code' => 201, 'body' => array( 'id' => 'cl-1' ) ) ) );
+		$provider       = $this->provider( array( array( 201, array( 'id' => 'cl-1' ) ) ) );
 		$provider->zone = array( 'slot_size' => 'M', 'sms_template' => 'sms-1' );
 
 		$provider->register( $this->order() );
 
-		$this->assertSame( 'M', $provider->requests[0]['body']['slotSize'] );
-		$this->assertSame( array( 'sms-1' ), $provider->requests[0]['body']['templates'] );
+		$this->assertSame( 'M', $provider->fake->body()['slotSize'] );
+		$this->assertSame( array( 'sms-1' ), $provider->fake->body()['templates'] );
 	}
 
 	/**
@@ -207,7 +204,7 @@ class Test_Provider_Cleveron extends WC_ESM_Test_Case {
 	 * @return void
 	 */
 	public function test_a_created_order_without_an_id_is_a_failure() {
-		$provider = $this->provider( array( array( 'code' => 201, 'body' => array() ) ) );
+		$provider = $this->provider( array( array( 201, array() ) ) );
 
 		$this->assertTrue( $provider->register( $this->order() )->is_failure() );
 	}
@@ -218,7 +215,7 @@ class Test_Provider_Cleveron extends WC_ESM_Test_Case {
 	 * @return void
 	 */
 	public function test_a_refusal_is_a_failure() {
-		$provider = $this->provider( array( array( 'code' => 422, 'body' => array( 'message' => 'apm not found' ) ) ) );
+		$provider = $this->provider( array( array( 422, array( 'message' => 'apm not found' ) ) ) );
 
 		$result = $provider->register( $this->order() );
 
@@ -237,9 +234,9 @@ class Test_Provider_Cleveron extends WC_ESM_Test_Case {
 	public function test_there_is_no_update_path() {
 		$this->assertFalse( method_exists( 'WC_ESM_Provider_Cleveron', 'update' ) );
 
-		$provider = $this->provider( array( array( 'code' => 201, 'body' => array( 'id' => 'cl-1' ) ) ) );
+		$provider = $this->provider( array( array( 201, array( 'id' => 'cl-1' ) ) ) );
 		$provider->register( $this->order() );
 
-		$this->assertSame( 'orders', $provider->requests[0]['endpoint'] );
+		$this->assertSame( 'orders', $provider->fake->endpoint() );
 	}
 }

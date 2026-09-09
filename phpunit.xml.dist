@@ -12,6 +12,7 @@
             <directory suffix=".php">tests</directory>
             <exclude>tests/bootstrap.php</exclude>
             <exclude>tests/class-wc-esm-test-case.php</exclude>
+            <exclude>tests/class-wc-esm-fake-client.php</exclude>
             <exclude>tests/fixtures</exclude>
         </testsuite>
     </testsuites>
