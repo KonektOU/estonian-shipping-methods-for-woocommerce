@@ -1,0 +1,402 @@
+<?php
+/**
+ * Omniva over OMX, without the SOAP.
+ *
+ * @package Estonian_Shipping_Methods_For_WooCommerce
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+/**
+ * Omniva, over the OMX REST API.
+ *
+ * Omniva's older ePlis interface is SOAP, and a shop that cannot load PHP's
+ * SOAP extension cannot use it at all. OMX is the same carrier over JSON, so
+ * that is what this speaks.
+ *
+ * Authentication is two things at once: HTTP basic credentials from the
+ * contract, and an integration agent id Omniva issues to whoever wrote the
+ * integration. A request missing either is refused.
+ */
+class WC_ESM_Provider_Omniva extends WC_ESM_Shipment_Provider {
+
+	/**
+	 * Where a customer follows a parcel.
+	 *
+	 * @var string
+	 */
+	const TRACKING_URL = 'https://www.omniva.ee/era/jalgimine?barcode=%s';
+
+	/**
+	 * Declared features.
+	 *
+	 * @var array
+	 */
+	protected $features = array( 'labels', 'tracking', 'pickup', 'cod', 'return' );
+
+	/**
+	 * Id.
+	 *
+	 * @return string
+	 */
+	public function get_id() {
+		return 'omniva';
+	}
+
+	/**
+	 * Title.
+	 *
+	 * @return string
+	 */
+	public function get_title() {
+		return __( 'Omniva', 'wc-estonian-shipping-methods' );
+	}
+
+	/**
+	 * Which of the plugin's methods this carries.
+	 *
+	 * @param string $method_id Shipping method id.
+	 *
+	 * @return bool
+	 */
+	public function carries( $method_id ) {
+		return in_array(
+			$method_id,
+			array(
+				'omniva_parcel_machines_ee',
+				'omniva_parcel_machines_lv',
+				'omniva_parcel_machines_lt',
+				'omniva_post_offices_ee',
+			),
+			true
+		);
+	}
+
+	/**
+	 * Settings fields.
+	 *
+	 * @return array
+	 */
+	public function get_settings_fields() {
+		return array_merge(
+			array(
+				'tenant'        => array(
+					'title'       => __( 'API host', 'wc-estonian-shipping-methods' ),
+					'type'        => 'text',
+					'default'     => 'omx.omniva.eu',
+					'description' => __( 'Omniva issues this per customer. Leave the default unless they gave you another.', 'wc-estonian-shipping-methods' ),
+					'desc_tip'    => true,
+				),
+				'username'      => array(
+					'title'   => __( 'Username', 'wc-estonian-shipping-methods' ),
+					'type'    => 'text',
+					'default' => '',
+				),
+				'password'      => array(
+					'title'   => __( 'Password', 'wc-estonian-shipping-methods' ),
+					'type'    => 'password',
+					'default' => '',
+				),
+				'agent_id'      => array(
+					'title'       => __( 'Integration agent id', 'wc-estonian-shipping-methods' ),
+					'type'        => 'text',
+					'default'     => '',
+					'description' => __( 'The Developer_XXXXXX_YYYYYY value Omniva issued. Every request carries it.', 'wc-estonian-shipping-methods' ),
+					'desc_tip'    => true,
+				),
+				'customer_code' => array(
+					'title'       => __( 'Customer code', 'wc-estonian-shipping-methods' ),
+					'type'        => 'text',
+					'default'     => '',
+					'description' => __( 'The AXA partner code from your Omniva contract.', 'wc-estonian-shipping-methods' ),
+					'desc_tip'    => true,
+				),
+			),
+			$this->sender_fields(),
+			array(
+				'cod_service_code' => array(
+					'title'       => __( 'Cash on delivery service code', 'wc-estonian-shipping-methods' ),
+					'type'        => 'text',
+					'default'     => 'BP',
+					'description' => __( 'Omniva issues the additional service list per customer. Confirm this code with them before charging cash on delivery.', 'wc-estonian-shipping-methods' ),
+					'desc_tip'    => true,
+				),
+			)
+		);
+	}
+
+	/**
+	 * The sender block, which Omniva and DPD ask for identically.
+	 *
+	 * @return array
+	 */
+	protected function sender_fields() {
+		$fields = array(
+			'sender_name'     => __( 'Sender name', 'wc-estonian-shipping-methods' ),
+			'sender_phone'    => __( 'Sender phone', 'wc-estonian-shipping-methods' ),
+			'sender_email'    => __( 'Sender e-mail', 'wc-estonian-shipping-methods' ),
+			'sender_street'   => __( 'Sender street', 'wc-estonian-shipping-methods' ),
+			'sender_house'    => __( 'Sender house number', 'wc-estonian-shipping-methods' ),
+			'sender_postcode' => __( 'Sender postcode', 'wc-estonian-shipping-methods' ),
+			'sender_city'     => __( 'Sender city', 'wc-estonian-shipping-methods' ),
+			'sender_country'  => __( 'Sender country', 'wc-estonian-shipping-methods' ),
+		);
+
+		foreach ( $fields as $key => $title ) {
+			$fields[ $key ] = array(
+				'title'   => $title,
+				'type'    => 'text',
+				'default' => 'sender_country' === $key ? 'EE' : '',
+			);
+		}
+
+		return $fields;
+	}
+
+	/**
+	 * Send an order to Omniva.
+	 *
+	 * @param array $snapshot Order snapshot.
+	 *
+	 * @return WC_ESM_Shipment_Result
+	 */
+	public function register( $snapshot ) {
+		$response = $this->request(
+			'shipments/business-to-client',
+			WC_ESM_Payload_Omniva::build( $snapshot, $this->get_settings() )
+		);
+
+		if ( 200 !== (int) $response['code'] ) {
+			return WC_ESM_Shipment_Result::failure( $this->error_message( $response ) );
+		}
+
+		$barcodes = isset( $response['body']['barcodes'] ) ? array_values( (array) $response['body']['barcodes'] ) : array();
+
+		if ( ! $barcodes ) {
+			return WC_ESM_Shipment_Result::failure(
+				__( 'Omniva accepted the parcel but returned no barcode for it.', 'wc-estonian-shipping-methods' )
+			);
+		}
+
+		return WC_ESM_Shipment_Result::success(
+			array(
+				'barcodes'   => $barcodes,
+				'label_refs' => $barcodes,
+			)
+		);
+	}
+
+	/**
+	 * Fetch labels for parcels already registered.
+	 *
+	 * @param array $refs Barcodes.
+	 *
+	 * @return WC_ESM_Shipment_Result
+	 */
+	public function fetch_labels( $refs ) {
+		$refs = array_values( array_filter( (array) $refs ) );
+
+		if ( ! $refs ) {
+			return WC_ESM_Shipment_Result::failure( __( 'There is nothing to print.', 'wc-estonian-shipping-methods' ) );
+		}
+
+		$response = $this->request(
+			'shipments/package-labels',
+			array(
+				'customerCode'      => $this->get_setting( 'customer_code' ),
+				'sendAddressCardTo' => 'RESPONSE',
+				'barcodes'          => $refs,
+			)
+		);
+
+		if ( 200 !== (int) $response['code'] ) {
+			return WC_ESM_Shipment_Result::failure( $this->error_message( $response ) );
+		}
+
+		$labels = isset( $response['body']['labels'] ) ? (array) $response['body']['labels'] : array();
+
+		if ( ! $labels ) {
+			return WC_ESM_Shipment_Result::failure( __( 'Omniva returned no labels.', 'wc-estonian-shipping-methods' ) );
+		}
+
+		// Omniva hands each label back base64-encoded and keyed by barcode.
+		// Decoding here keeps that detail out of the merger, which only ever
+		// wants PDF bytes.
+		return WC_ESM_Shipment_Result::success(
+			array( 'pdfs' => array_values( array_map( 'base64_decode', $labels ) ) )
+		);
+	}
+
+	/**
+	 * Book a courier.
+	 *
+	 * @param array $args date, time_from, time_to, comment.
+	 *
+	 * @return WC_ESM_Shipment_Result
+	 */
+	public function request_pickup( $args ) {
+		$response = $this->request(
+			'courierorders/create-pickup-order',
+			array(
+				'customerCode'      => $this->get_setting( 'customer_code' ),
+				'contactPersonName' => $this->get_setting( 'sender_name' ),
+				'contactPhone'      => $this->get_setting( 'sender_phone' ),
+				'pickupAddress'     => array(
+					'postcode'      => $this->get_setting( 'sender_postcode' ),
+					'deliverypoint' => $this->get_setting( 'sender_city' ),
+					'country'       => $this->get_setting( 'sender_country', 'EE' ),
+					'street'        => trim( $this->get_setting( 'sender_street' ) . ' ' . $this->get_setting( 'sender_house' ) ),
+				),
+				'startTime'         => $this->moment( $args, 'time_from', '08:00' ),
+				'endTime'           => $this->moment( $args, 'time_to', '17:00' ),
+				'pickupComment'     => isset( $args['comment'] ) ? $args['comment'] : '',
+				'isTwoManPickup'    => false,
+				'isHeavyPackage'    => false,
+				'packageCount'      => 1,
+			)
+		);
+
+		if ( 200 !== (int) $response['code'] ) {
+			return WC_ESM_Shipment_Result::failure( $this->error_message( $response ) );
+		}
+
+		return WC_ESM_Shipment_Result::success(
+			array( 'reference' => isset( $response['body']['orderNumber'] ) ? (string) $response['body']['orderNumber'] : '' )
+		);
+	}
+
+	/**
+	 * Call a booked courier off.
+	 *
+	 * @param string $reference Pickup reference.
+	 *
+	 * @return WC_ESM_Shipment_Result
+	 */
+	public function cancel_pickup( $reference ) {
+		$response = $this->request(
+			'courierorders/cancel-pickup-order',
+			array(
+				'customerCode' => $this->get_setting( 'customer_code' ),
+				'orderNumber'  => (string) $reference,
+			)
+		);
+
+		if ( 200 !== (int) $response['code'] ) {
+			return WC_ESM_Shipment_Result::failure( $this->error_message( $response ) );
+		}
+
+		return WC_ESM_Shipment_Result::success();
+	}
+
+	/**
+	 * Where a customer follows a parcel.
+	 *
+	 * @param string $barcode Barcode.
+	 *
+	 * @return string
+	 */
+	public function get_tracking_url( $barcode ) {
+		$barcode = (string) $barcode;
+
+		return '' === $barcode ? '' : sprintf( self::TRACKING_URL, rawurlencode( $barcode ) );
+	}
+
+	/**
+	 * One date and time, in the shape OMX wants it.
+	 *
+	 * @param array  $args    Pickup arguments.
+	 * @param string $key     Which time.
+	 * @param string $default Fallback time of day.
+	 *
+	 * @return string
+	 */
+	protected function moment( $args, $key, $default ) {
+		$date = isset( $args['date'] ) && '' !== $args['date'] ? $args['date'] : gmdate( 'Y-m-d' );
+		$time = isset( $args[ $key ] ) && '' !== $args[ $key ] ? $args[ $key ] : $default;
+
+		return sprintf( '%sT%s:00.000', $date, $time );
+	}
+
+	/**
+	 * What to tell the shopkeeper when Omniva refuses.
+	 *
+	 * Omniva's own words where it gave any: "HTTP 400" alone tells a
+	 * shopkeeper nothing about which field it disliked.
+	 *
+	 * @param array $response Response.
+	 *
+	 * @return string
+	 */
+	protected function error_message( $response ) {
+		$said = array();
+
+		if ( isset( $response['body']['errors'] ) && is_array( $response['body']['errors'] ) ) {
+			foreach ( $response['body']['errors'] as $error ) {
+				if ( isset( $error['msg'] ) ) {
+					$said[] = (string) $error['msg'];
+				}
+			}
+		}
+
+		if ( $said ) {
+			return sprintf(
+				/* translators: 1: HTTP status code, 2: what the carrier said. */
+				__( 'Omniva refused the request (HTTP %1$d): %2$s', 'wc-estonian-shipping-methods' ),
+				(int) $response['code'],
+				implode( '; ', $said )
+			);
+		}
+
+		return sprintf(
+			/* translators: %d: HTTP status code. */
+			__( 'Omniva refused the request (HTTP %d).', 'wc-estonian-shipping-methods' ),
+			(int) $response['code']
+		);
+	}
+
+	/**
+	 * One call to OMX.
+	 *
+	 * The only place this class touches the network.
+	 *
+	 * @param string $endpoint Endpoint under the OMX base.
+	 * @param array  $body     Request body.
+	 * @param string $method   HTTP method.
+	 *
+	 * @return array code and decoded body.
+	 */
+	protected function request( $endpoint, $body = array(), $method = 'POST' ) {
+		$url = sprintf( 'https://%s/api/v01/omx/%s', $this->get_setting( 'tenant', 'omx.omniva.eu' ), $endpoint );
+
+		$args = array(
+			'timeout' => 30,
+			'headers' => array(
+				'Authorization'          => 'Basic ' . base64_encode( $this->get_setting( 'username' ) . ':' . $this->get_setting( 'password' ) ),
+				'X-Integration-Agent-Id' => $this->get_setting( 'agent_id' ),
+				'Content-Type'           => 'application/json',
+				'Accept'                 => 'application/json',
+			),
+		);
+
+		if ( 'POST' === $method ) {
+			$args['body'] = wp_json_encode( $body );
+			$response     = wp_remote_post( $url, $args );
+		} else {
+			$response = wp_remote_get( $url, $args );
+		}
+
+		if ( is_wp_error( $response ) ) {
+			return array(
+				'code' => 0,
+				'body' => array(),
+			);
+		}
+
+		return array(
+			'code' => wp_remote_retrieve_response_code( $response ),
+			'body' => (array) json_decode( wp_remote_retrieve_body( $response ), true ),
+		);
+	}
+}
