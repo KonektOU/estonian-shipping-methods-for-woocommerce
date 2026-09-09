@@ -128,6 +128,10 @@ class Estonian_Shipping_Methods_For_WooCommerce {
 		// request the site served.
 		add_action( 'init', array( $this, 'add_terminals_hooks' ), 5 );
 
+		// The carriers translate their own titles, so they wait for init for
+		// the same reason the methods above do.
+		add_action( 'init', array( $this, 'shipments_init' ), 5 );
+
 		// The terminal search, for the classic checkout. The block checkout
 		// brings its own with the block; the stylesheet is shared.
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_checkout_assets' ) );
@@ -228,6 +232,74 @@ class Estonian_Shipping_Methods_For_WooCommerce {
 		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/methods/class-wc-estonian-shipping-method-dpd-shops-lt.php';
 
 		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/methods/class-wc-estonian-shipping-method-cleveron-office.php';
+
+		// The carrier integrations: sending a parcel, printing its label,
+		// telling the customer where it is.
+		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/class-wc-esm-shipment-result.php';
+		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/class-wc-esm-shipment.php';
+		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/class-wc-esm-order-snapshot.php';
+		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/class-wc-esm-shop-address.php';
+		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/class-wc-esm-pdf-merger.php';
+		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/class-wc-esm-dpd-token.php';
+
+		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/abstracts/class-wc-esm-shipment-provider.php';
+		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/abstracts/class-wc-esm-payload.php';
+
+		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/payloads/class-wc-esm-payload-smartpost.php';
+		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/payloads/class-wc-esm-payload-omniva.php';
+		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/payloads/class-wc-esm-payload-dpd.php';
+		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/payloads/class-wc-esm-payload-cleveron.php';
+
+		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/providers/class-wc-esm-provider-smartpost.php';
+		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/providers/class-wc-esm-provider-omniva.php';
+		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/providers/class-wc-esm-provider-dpd.php';
+		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/providers/class-wc-esm-provider-cleveron.php';
+
+		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/class-wc-esm-shipment-registry.php';
+		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/class-wc-esm-shipment-settings.php';
+		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/class-wc-esm-shipment-registration.php';
+		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/class-wc-esm-shipment-labels.php';
+		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/class-wc-esm-shipment-tracking.php';
+		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/class-wc-esm-shipment-admin.php';
+		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/class-wc-esm-dispatch-screen.php';
+
+		// The PDF library, when the shop ran composer install. Merging labels
+		// from several carriers needs it; everything else works without.
+		if ( is_readable( WC_ESTONIAN_SHIPPING_METHODS_PATH . '/vendor/autoload.php' ) ) {
+			require_once WC_ESTONIAN_SHIPPING_METHODS_PATH . '/vendor/autoload.php';
+		}
+	}
+
+	/**
+	 * Stand the carriers up and hook the screens on.
+	 *
+	 * Registration order is the order every screen lists them in, so it is
+	 * deliberate rather than alphabetical: the two carriers most Estonian
+	 * shops use come first.
+	 *
+	 * @return void
+	 */
+	public function shipments_init() {
+		$registry = WC_ESM_Shipment_Registry::instance();
+
+		$registry->register( new WC_ESM_Provider_Smartpost() );
+		$registry->register( new WC_ESM_Provider_Omniva() );
+		$registry->register( new WC_ESM_Provider_Dpd() );
+		$registry->register( new WC_ESM_Provider_Cleveron() );
+
+		/**
+		 * Lets a site add a carrier of its own, or take one away.
+		 *
+		 * @param WC_ESM_Shipment_Registry $registry The registry.
+		 */
+		do_action( 'wc_esm_register_carriers', $registry );
+
+		WC_ESM_Shipment_Settings::hydrate( $registry );
+		WC_ESM_Shipment_Settings::init();
+		WC_ESM_Shipment_Registration::init();
+		WC_ESM_Shipment_Tracking::init();
+		WC_ESM_Shipment_Admin::init();
+		WC_ESM_Dispatch_Screen::init();
 	}
 
 	/**
