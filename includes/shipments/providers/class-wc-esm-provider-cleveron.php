@@ -26,7 +26,14 @@ if ( ! defined( 'ABSPATH' ) ) {
  * already-registered order as a PUT; that is gone, because a review found the
  * browser's back button registering - and billing - a second real parcel.
  * Registration refuses an order that already has a shipment, and that guard
- * wins over the convenience of updating one.
+ * wins over the convenience of updating one. The endpoint itself does exist,
+ * so this is a decision rather than a limitation.
+ *
+ * What the API offers, checked against Cleveron's own sandbox: POST orders to
+ * create one, PUT orders/{orderId} to change it, and nothing else. GET,
+ * DELETE and PATCH all answer 405, so an order can be neither deleted nor
+ * read back - a parcel sent in error is for Cleveron's own systems to sort
+ * out, not something a shop can undo from here.
  */
 class WC_ESM_Provider_Cleveron extends WC_ESM_Shipment_Provider {
 
