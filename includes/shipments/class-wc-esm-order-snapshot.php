@@ -99,6 +99,115 @@ class WC_ESM_Order_Snapshot {
 	}
 
 	/**
+	 * Read an order into the shape.
+	 *
+	 * The one place that touches WooCommerce, so everything downstream -
+	 * every payload builder, every test - deals in plain arrays. It is
+	 * deliberately not unit-tested: there is nothing here but reading an
+	 * order, and a test of it would only assert that WooCommerce's getters
+	 * were called.
+	 *
+	 * @param WC_Order $order Order.
+	 *
+	 * @return array
+	 */
+	public static function from_order( $order ) {
+		$method      = null;
+		$method_id   = '';
+		$terminal_id = '';
+
+		foreach ( $order->get_shipping_methods() as $item ) {
+			$method_id = $item->get_method_id();
+			$method    = WC()->shipping() ? WC()->shipping()->get_shipping_method_class( $method_id, $item->get_instance_id() ) : null;
+
+			break;
+		}
+
+		if ( $method && method_exists( $method, 'get_order_terminal' ) ) {
+			$terminal_id = (string) $method->get_order_terminal( $order->get_id() );
+		}
+
+		$terminal = array();
+
+		if ( '' !== $terminal_id && $method && method_exists( $method, 'get_terminal_data' ) ) {
+			$terminal = (array) $method->get_terminal_data( $terminal_id );
+		}
+
+		$created = $order->get_date_created();
+
+		return self::make(
+			array(
+				'order_id'     => $order->get_id(),
+				'order_number' => $order->get_order_number(),
+				'method_id'    => $method_id,
+				'terminal_id'  => $terminal_id,
+				'terminal'     => $terminal,
+				'recipient'    => array(
+					'name'  => trim( $order->get_shipping_first_name() . ' ' . $order->get_shipping_last_name() ) ?: trim( $order->get_billing_first_name() . ' ' . $order->get_billing_last_name() ),
+					'phone' => $order->get_billing_phone(),
+					'email' => $order->get_billing_email(),
+				),
+				'address'      => array(
+					'street'    => $order->get_shipping_address_1(),
+					'house'     => $order->get_shipping_address_2(),
+					'city'      => $order->get_shipping_city(),
+					'postcode'  => $order->get_shipping_postcode(),
+					'country'   => $order->get_shipping_country(),
+				),
+				'weight'       => self::weight_of( $order ),
+				'cod_amount'   => self::cod_of( $order ),
+				'currency'     => $order->get_currency(),
+				'content'      => sprintf(
+					/* translators: 1: shop name, 2: order number. */
+					__( '%1$s - Order #%2$s', 'wc-estonian-shipping-methods' ),
+					get_bloginfo( 'name' ),
+					$order->get_order_number()
+				),
+				'timewindow'   => $terminal_id,
+				'base_country' => WC()->countries->get_base_country(),
+				'created_at'   => $created ? $created->format( DateTime::RFC3339 ) : '',
+				'shop_name'    => get_bloginfo( 'name' ),
+			)
+		);
+	}
+
+	/**
+	 * What the order weighs, in the shop's own unit converted to kilograms.
+	 *
+	 * A shop that fills in no product weights would send a zero, which every
+	 * carrier rejects, so an order with no weight at all is called half a
+	 * kilo - the same floor the plugin used before.
+	 *
+	 * @param WC_Order $order Order.
+	 *
+	 * @return float
+	 */
+	protected static function weight_of( $order ) {
+		$weight = 0.0;
+
+		foreach ( $order->get_items() as $item ) {
+			$product = $item->get_product();
+
+			if ( $product && $product->get_weight() ) {
+				$weight += (float) wc_get_weight( $product->get_weight(), 'kg' ) * (int) $item->get_quantity();
+			}
+		}
+
+		return $weight > 0 ? round( $weight, 3 ) : 0.5;
+	}
+
+	/**
+	 * What the courier has to collect, if anything.
+	 *
+	 * @param WC_Order $order Order.
+	 *
+	 * @return float
+	 */
+	protected static function cod_of( $order ) {
+		return apply_filters( 'wc_esm_order_cod_amount', 0.0, $order );
+	}
+
+	/**
 	 * Whether the parcel is going to a terminal rather than to a door.
 	 *
 	 * @param array $snapshot Snapshot.
