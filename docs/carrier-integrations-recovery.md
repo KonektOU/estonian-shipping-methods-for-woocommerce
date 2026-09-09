@@ -8,8 +8,11 @@ never been pushed; `git ls-remote` confirms origin never held it.
 
 What survived is the specification: the board tasks that commissioned the work
 and the completion notes written when it was finished. This file is that
-material, gathered in one place so the rebuild has something to build against.
-It describes software that no longer exists. Every name in it is a name the
+material, gathered in one place so the rebuild had something to build against.
+
+**The rebuild is done.** What follows described software that did not exist
+when it was written; it exists again now, on this branch, and this file is kept
+as the record of what was specified and where each shape came from. Every name in it is a name the
 lost code used, and reusing them is deliberate: stored option keys, order meta
 keys and method ids are written into live shops and shipping zones, and the
 rebuild has to meet them exactly.
@@ -220,3 +223,42 @@ One behaviour change that belongs with this: `get_settings()` treated a stored
 empty string as a value, so a shop that had saved the screen once could never
 receive a new default. An empty stored value now falls back to the field's
 default, which is what lets the shop address reach an existing install.
+
+## What the rebuild ended up as
+
+Rebuilt over 2026-09-09 on a fresh `feature/carrier-integrations`, pushed from
+its first commit. 235 tests, 511 assertions.
+
+Where the shapes came from, since none of them were remembered:
+
+- **Smartposti** from `itella-smartpost-business-for-woocommerce`, installed in
+  this WordPress and pointed at by task #43 itself: a working client, so the
+  base URL, the auth header, the `orders` and `labels` endpoints, the response
+  shape and the tracking URL are all observed rather than guessed.
+- **Omniva** from Omniva's own PHP library (`omniva-baltic/omniva-api-lib`) and
+  developer.omniva.ee. The library's OMX field names match, exactly, the
+  fragments of the lost payload that survived in this session's transcript -
+  `personName`, `contactMobile`, `deliverypoint`, `houseNo`, `offloadPostcode` -
+  which is the strongest evidence available that the reconstruction is faithful.
+- **DPD** from the published `telli.dpd.ee/api/v1` interface and an
+  open-source client for it, which also supplied the three Baltic portal hosts
+  and the `pudoId` receiver shape.
+- **Cleveron** from the plugin's own existing zone method, which is on master.
+
+Two things are deliberately not here:
+
+- **Smartposti cash-on-delivery reconciliation.** The carrier's API PDF could
+  not be read on this machine - no poppler, no pip, and the document uses CID
+  fonts inside object streams that a hand-written extractor did not recover -
+  and no COD settlement endpoint appears in what could be extracted. Rather
+  than invent one, `cod_report` is not declared by the Smartposti provider, so
+  no screen offers a button for it. The lost branch had this; restoring it
+  needs that document read, or a live account to probe.
+- **Estonian translations for the new strings.** The catalogue is up to date
+  and carries all 210 strings, with what was translated before still
+  translated; the integration strings are untranslated, which is the state the
+  lost branch was in too.
+
+Omniva and DPD remain unproven against a live account, exactly as before: the
+code is written from documentation and covered by unit tests, but no request
+has ever been made to their servers from here.
