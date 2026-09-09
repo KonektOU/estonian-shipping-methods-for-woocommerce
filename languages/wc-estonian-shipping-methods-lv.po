@@ -1,9 +1,13 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Estonian Shipping Methods for WooCommerce\n"
-"POT-Creation-Date: 2017-10-03 14:07+0300\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/estonian-shipping-"
+"methods-for-woocommerce\n"
+"POT-Creation-Date: %Y-%m-%dT%H:%M:%S+00:00\n"
 "PO-Revision-Date: 2017-11-26 01:51+0200\n"
+"Last-Translator: \n"
 "Language-Team: Konekt OÜ <info@konekt.ee>\n"
+"Language: lv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -15,84 +19,100 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : "
 "2);\n"
 "X-Poedit-SourceCharset: UTF-8\n"
-"Last-Translator: \n"
-"Language: lv\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:60
+#: estonian-shipping-methods-for-woocommerce.php:186
+#, fuzzy
+msgid "Search by town or terminal name"
+msgstr "Tikai pakomāta vārdu"
+
+#: estonian-shipping-methods-for-woocommerce.php:187
+#, fuzzy
+msgid "Search terminals"
+msgstr "Sakārtot pakomātus pēc"
+
+#. translators: %d: number of terminals matching the search.
+#: estonian-shipping-methods-for-woocommerce.php:189
+#, fuzzy, php-format
+msgid "%d terminals found"
+msgstr "Pakomāta formāts"
+
+#: estonian-shipping-methods-for-woocommerce.php:190
+msgid "No terminals match that search."
+msgstr ""
+
+#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:73
 msgid "Chosen terminal"
 msgstr "Izvēlētais pakomāts"
 
-#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:72
+#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:118
 msgid "Terminals format"
 msgstr "Pakomāta formāts"
 
-#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:76
+#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:122
 msgid "Only terminal name"
 msgstr "Tikai pakomāta vārdu"
 
-#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:77
+#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:123
 msgid "Name with address"
 msgstr "Nosaukums ar adresi"
 
-#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:81
+#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:127
 msgid "Sort terminals by"
 msgstr "Sakārtot pakomātus pēc"
 
-#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:85
+#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:131
 msgid "No sorting"
 msgstr "Bez kārtošanas"
 
-#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:86
+#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:132
 msgid "Alphabetically"
 msgstr "Alfabētiski"
 
-#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:87
+#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:133
 msgid "Bigger cities first, then alphabetically the rest"
 msgstr "Lielākās pilsētas vispirms, pēc tam alfabēta secībā"
 
-#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:91
+#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:137
 msgid "Group terminals"
 msgstr "Grupēt termināļus"
 
-#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:95
+#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:141
 msgid "By cities"
 msgstr "Pēc pilsētām"
 
-#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:229
+#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:355
+#: includes/class-wc-estonian-shipping-blocks.php:234
 msgid "Please select a parcel terminal"
 msgstr "Lūdzu izvēlaties sūtījuma pakomātu"
 
-#: includes/abstracts/class-wc-estonian-shipping-method.php:45
-msgid "Enable method"
-msgstr "Iespējot metodi"
+#. translators: %s: terminal ID
+#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:920
+#, fuzzy, php-format
+msgid "Terminal #%s"
+msgstr "Pakomāta formāts"
 
-#: includes/abstracts/class-wc-estonian-shipping-method.php:48
-#: includes/abstracts/class-wc-estonian-shipping-method.php:77
-msgid "Enable"
-msgstr "Iespējot"
-
-#: includes/abstracts/class-wc-estonian-shipping-method.php:51
+#: includes/abstracts/class-wc-estonian-shipping-method.php:87
 msgid "Title"
 msgstr "Nosaukums"
 
-#: includes/abstracts/class-wc-estonian-shipping-method.php:53
+#: includes/abstracts/class-wc-estonian-shipping-method.php:89
 msgid "This controls the title which user sees during checkout."
 msgstr "Šis kontrolē nosaukumu, kas tiks parādīts lietotājam pie pasūtīšanas"
 
-#: includes/abstracts/class-wc-estonian-shipping-method.php:58
+#: includes/abstracts/class-wc-estonian-shipping-method.php:94
 msgid "Shipping price"
 msgstr "Piegādes cena"
 
-#: includes/abstracts/class-wc-estonian-shipping-method.php:61
+#: includes/abstracts/class-wc-estonian-shipping-method.php:97
 msgid "Without taxes"
 msgstr "Bez nodokļiem"
 
-#: includes/abstracts/class-wc-estonian-shipping-method.php:66
+#: includes/abstracts/class-wc-estonian-shipping-method.php:102
 msgid "Free shipping amount"
 msgstr "Bezmaksas piegādes summa"
 
-#: includes/abstracts/class-wc-estonian-shipping-method.php:69
+#: includes/abstracts/class-wc-estonian-shipping-method.php:105
 msgid ""
 "Shipping will be free of charge, if order total is equal or bigger than this "
 "value. Zero will disable free shipping."
@@ -100,11 +120,15 @@ msgstr ""
 "Sūtīšana būs bez maksas, ja pasūtījuma vērtība būs lielāka vai vienāda nekā "
 "norādītā vērtība. Nulle atspējos bezmaksas piegādi."
 
-#: includes/abstracts/class-wc-estonian-shipping-method.php:74
+#: includes/abstracts/class-wc-estonian-shipping-method.php:110
 msgid "Enable free shipping coupons"
 msgstr "Iespējot bezmaksas piegādes kuponus"
 
-#: includes/abstracts/class-wc-estonian-shipping-method.php:78
+#: includes/abstracts/class-wc-estonian-shipping-method.php:113
+msgid "Enable"
+msgstr "Iespējot"
+
+#: includes/abstracts/class-wc-estonian-shipping-method.php:114
 #, php-format
 msgid ""
 "Enable this if you want to make this shipping method free of charge when "
@@ -115,25 +139,192 @@ msgstr ""
 "tiek izmantots bezmaksas piegādes kupons lietotāja grozā. Lasiet vairāk par "
 "bezmaksas piegādi un kuponiem no %s"
 
-#: includes/abstracts/class-wc-estonian-shipping-method.php:78
+#: includes/abstracts/class-wc-estonian-shipping-method.php:114
 msgid "WooCommerce&rsquo;s documentation"
 msgstr "WooCommerce&rsquo;s dokumentācija"
 
-#: includes/abstracts/class-wc-estonian-shipping-method.php:81
+#: includes/abstracts/class-wc-estonian-shipping-method.php:117
+#, fuzzy
+msgid "Only for shipping classes"
+msgstr "Iespējot bezmaksas piegādes kuponus"
+
+#: includes/abstracts/class-wc-estonian-shipping-method.php:123
+msgid ""
+"Offer this method only when everything in the cart is in one of these "
+"classes. Leave empty to offer it for everything."
+msgstr ""
+
+#. translators: %s: the shop's weight unit, e.g. kg.
+#: includes/abstracts/class-wc-estonian-shipping-method.php:129
+#, php-format
+msgid "Maximum cart weight (%s)"
+msgstr ""
+
+#: includes/abstracts/class-wc-estonian-shipping-method.php:134
+msgid "No limit"
+msgstr ""
+
+#: includes/abstracts/class-wc-estonian-shipping-method.php:135
+msgid ""
+"Hide this method when the cart weighs more than this. A parcel terminal will "
+"not take everything a courier will. Leave empty for no limit."
+msgstr ""
+
+#: includes/abstracts/class-wc-estonian-shipping-method.php:139
 msgid "Tax status"
 msgstr "Nodokļu statuss"
 
-#: includes/abstracts/class-wc-estonian-shipping-method.php:86
+#: includes/abstracts/class-wc-estonian-shipping-method.php:146
+msgid "Whether VAT is added to the shipping cost. Shipping is usually taxable."
+msgstr ""
+
+#: includes/abstracts/class-wc-estonian-shipping-method.php:149
 msgid "Taxable"
 msgstr "Apliekams ar nodokli"
 
-#: includes/abstracts/class-wc-estonian-shipping-method.php:87
+#: includes/abstracts/class-wc-estonian-shipping-method.php:150
 msgid "None"
 msgstr "Nav"
 
-#: includes/abstracts/class-wc-estonian-shipping-method.php:202
+#: includes/abstracts/class-wc-estonian-shipping-method.php:386
 msgid "Please add country prefix to the phone number (eg. +372)."
 msgstr "Lūdzu pievienojat valsts kodu pie telefona numura (piemēram, +371)"
+
+#: includes/class-wc-estonian-shipping-blocks.php:127
+#: woocommerce/checkout/form-shipping-dpd.php:22
+#: woocommerce/checkout/form-shipping-omniva.php:22
+#: woocommerce/checkout/form-shipping-smartpost.php:22
+msgid "Choose terminal"
+msgstr "Izvēlaties termināli"
+
+#: includes/class-wc-estonian-shipping-blocks.php:139
+msgid "Shipping method the terminals belong to."
+msgstr ""
+
+#: includes/class-wc-estonian-shipping-blocks.php:144
+msgid "Name the chosen terminal is stored under."
+msgstr ""
+
+#: includes/class-wc-estonian-shipping-blocks.php:149
+msgid "Label for the terminal selection."
+msgstr ""
+
+#: includes/class-wc-estonian-shipping-blocks.php:154
+msgid "Terminals, grouped the way the shipping method groups them."
+msgstr ""
+
+#: includes/class-wc-estonian-shipping-blocks.php:159
+#, fuzzy
+msgid "Terminal chosen so far."
+msgstr "Pakomāta formāts"
+
+#: includes/class-wc-estonian-shipping-blocks.php:183
+#, fuzzy
+msgid "Chosen terminal."
+msgstr "Izvēlētais pakomāts"
+
+#: includes/methods/class-wc-estonian-shipping-method-cleveron-office.php:23
+#: includes/methods/class-wc-estonian-shipping-method-cleveron-office.php:54
+#: includes/shipments/providers/class-wc-esm-provider-cleveron.php:55
+msgid "Cleveron Office"
+msgstr ""
+
+#: includes/methods/class-wc-estonian-shipping-method-cleveron-office.php:56
+msgid ""
+"Credentials and the packrobot this zone delivers to. Cleveron issues all of "
+"them."
+msgstr ""
+
+#: includes/methods/class-wc-estonian-shipping-method-cleveron-office.php:59
+msgid "API URL"
+msgstr ""
+
+#: includes/methods/class-wc-estonian-shipping-method-cleveron-office.php:65
+#: includes/shipments/providers/class-wc-esm-provider-cleveron.php:84
+#: includes/shipments/providers/class-wc-esm-provider-smartpost.php:96
+msgid "API key"
+msgstr ""
+
+#: includes/methods/class-wc-estonian-shipping-method-cleveron-office.php:70
+msgid "API token"
+msgstr ""
+
+#: includes/methods/class-wc-estonian-shipping-method-cleveron-office.php:75
+msgid "APM external ID"
+msgstr ""
+
+#: includes/methods/class-wc-estonian-shipping-method-cleveron-office.php:77
+msgid "Which packrobot this zone delivers to."
+msgstr ""
+
+#: includes/methods/class-wc-estonian-shipping-method-cleveron-office.php:82
+msgid "Send the order when it becomes"
+msgstr ""
+
+#: includes/methods/class-wc-estonian-shipping-method-cleveron-office.php:85
+msgid "Which order status hands the order over to Cleveron Office."
+msgstr ""
+
+#: includes/methods/class-wc-estonian-shipping-method-cleveron-office.php:88
+msgid "Processing"
+msgstr ""
+
+#: includes/methods/class-wc-estonian-shipping-method-cleveron-office.php:89
+msgid "Completed"
+msgstr ""
+
+#: includes/methods/class-wc-estonian-shipping-method-cleveron-office.php:93
+msgid "Slot size"
+msgstr ""
+
+#: includes/methods/class-wc-estonian-shipping-method-cleveron-office.php:105
+msgid "SMS template"
+msgstr ""
+
+#: includes/methods/class-wc-estonian-shipping-method-cleveron-office.php:107
+msgid "Cleveron template name. Leave empty to send no text message."
+msgstr ""
+
+#: includes/methods/class-wc-estonian-shipping-method-cleveron-office.php:112
+msgid "E-mail template"
+msgstr ""
+
+#: includes/methods/class-wc-estonian-shipping-method-cleveron-office.php:114
+msgid "Cleveron template name. Leave empty to send no e-mail."
+msgstr ""
+
+#: includes/methods/class-wc-estonian-shipping-method-cleveron-office.php:119
+msgid "Description"
+msgstr ""
+
+#: includes/methods/class-wc-estonian-shipping-method-cleveron-office.php:121
+msgid ""
+"Shown under the shipping methods on the checkout when this one is chosen."
+msgstr ""
+
+#. translators: %1$s method title, %2$s the error.
+#: includes/methods/class-wc-estonian-shipping-method-cleveron-office.php:305
+#, php-format
+msgid "%1$s: order could not be sent. %2$s"
+msgstr ""
+
+#. translators: %1$s method title, %2$s order ID
+#: includes/methods/class-wc-estonian-shipping-method-cleveron-office.php:320
+#, php-format
+msgid "%1$s: order created with ID %2$s."
+msgstr ""
+
+#. translators: %1$s method title, %2$s order ID
+#: includes/methods/class-wc-estonian-shipping-method-cleveron-office.php:332
+#, php-format
+msgid "%1$s: order updated with ID %2$s."
+msgstr ""
+
+#. translators: %1$s method title, %2$d HTTP status code.
+#: includes/methods/class-wc-estonian-shipping-method-cleveron-office.php:338
+#, php-format
+msgid "%1$s: order creation failed (HTTP %2$d)."
+msgstr ""
 
 #: includes/methods/class-wc-estonian-shipping-method-dpd-shops-ee.php:20
 msgid "DPD Shops Estonia"
@@ -158,6 +349,11 @@ msgstr "Omniva Lietuva"
 #: includes/methods/class-wc-estonian-shipping-method-omniva-parcel-machines-lv.php:20
 msgid "Omniva Latvia"
 msgstr "Omniva Latvija"
+
+#: includes/methods/class-wc-estonian-shipping-method-omniva-post-offices-ee.php:20
+#, fuzzy
+msgid "Omniva Post Offices Estonia"
+msgstr "Omniva Igaunija"
 
 #: includes/methods/class-wc-estonian-shipping-method-smartpost-courier.php:20
 msgid "SmartCOURIER"
@@ -187,16 +383,16 @@ msgstr "Lūdzu izvēlaties kurjera piegādes laiku"
 msgid "Smartpost Estonia"
 msgstr "Smartpost Igaunija"
 
-#: includes/methods/class-wc-estonian-shipping-method-smartpost-estonia.php:36
-#: includes/methods/class-wc-estonian-shipping-method-smartpost-finland.php:36
+#: includes/methods/class-wc-estonian-shipping-method-smartpost-estonia.php:43
+#: includes/methods/class-wc-estonian-shipping-method-smartpost-finland.php:43
 msgid "Terminals filter"
 msgstr "Termināļu filtrs"
 
-#: includes/methods/class-wc-estonian-shipping-method-smartpost-estonia.php:40
+#: includes/methods/class-wc-estonian-shipping-method-smartpost-estonia.php:47
 msgid "Only terminals with Express delivery"
 msgstr "Tikai termināļi ar steidzamu piegādi"
 
-#: includes/methods/class-wc-estonian-shipping-method-smartpost-estonia.php:41
+#: includes/methods/class-wc-estonian-shipping-method-smartpost-estonia.php:48
 msgid "All terminals"
 msgstr "Visi termināļi"
 
@@ -204,36 +400,599 @@ msgstr "Visi termināļi"
 msgid "Smartpost Finland"
 msgstr "Smartpost Somija"
 
-#: includes/methods/class-wc-estonian-shipping-method-smartpost-finland.php:40
+#: includes/methods/class-wc-estonian-shipping-method-smartpost-finland.php:47
 msgid "Only terminals"
 msgstr "Tikai termināļi"
 
-#: includes/methods/class-wc-estonian-shipping-method-smartpost-finland.php:41
+#: includes/methods/class-wc-estonian-shipping-method-smartpost-finland.php:48
 msgid "Only post offices"
 msgstr "Tikai pasta iestādes"
 
-#: includes/methods/class-wc-estonian-shipping-method-smartpost-finland.php:42
+#: includes/methods/class-wc-estonian-shipping-method-smartpost-finland.php:49
 msgid "Both"
 msgstr "Abas"
 
-#: woocommerce/checkout/form-shipping-dpd.php:2
-#: woocommerce/checkout/form-shipping-omniva.php:2
-#: woocommerce/checkout/form-shipping-smartpost.php:2
-msgid "Choose terminal"
-msgstr "Izvēlaties termināli"
+#: includes/methods/class-wc-estonian-shipping-method-smartpost-latvia.php:20
+#, fuzzy
+msgid "Smartpost Latvia"
+msgstr "Smartpost Igaunija"
 
-#: woocommerce/checkout/form-shipping-dpd.php:5
-#: woocommerce/checkout/form-shipping-omniva.php:5
-#: woocommerce/checkout/form-shipping-smartpost.php:5
+#: includes/methods/class-wc-estonian-shipping-method-smartpost-lithuania.php:20
+#, fuzzy
+msgid "Smartpost Lithuania"
+msgstr "Smartpost Igaunija"
+
+#: includes/shipments/class-wc-esm-dispatch-screen.php:104
+#: includes/shipments/class-wc-esm-dispatch-screen.php:421
+msgid "Recent dispatches"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-dispatch-screen.php:170
+#: includes/shipments/class-wc-esm-dispatch-screen.php:171
+#: includes/shipments/class-wc-esm-dispatch-screen.php:274
+msgid "Parcel dispatch"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-dispatch-screen.php:344
+msgid "Courier pickup"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-dispatch-screen.php:352
+msgid "Pickup date"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-dispatch-screen.php:356
+msgid "Between"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-dispatch-screen.php:363
+msgid "Message to the courier"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-dispatch-screen.php:367
+msgid "Book a pickup"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-dispatch-screen.php:382
+msgid "Manifest"
+msgstr ""
+
+#. translators: %d: number of shipments.
+#: includes/shipments/class-wc-esm-dispatch-screen.php:387
+#, php-format
+msgid "%d shipment is not on a manifest yet."
+msgid_plural "%d shipments are not on a manifest yet."
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+#. translators: %d: the ceiling that was hit.
+#: includes/shipments/class-wc-esm-dispatch-screen.php:397
+#, php-format
+msgid "Stopped after %d orders; there may be more not shown here."
+msgstr ""
+
+#: includes/shipments/class-wc-esm-dispatch-screen.php:408
+msgid "Close the manifest"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-dispatch-screen.php:424
+msgid "Nothing has been booked or manifested yet."
+msgstr ""
+
+#: includes/shipments/class-wc-esm-dispatch-screen.php:430
+msgid "Carrier"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-dispatch-screen.php:431
+msgid "Kind"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-dispatch-screen.php:432
+msgid "Reference"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-dispatch-screen.php:433
+msgid "When"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-dispatch-screen.php:434
+msgid "Actions"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-dispatch-screen.php:497
+msgid "Download"
+msgstr ""
+
+#. translators: 1: carrier name, 2: pickup reference.
+#: includes/shipments/class-wc-esm-dispatch-screen.php:509
+#, php-format
+msgid "Cancel the pickup %2$s booked with %1$s?"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-dispatch-screen.php:517
+msgid "Cancel"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-dispatch-screen.php:523
+msgid "Cancelled"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-dispatch-screen.php:612
+#: includes/shipments/class-wc-esm-shipment-admin.php:184
+msgid "You are not allowed to do that."
+msgstr ""
+
+#: includes/shipments/class-wc-esm-dispatch-screen.php:671
+msgid "That pickup has already been cancelled."
+msgstr ""
+
+#. translators: 1: shop name, 2: order number.
+#: includes/shipments/class-wc-esm-order-snapshot.php:162
+#: includes/shipments/payloads/class-wc-esm-payload-smartpost.php:127
+#, php-format
+msgid "%1$s - Order #%2$s"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-pdf-merger.php:42
+msgid ""
+"Estonian Shipping Methods: labels from more than one carrier cannot be "
+"merged into a single PDF until the PDF library is installed. Run composer "
+"install in the plugin directory. Printing one carrier at a time works either "
+"way."
+msgstr ""
+
+#: includes/shipments/class-wc-esm-shipment-admin.php:100
+msgid "Shipment"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-shipment-admin.php:126
+msgid "This order is not shipped by a carrier this plugin handles."
+msgstr ""
+
+#: includes/shipments/class-wc-esm-shipment-admin.php:132
+msgid "Barcode:"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-shipment-admin.php:136
+msgid "Last attempt failed:"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-shipment-admin.php:140
+msgid "Send to the carrier"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-shipment-admin.php:141
+msgid "Print the label"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-shipment-admin.php:168
+msgid "Follow the parcel"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-shipment-admin.php:224
+msgid "Print shipping labels"
+msgstr ""
+
+#. translators: %s: carrier name.
+#: includes/shipments/class-wc-esm-shipment-labels.php:83
+#, php-format
+msgid "%s does not print labels."
+msgstr ""
+
+#. translators: 1: carrier name, 2: order numbers.
+#: includes/shipments/class-wc-esm-shipment-labels.php:95
+#, php-format
+msgid ""
+"%1$s: orders %2$s have not been sent to the carrier yet, so they have no "
+"label."
+msgstr ""
+
+#: includes/shipments/class-wc-esm-shipment-registration.php:180
+msgid "This order has already been sent to the carrier."
+msgstr ""
+
+#. translators: 1: carrier name, 2: what went wrong.
+#: includes/shipments/class-wc-esm-shipment-registration.php:211
+#, php-format
+msgid "%1$s: the shipment was not registered. %2$s"
+msgstr ""
+
+#. translators: 1: carrier name, 2: barcodes.
+#: includes/shipments/class-wc-esm-shipment-registration.php:222
+#, php-format
+msgid "%1$s: shipment registered. Barcode %2$s."
+msgstr ""
+
+#. translators: %s: carrier name.
+#: includes/shipments/class-wc-esm-shipment-registration.php:230
+#, php-format
+msgid "%s: shipment registered."
+msgstr ""
+
+#. translators: %s: capability name, e.g. labels.
+#: includes/shipments/class-wc-esm-shipment-result.php:111
+#, php-format
+msgid "This carrier does not offer %s."
+msgstr ""
+
+#: includes/shipments/class-wc-esm-shipment-settings.php:56
+msgid "Connection"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-shipment-settings.php:57
+msgid "Sender"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-shipment-settings.php:58
+msgid "Shipments"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-shipment-settings.php:59
+msgid "Automation"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-shipment-settings.php:241
+msgid "Send to the carrier when the order becomes"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-shipment-settings.php:245
+msgid ""
+"The shipment is registered once, the first time an order reaches this "
+"status. Leave unset to send nothing automatically."
+msgstr ""
+
+#: includes/shipments/class-wc-esm-shipment-settings.php:248
+msgid "Never - I will send them by hand"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-shipment-settings.php:253
+msgid "Tracking text"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-shipment-settings.php:256
+msgid "Your parcel is on its way. Track it here: {tracking_link}"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-shipment-settings.php:257
+msgid ""
+"Shown in order e-mails and under My account, once the parcel has a barcode. "
+"Placeholders: {tracking_code}, {tracking_url}, {tracking_link}, {carrier}."
+msgstr ""
+
+#: includes/shipments/class-wc-esm-shipment-settings.php:260
+msgid "Show the tracking text in"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-shipment-settings.php:266
+msgid ""
+"Which customer e-mails carry it. An e-mail sent before the parcel has a "
+"barcode carries nothing."
+msgstr ""
+
+#: includes/shipments/class-wc-esm-shop-address.php:112
+msgid "Sender name"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-shop-address.php:113
+msgid ""
+"Filled in from the shop address under WooCommerce -> Settings -> General. "
+"Correct anything the carrier should see differently."
+msgstr ""
+
+#: includes/shipments/class-wc-esm-shop-address.php:116
+msgid "Sender phone"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-shop-address.php:117
+msgid ""
+"WooCommerce keeps no telephone number for the shop, so this one is yours to "
+"fill in. The carrier calls it when a pickup goes wrong."
+msgstr ""
+
+#: includes/shipments/class-wc-esm-shop-address.php:120
+msgid "Sender e-mail"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-shop-address.php:121
+msgid "Sender street"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-shop-address.php:122
+msgid "Sender house number"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-shop-address.php:123
+msgid "Sender postcode"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-shop-address.php:124
+msgid "Sender city"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-shop-address.php:125
+msgid "Sender country"
+msgstr ""
+
+#: includes/shipments/providers/class-wc-esm-provider-cleveron.php:77
+msgid "API address"
+msgstr ""
+
+#: includes/shipments/providers/class-wc-esm-provider-cleveron.php:80
+msgid "The Cleveron host your contract points at, without a path."
+msgstr ""
+
+#: includes/shipments/providers/class-wc-esm-provider-cleveron.php:89
+msgid "User token"
+msgstr ""
+
+#: includes/shipments/providers/class-wc-esm-provider-cleveron.php:117
+msgid "Cleveron created the order but returned no id for it."
+msgstr ""
+
+#. translators: 1: HTTP status code, 2: what the carrier said.
+#: includes/shipments/providers/class-wc-esm-provider-cleveron.php:177
+#, php-format
+msgid "Cleveron refused the order (HTTP %1$d): %2$s"
+msgstr ""
+
+#. translators: %d: HTTP status code.
+#: includes/shipments/providers/class-wc-esm-provider-cleveron.php:185
+#, php-format
+msgid "Cleveron refused the order (HTTP %d)."
+msgstr ""
+
+#: includes/shipments/providers/class-wc-esm-provider-dpd.php:78
+msgid "DPD"
+msgstr ""
+
+#: includes/shipments/providers/class-wc-esm-provider-dpd.php:101
+msgid "DPD portal"
+msgstr ""
+
+#: includes/shipments/providers/class-wc-esm-provider-dpd.php:104
+msgid ""
+"Which of the Baltic DPD portals your contract is with. They are separate "
+"systems."
+msgstr ""
+
+#: includes/shipments/providers/class-wc-esm-provider-dpd.php:107
+#, fuzzy
+msgid "Estonia"
+msgstr "Omniva Igaunija"
+
+#: includes/shipments/providers/class-wc-esm-provider-dpd.php:108
+#, fuzzy
+msgid "Latvia"
+msgstr "Omniva Latvija"
+
+#: includes/shipments/providers/class-wc-esm-provider-dpd.php:109
+#, fuzzy
+msgid "Lithuania"
+msgstr "Omniva Lietuva"
+
+#: includes/shipments/providers/class-wc-esm-provider-dpd.php:113
+#: includes/shipments/providers/class-wc-esm-provider-omniva.php:93
+msgid "Username"
+msgstr ""
+
+#: includes/shipments/providers/class-wc-esm-provider-dpd.php:118
+#: includes/shipments/providers/class-wc-esm-provider-omniva.php:98
+msgid "Password"
+msgstr ""
+
+#: includes/shipments/providers/class-wc-esm-provider-dpd.php:123
+msgid "Payer code"
+msgstr ""
+
+#: includes/shipments/providers/class-wc-esm-provider-dpd.php:126
+msgid "The contract DPD bills. Your account manager has it."
+msgstr ""
+
+#: includes/shipments/providers/class-wc-esm-provider-dpd.php:131
+msgid "Service name"
+msgstr ""
+
+#: includes/shipments/providers/class-wc-esm-provider-dpd.php:134
+msgid "The service exactly as it is named on your contract."
+msgstr ""
+
+#: includes/shipments/providers/class-wc-esm-provider-dpd.php:139
+msgid "Cash on delivery service name"
+msgstr ""
+
+#: includes/shipments/providers/class-wc-esm-provider-dpd.php:142
+msgid ""
+"Leave empty unless your contract carries one. A name DPD does not recognise "
+"has it refuse the whole shipment, not just the service."
+msgstr ""
+
+#: includes/shipments/providers/class-wc-esm-provider-dpd.php:147
+msgid "Label paper"
+msgstr ""
+
+#: includes/shipments/providers/class-wc-esm-provider-dpd.php:185
+msgid "DPD accepted the parcel but returned no shipment id for it."
+msgstr ""
+
+#: includes/shipments/providers/class-wc-esm-provider-dpd.php:210
+#: includes/shipments/providers/class-wc-esm-provider-omniva.php:175
+#: includes/shipments/providers/class-wc-esm-provider-smartpost.php:194
+msgid "There is nothing to print."
+msgstr ""
+
+#: includes/shipments/providers/class-wc-esm-provider-dpd.php:242
+msgid "There is nothing to put on a manifest."
+msgstr ""
+
+#: includes/shipments/providers/class-wc-esm-provider-dpd.php:255
+msgid "DPD closed the manifest but returned no reference for it."
+msgstr ""
+
+#: includes/shipments/providers/class-wc-esm-provider-dpd.php:273
+msgid "There is no manifest to fetch."
+msgstr ""
+
+#. translators: 1: HTTP status code, 2: what the carrier said.
+#: includes/shipments/providers/class-wc-esm-provider-dpd.php:457
+#, php-format
+msgid "DPD refused the request (HTTP %1$d): %2$s"
+msgstr ""
+
+#. translators: %d: HTTP status code.
+#: includes/shipments/providers/class-wc-esm-provider-dpd.php:465
+#, php-format
+msgid "DPD refused the request (HTTP %d)."
+msgstr ""
+
+#: includes/shipments/providers/class-wc-esm-provider-omniva.php:54
+#, fuzzy
+msgid "Omniva"
+msgstr "Omniva Latvija"
+
+#: includes/shipments/providers/class-wc-esm-provider-omniva.php:86
+msgid "API host"
+msgstr ""
+
+#: includes/shipments/providers/class-wc-esm-provider-omniva.php:89
+msgid ""
+"Omniva issues this per customer. Leave the default unless they gave you "
+"another."
+msgstr ""
+
+#: includes/shipments/providers/class-wc-esm-provider-omniva.php:103
+msgid "Integration agent id"
+msgstr ""
+
+#: includes/shipments/providers/class-wc-esm-provider-omniva.php:106
+msgid ""
+"The Developer_XXXXXX_YYYYYY value Omniva issued. Every request carries it."
+msgstr ""
+
+#: includes/shipments/providers/class-wc-esm-provider-omniva.php:110
+msgid "Customer code"
+msgstr ""
+
+#: includes/shipments/providers/class-wc-esm-provider-omniva.php:113
+msgid "The AXA partner code from your Omniva contract."
+msgstr ""
+
+#: includes/shipments/providers/class-wc-esm-provider-omniva.php:121
+msgid "Cash on delivery service code"
+msgstr ""
+
+#: includes/shipments/providers/class-wc-esm-provider-omniva.php:124
+msgid ""
+"Omniva issues the additional service list per customer. Confirm this code "
+"with them before charging cash on delivery."
+msgstr ""
+
+#: includes/shipments/providers/class-wc-esm-provider-omniva.php:152
+msgid "Omniva accepted the parcel but returned no barcode for it."
+msgstr ""
+
+#: includes/shipments/providers/class-wc-esm-provider-omniva.php:194
+msgid "Omniva returned no labels."
+msgstr ""
+
+#. translators: 1: HTTP status code, 2: what the carrier said.
+#: includes/shipments/providers/class-wc-esm-provider-omniva.php:319
+#, php-format
+msgid "Omniva refused the request (HTTP %1$d): %2$s"
+msgstr ""
+
+#. translators: %d: HTTP status code.
+#: includes/shipments/providers/class-wc-esm-provider-omniva.php:327
+#, php-format
+msgid "Omniva refused the request (HTTP %d)."
+msgstr ""
+
+#: includes/shipments/providers/class-wc-esm-provider-smartpost.php:64
+#, fuzzy
+msgid "Smartposti"
+msgstr "Smartpost Igaunija"
+
+#: includes/shipments/providers/class-wc-esm-provider-smartpost.php:99
+msgid "The business client key Smartposti issued. Every request carries it."
+msgstr ""
+
+#: includes/shipments/providers/class-wc-esm-provider-smartpost.php:104
+#, fuzzy
+msgid "Label format"
+msgstr "Pakomāta formāts"
+
+#: includes/shipments/providers/class-wc-esm-provider-smartpost.php:108
+msgid "A4, four to a page"
+msgstr ""
+
+#: includes/shipments/providers/class-wc-esm-provider-smartpost.php:109
+msgid "A4, eight to a page"
+msgstr ""
+
+#: includes/shipments/providers/class-wc-esm-provider-smartpost.php:117
+msgid "Package size"
+msgstr ""
+
+#: includes/shipments/providers/class-wc-esm-provider-smartpost.php:120
+msgid ""
+"Sent with the sender address, which Smartposti wants together with a size or "
+"not at all. Leave unset to send neither."
+msgstr ""
+
+#: includes/shipments/providers/class-wc-esm-provider-smartpost.php:123
+msgid "Do not send one"
+msgstr ""
+
+#: includes/shipments/providers/class-wc-esm-provider-smartpost.php:133
+msgid "Days a customer has to return a parcel"
+msgstr ""
+
+#: includes/shipments/providers/class-wc-esm-provider-smartpost.php:136
+msgid "Leave empty for the carrier default."
+msgstr ""
+
+#. translators: %d: HTTP status code.
+#: includes/shipments/providers/class-wc-esm-provider-smartpost.php:156
+#, php-format
+msgid "Smartposti refused the parcel (HTTP %d)."
+msgstr ""
+
+#: includes/shipments/providers/class-wc-esm-provider-smartpost.php:169
+msgid "Smartposti accepted the parcel but returned no barcode for it."
+msgstr ""
+
+#. translators: %d: HTTP status code.
+#: includes/shipments/providers/class-wc-esm-provider-smartpost.php:209
+#, php-format
+msgid "Smartposti would not give the labels (HTTP %d)."
+msgstr ""
+
+#: woocommerce/checkout/form-shipping-dpd.php:25
+#: woocommerce/checkout/form-shipping-omniva.php:25
+#: woocommerce/checkout/form-shipping-smartpost.php:25
 msgctxt "empty value label for terminals"
 msgid "- Choose terminal -"
 msgstr "- Izvēlaties termināli -"
 
-#: woocommerce/checkout/form-shipping-smartpost-courier.php:2
+#: woocommerce/checkout/form-shipping-omniva-postoffice.php:22
+#, fuzzy
+msgid "Choose post office"
+msgstr "Tikai pasta iestādes"
+
+#: woocommerce/checkout/form-shipping-omniva-postoffice.php:25
+#, fuzzy
+msgctxt "empty value label for post office"
+msgid "- Choose post office -"
+msgstr "- Izvēlaties piegādes laiku -"
+
+#: woocommerce/checkout/form-shipping-smartpost-courier.php:22
 msgid "Choose timewindow"
 msgstr "Izvēlaties piegādes laiku"
 
-#: woocommerce/checkout/form-shipping-smartpost-courier.php:5
+#: woocommerce/checkout/form-shipping-smartpost-courier.php:25
 msgctxt "empty value label for courier"
 msgid "- Choose timewindow -"
 msgstr "- Izvēlaties piegādes laiku -"
+
+#~ msgid "Enable method"
+#~ msgstr "Iespējot metodi"
