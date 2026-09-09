@@ -48,7 +48,10 @@ class WC_ESM_Cleveron_Test_Provider extends WC_ESM_Provider_Cleveron {
 	 *
 	 * @var array
 	 */
-	public $zone = array( 'slot_size' => 'S' );
+	public $zone = array(
+		'slot_size'       => 'S',
+		'apm_external_id' => 'APM-7',
+	);
 
 	/**
 	 * The zone's own options.
@@ -95,10 +98,7 @@ class Test_Provider_Cleveron extends WC_ESM_Test_Case {
 	protected function order() {
 		return WC_ESM_Order_Snapshot::make(
 			$this->snapshot(
-				array(
-					'method_id'   => 'cleveron_office',
-					'terminal_id' => 'APM-7',
-				)
+				array( 'method_id' => 'cleveron_office' )
 			)
 		);
 	}
@@ -189,7 +189,11 @@ class Test_Provider_Cleveron extends WC_ESM_Test_Case {
 	 */
 	public function test_the_zones_options_reach_the_payload() {
 		$provider       = $this->provider( array( array( 201, array( 'id' => 'cl-1' ) ) ) );
-		$provider->zone = array( 'slot_size' => 'M', 'sms_template' => 'sms-1' );
+		$provider->zone = array(
+			'slot_size'       => 'M',
+			'sms_template'    => 'sms-1',
+			'apm_external_id' => 'APM-7',
+		);
 
 		$provider->register( $this->order() );
 

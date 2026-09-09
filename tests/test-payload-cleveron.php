@@ -24,19 +24,38 @@ class Test_Payload_Cleveron extends WC_ESM_Test_Case {
 	 */
 	protected function body( $overrides = array(), $settings = array() ) {
 		return WC_ESM_Payload_Cleveron::build(
-			WC_ESM_Order_Snapshot::make( $this->snapshot( array_merge( array( 'method_id' => 'cleveron_office', 'terminal_id' => 'APM-7' ), $overrides ) ) ),
-			array_merge( array( 'slot_size' => 'S' ), $settings )
+			WC_ESM_Order_Snapshot::make( $this->snapshot( array_merge( array( 'method_id' => 'cleveron_office' ), $overrides ) ) ),
+			array_merge(
+				array(
+					'slot_size'       => 'S',
+					'apm_external_id' => 'APM-7',
+				),
+				$settings
+			)
 		);
 	}
 
 	/**
 	 * The parcel robot the zone is configured for is the destination: with
-	 * Cleveron the shop picks it, not the customer.
+	 * Cleveron the shop picks it, not the customer, so it comes from the
+	 * zone's own settings and not from anything chosen at the checkout.
 	 *
 	 * @return void
 	 */
 	public function test_the_zones_own_robot_is_the_destination() {
 		$this->assertSame( 'APM-7', $this->body()['destination']['apm'] );
+	}
+
+	/**
+	 * A Cleveron order carries no terminal the customer chose, because there
+	 * is none to choose; the robot must still be named.
+	 *
+	 * @return void
+	 */
+	public function test_the_robot_is_named_even_though_nothing_was_chosen() {
+		$body = $this->body( array( 'terminal_id' => '' ) );
+
+		$this->assertSame( 'APM-7', $body['destination']['apm'] );
 	}
 
 	/**

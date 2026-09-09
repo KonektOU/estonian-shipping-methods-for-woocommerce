@@ -46,7 +46,10 @@ class WC_ESM_Payload_Cleveron extends WC_ESM_Payload {
 			'service'          => 'C2C',
 			'barcode'          => (string) $snapshot['order_number'],
 			'destination'      => array(
-				'apm' => $snapshot['terminal_id'],
+				// The shop's own robot, named by the shipping zone. A
+				// Cleveron order has no terminal the customer picked, so
+				// there is nothing on the order to read this from.
+				'apm' => self::setting( $settings, 'apm_external_id' ),
 			),
 			'slotSize'         => self::setting( $settings, 'slot_size', 'XS' ),
 			'phone'            => $snapshot['recipient']['phone'],

@@ -118,7 +118,7 @@ class WC_ESM_Order_Snapshot {
 
 		foreach ( $order->get_shipping_methods() as $item ) {
 			$method_id = $item->get_method_id();
-			$method    = WC()->shipping() ? WC()->shipping()->get_shipping_method_class( $method_id, $item->get_instance_id() ) : null;
+			$method    = WC_Shipping_Zones::get_shipping_method( $item->get_instance_id() );
 
 			break;
 		}

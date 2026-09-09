@@ -142,7 +142,7 @@ class WC_ESM_Provider_Cleveron extends WC_ESM_Shipment_Provider {
 	protected function zone_options( $snapshot ) {
 		$order = function_exists( 'wc_get_order' ) ? wc_get_order( $snapshot['order_id'] ) : null;
 
-		if ( ! $order || ! function_exists( 'WC' ) ) {
+		if ( ! $order ) {
 			return array();
 		}
 
@@ -151,10 +151,10 @@ class WC_ESM_Provider_Cleveron extends WC_ESM_Shipment_Provider {
 				continue;
 			}
 
-			$method = WC()->shipping()->get_shipping_method_class( $item->get_method_id(), $item->get_instance_id() );
+			$method = WC_Shipping_Zones::get_shipping_method( $item->get_instance_id() );
 
 			if ( $method ) {
-				return $method->instance_settings;
+				return (array) $method->instance_settings;
 			}
 		}
 
