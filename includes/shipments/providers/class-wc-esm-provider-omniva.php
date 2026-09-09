@@ -114,9 +114,10 @@ class WC_ESM_Provider_Omniva extends WC_ESM_Shipment_Provider {
 					'desc_tip'    => true,
 				),
 			),
-			$this->sender_fields(),
+			WC_ESM_Shop_Address::fields(),
 			array(
 				'cod_service_code' => array(
+				'group'       => 'shipments',
 					'title'       => __( 'Cash on delivery service code', 'wc-estonian-shipping-methods' ),
 					'type'        => 'text',
 					'default'     => 'BP',
@@ -125,34 +126,6 @@ class WC_ESM_Provider_Omniva extends WC_ESM_Shipment_Provider {
 				),
 			)
 		);
-	}
-
-	/**
-	 * The sender block, which Omniva and DPD ask for identically.
-	 *
-	 * @return array
-	 */
-	protected function sender_fields() {
-		$fields = array(
-			'sender_name'     => __( 'Sender name', 'wc-estonian-shipping-methods' ),
-			'sender_phone'    => __( 'Sender phone', 'wc-estonian-shipping-methods' ),
-			'sender_email'    => __( 'Sender e-mail', 'wc-estonian-shipping-methods' ),
-			'sender_street'   => __( 'Sender street', 'wc-estonian-shipping-methods' ),
-			'sender_house'    => __( 'Sender house number', 'wc-estonian-shipping-methods' ),
-			'sender_postcode' => __( 'Sender postcode', 'wc-estonian-shipping-methods' ),
-			'sender_city'     => __( 'Sender city', 'wc-estonian-shipping-methods' ),
-			'sender_country'  => __( 'Sender country', 'wc-estonian-shipping-methods' ),
-		);
-
-		foreach ( $fields as $key => $title ) {
-			$fields[ $key ] = array(
-				'title'   => $title,
-				'type'    => 'text',
-				'default' => 'sender_country' === $key ? 'EE' : '',
-			);
-		}
-
-		return $fields;
 	}
 
 	/**

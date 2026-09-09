@@ -29,6 +29,20 @@ class Test_Shipment_Settings extends WC_ESM_Test_Case {
 			),
 		);
 
+		unset( $_GET['group'] );
+
+		Brain\Monkey\Functions\when( 'sanitize_key' )->alias(
+			static function ( $key ) {
+				return preg_replace( '/[^a-z0-9_\-]/', '', strtolower( (string) $key ) );
+			}
+		);
+
+		Brain\Monkey\Functions\when( 'admin_url' )->alias(
+			static function ( $path ) {
+				return 'https://example.com/wp-admin/' . $path;
+			}
+		);
+
 		Brain\Monkey\Functions\when( 'get_option' )->alias(
 			static function ( $key, $default = false ) {
 				return isset( $GLOBALS['wc_esm_options'][ $key ] ) ? $GLOBALS['wc_esm_options'][ $key ] : $default;
@@ -181,8 +195,9 @@ class Test_Shipment_Settings extends WC_ESM_Test_Case {
 		$ids    = array_filter( wp_list_pluck( $fields, 'id' ) );
 
 		$this->assertContains( 'wc_esm_testcarrier_api_key', $ids );
-		$this->assertContains( 'wc_esm_testcarrier_registration_status', $ids );
-		$this->assertSame( 'title', $fields[0]['type'] );
+		$this->assertNotContains( 'wc_esm_testcarrier_registration_status', $ids );
+		$this->assertSame( 'wc_esm_group_tabs', $fields[0]['type'] );
+		$this->assertSame( 'title', $fields[1]['type'] );
 		$this->assertSame( 'sectionend', $fields[ count( $fields ) - 1 ]['type'] );
 	}
 
@@ -203,8 +218,6 @@ class Test_Shipment_Settings extends WC_ESM_Test_Case {
 		}
 
 		$this->assertSame( 'stored-key', $values['wc_esm_testcarrier_api_key'] );
-		$this->assertSame( 'completed', $values['wc_esm_testcarrier_registration_status'] );
-		$this->assertStringContainsString( '{tracking_link}', $values['wc_esm_testcarrier_tracking_template'] );
 	}
 
 	/**
@@ -215,6 +228,7 @@ class Test_Shipment_Settings extends WC_ESM_Test_Case {
 	 */
 	public function test_a_multiselect_reaches_the_screen_as_a_list() {
 		$GLOBALS['wc_esm_options']['wc_esm_settings_testcarrier']['tracking_emails'] = 'customer_completed_order,customer_on_hold_order';
+		$_GET['group'] = 'automation';
 
 		foreach ( WC_ESM_Shipment_Settings::get_settings( array(), 'wc_esm_testcarrier', $this->registry() ) as $field ) {
 			if ( isset( $field['id'] ) && 'wc_esm_testcarrier_tracking_emails' === $field['id'] ) {
@@ -237,5 +251,98 @@ class Test_Shipment_Settings extends WC_ESM_Test_Case {
 			array( 'existing' ),
 			WC_ESM_Shipment_Settings::get_settings( array( 'existing' ), 'shipping_options', $this->registry() )
 		);
+	}
+
+	/**
+	 * A field that names no group is a connection detail - which is what
+	 * every field was before the groups existed.
+	 *
+	 * @return void
+	 */
+	public function test_a_field_naming_no_group_is_a_connection_detail() {
+		$this->assertSame( 'connection', WC_ESM_Shipment_Settings::fields_for( new WC_ESM_Test_Provider() )['api_key']['group'] );
+	}
+
+	/**
+	 * The three fields every carrier gets are about what happens after the
+	 * order, not about reaching the carrier.
+	 *
+	 * @return void
+	 */
+	public function test_the_shared_fields_are_automation() {
+		$fields = WC_ESM_Shipment_Settings::fields_for( new WC_ESM_Test_Provider() );
+
+		$this->assertSame( 'automation', $fields['registration_status']['group'] );
+		$this->assertSame( 'automation', $fields['tracking_template']['group'] );
+		$this->assertSame( 'automation', $fields['tracking_emails']['group'] );
+	}
+
+	/**
+	 * A carrier is offered only the groups it has fields for: the test
+	 * carrier has no sender and nothing to say about parcels.
+	 *
+	 * @return void
+	 */
+	public function test_a_carrier_only_gets_the_groups_it_has_fields_for() {
+		$this->assertSame( array( 'connection', 'automation' ), array_keys( WC_ESM_Shipment_Settings::groups_for( new WC_ESM_Test_Provider() ) ) );
+	}
+
+	/**
+	 * A group the carrier does not offer - a stale link, a hand-edited URL -
+	 * opens the first one it does.
+	 *
+	 * @return void
+	 */
+	public function test_an_unknown_group_falls_back_to_the_first() {
+		$provider = new WC_ESM_Test_Provider();
+
+		$this->assertSame( 'connection', WC_ESM_Shipment_Settings::active_group( 'sender', $provider ) );
+		$this->assertSame( 'connection', WC_ESM_Shipment_Settings::active_group( '', $provider ) );
+		$this->assertSame( 'connection', WC_ESM_Shipment_Settings::active_group( '<script>', $provider ) );
+	}
+
+	/**
+	 * A group the carrier does offer is the one that opens.
+	 *
+	 * @return void
+	 */
+	public function test_a_known_group_is_kept() {
+		$this->assertSame( 'automation', WC_ESM_Shipment_Settings::active_group( 'automation', new WC_ESM_Test_Provider() ) );
+	}
+
+	/**
+	 * Asking for a group narrows the screen to it.
+	 *
+	 * @return void
+	 */
+	public function test_a_screen_carries_only_the_open_groups_fields() {
+		$_GET['group'] = 'automation';
+
+		$ids = array_filter( wp_list_pluck( WC_ESM_Shipment_Settings::get_settings( array(), 'wc_esm_testcarrier', $this->registry() ), 'id' ) );
+
+		$this->assertContains( 'wc_esm_testcarrier_registration_status', $ids );
+		$this->assertNotContains( 'wc_esm_testcarrier_api_key', $ids );
+	}
+
+	/**
+	 * A shop that saved the screen once has empty strings stored for every
+	 * field it left alone. Those must not shadow a default, or the shop
+	 * address would never reach the sender fields of an existing install.
+	 *
+	 * @return void
+	 */
+	public function test_an_empty_saved_value_falls_back_to_the_default() {
+		$GLOBALS['wc_esm_options']['wc_esm_settings_testcarrier']['tracking_template'] = '';
+		$_GET['group'] = 'automation';
+
+		foreach ( WC_ESM_Shipment_Settings::get_settings( array(), 'wc_esm_testcarrier', $this->registry() ) as $field ) {
+			if ( isset( $field['id'] ) && 'wc_esm_testcarrier_tracking_template' === $field['id'] ) {
+				$this->assertSame( $field['default'], $field['value'] );
+
+				return;
+			}
+		}
+
+		$this->fail( 'The tracking template field was not on the screen.' );
 	}
 }

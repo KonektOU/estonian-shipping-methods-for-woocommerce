@@ -127,6 +127,7 @@ class WC_ESM_Provider_Dpd extends WC_ESM_Shipment_Provider {
 					'desc_tip'    => true,
 				),
 				'service_alias'     => array(
+				'group'       => 'shipments',
 					'title'       => __( 'Service name', 'wc-estonian-shipping-methods' ),
 					'type'        => 'text',
 					'default'     => 'DPD CLASSIC',
@@ -134,6 +135,7 @@ class WC_ESM_Provider_Dpd extends WC_ESM_Shipment_Provider {
 					'desc_tip'    => true,
 				),
 				'cod_service_alias' => array(
+				'group'       => 'shipments',
 					'title'       => __( 'Cash on delivery service name', 'wc-estonian-shipping-methods' ),
 					'type'        => 'text',
 					'default'     => '',
@@ -141,6 +143,7 @@ class WC_ESM_Provider_Dpd extends WC_ESM_Shipment_Provider {
 					'desc_tip'    => true,
 				),
 				'label_format'      => array(
+				'group'       => 'shipments',
 					'title'   => __( 'Label paper', 'wc-estonian-shipping-methods' ),
 					'type'    => 'select',
 					'default' => 'A4',
@@ -150,36 +153,8 @@ class WC_ESM_Provider_Dpd extends WC_ESM_Shipment_Provider {
 					),
 				),
 			),
-			$this->sender_fields()
+			WC_ESM_Shop_Address::fields()
 		);
-	}
-
-	/**
-	 * The sender block, which DPD and Omniva ask for identically.
-	 *
-	 * @return array
-	 */
-	protected function sender_fields() {
-		$fields = array(
-			'sender_name'     => __( 'Sender name', 'wc-estonian-shipping-methods' ),
-			'sender_phone'    => __( 'Sender phone', 'wc-estonian-shipping-methods' ),
-			'sender_email'    => __( 'Sender e-mail', 'wc-estonian-shipping-methods' ),
-			'sender_street'   => __( 'Sender street', 'wc-estonian-shipping-methods' ),
-			'sender_house'    => __( 'Sender house number', 'wc-estonian-shipping-methods' ),
-			'sender_postcode' => __( 'Sender postcode', 'wc-estonian-shipping-methods' ),
-			'sender_city'     => __( 'Sender city', 'wc-estonian-shipping-methods' ),
-			'sender_country'  => __( 'Sender country', 'wc-estonian-shipping-methods' ),
-		);
-
-		foreach ( $fields as $key => $title ) {
-			$fields[ $key ] = array(
-				'title'   => $title,
-				'type'    => 'text',
-				'default' => 'sender_country' === $key ? 'EE' : '',
-			);
-		}
-
-		return $fields;
 	}
 
 	/**

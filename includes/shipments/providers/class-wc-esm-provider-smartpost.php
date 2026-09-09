@@ -93,6 +93,7 @@ class WC_ESM_Provider_Smartpost extends WC_ESM_Shipment_Provider {
 				'desc_tip'    => true,
 			),
 			'label_format'         => array(
+				'group'       => 'shipments',
 				'title'   => __( 'Label format', 'wc-estonian-shipping-methods' ),
 				'type'    => 'select',
 				'default' => 'A4-4',
@@ -105,6 +106,7 @@ class WC_ESM_Provider_Smartpost extends WC_ESM_Shipment_Provider {
 				),
 			),
 			'package_size'         => array(
+				'group'       => 'shipments',
 				'title'       => __( 'Package size', 'wc-estonian-shipping-methods' ),
 				'type'        => 'select',
 				'default'     => '',
@@ -120,6 +122,7 @@ class WC_ESM_Provider_Smartpost extends WC_ESM_Shipment_Provider {
 				),
 			),
 			'customer_return_days' => array(
+				'group'       => 'shipments',
 				'title'       => __( 'Days a customer has to return a parcel', 'wc-estonian-shipping-methods' ),
 				'type'        => 'text',
 				'default'     => '',

@@ -27,6 +27,7 @@ class WC_ESM_Shipment_Settings {
 		add_filter( 'woocommerce_get_sections_shipping', array( __CLASS__, 'add_section' ) );
 		add_filter( 'woocommerce_get_settings_shipping', array( __CLASS__, 'get_settings' ), 10, 2 );
 		add_action( 'admin_notices', array( __CLASS__, 'maybe_warn_about_the_pdf_library' ) );
+		add_action( 'woocommerce_admin_field_wc_esm_group_tabs', array( __CLASS__, 'render_group_tabs' ) );
 
 		// WooCommerce fires woocommerce_update_options_shipping_<section> with no
 		// arguments, so each provider gets its own closure that carries its
@@ -41,6 +42,107 @@ class WC_ESM_Shipment_Settings {
 				}
 			);
 		}
+	}
+
+	/**
+	 * The groups a carrier's fields are divided into, in the order they are
+	 * offered: how to reach the carrier, who the parcels come from, what the
+	 * parcels are, and what happens by itself.
+	 *
+	 * @return array Group labels keyed by group id.
+	 */
+	public static function groups() {
+		return array(
+			'connection' => __( 'Connection', 'wc-estonian-shipping-methods' ),
+			'sender'     => __( 'Sender', 'wc-estonian-shipping-methods' ),
+			'shipments'  => __( 'Shipments', 'wc-estonian-shipping-methods' ),
+			'automation' => __( 'Automation', 'wc-estonian-shipping-methods' ),
+		);
+	}
+
+	/**
+	 * The groups one carrier actually has fields for.
+	 *
+	 * A carrier whose API asks nothing about the sender is not offered an
+	 * empty Sender tab.
+	 *
+	 * @param WC_ESM_Shipment_Provider $provider Provider.
+	 *
+	 * @return array
+	 */
+	public static function groups_for( $provider ) {
+		$present = array();
+
+		foreach ( self::fields_for( $provider ) as $field ) {
+			$present[ $field['group'] ] = true;
+		}
+
+		return array_intersect_key( self::groups(), $present );
+	}
+
+	/**
+	 * Which group to open.
+	 *
+	 * A group arrives from a URL, so it is whatever somebody typed. Anything
+	 * this carrier does not offer opens the first one it does.
+	 *
+	 * @param string                   $requested Group asked for.
+	 * @param WC_ESM_Shipment_Provider $provider  Provider.
+	 *
+	 * @return string
+	 */
+	public static function active_group( $requested, $provider ) {
+		$groups    = self::groups_for( $provider );
+		$requested = sanitize_key( (string) $requested );
+
+		return isset( $groups[ $requested ] ) ? $requested : (string) key( $groups );
+	}
+
+	/**
+	 * A carrier's settings screen, on one of its groups.
+	 *
+	 * @param string $section Section id.
+	 * @param string $group   Group id.
+	 *
+	 * @return string
+	 */
+	public static function group_url( $section, $group ) {
+		return admin_url(
+			sprintf(
+				'admin.php?page=wc-settings&tab=shipping&section=%s&group=%s',
+				rawurlencode( $section ),
+				rawurlencode( $group )
+			)
+		);
+	}
+
+	/**
+	 * The group tab bar, as a WooCommerce settings field.
+	 *
+	 * A carrier with one group gets no tabs: a single tab is a heading that
+	 * looks clickable.
+	 *
+	 * @param array $field Field definition carrying section, groups and active.
+	 *
+	 * @return void
+	 */
+	public static function render_group_tabs( $field ) {
+		if ( count( $field['groups'] ) < 2 ) {
+			return;
+		}
+
+		echo '<nav class="nav-tab-wrapper wp-clearfix">';
+
+		foreach ( $field['groups'] as $group => $label ) {
+			printf(
+				'<a href="%s" class="nav-tab%s">%s</a>',
+				esc_url( self::group_url( $field['section'], $group ) ),
+				$group === $field['active'] ? ' nav-tab-active' : '',
+				esc_html( $label )
+			);
+		}
+
+		echo '</nav>';
 	}
 
 	/**
@@ -132,12 +234,13 @@ class WC_ESM_Shipment_Settings {
 	 * @return array
 	 */
 	public static function fields_for( $provider ) {
-		return array_merge(
+		$fields = array_merge(
 			$provider->get_settings_fields(),
 			array(
 				'registration_status' => array(
 					'title'       => __( 'Send to the carrier when the order becomes', 'wc-estonian-shipping-methods' ),
 					'type'        => 'select',
+					'group'       => 'automation',
 					'default'     => '',
 					'description' => __( 'The shipment is registered once, the first time an order reaches this status. Leave unset to send nothing automatically.', 'wc-estonian-shipping-methods' ),
 					'desc_tip'    => true,
@@ -149,12 +252,14 @@ class WC_ESM_Shipment_Settings {
 				'tracking_template'   => array(
 					'title'       => __( 'Tracking text', 'wc-estonian-shipping-methods' ),
 					'type'        => 'textarea',
+					'group'       => 'automation',
 					'default'     => __( 'Your parcel is on its way. Track it here: {tracking_link}', 'wc-estonian-shipping-methods' ),
 					'description' => __( 'Shown in order e-mails and under My account, once the parcel has a barcode. Placeholders: {tracking_code}, {tracking_url}, {tracking_link}, {carrier}.', 'wc-estonian-shipping-methods' ),
 				),
 				'tracking_emails'     => array(
 					'title'       => __( 'Show the tracking text in', 'wc-estonian-shipping-methods' ),
 					'type'        => 'multiselect',
+					'group'       => 'automation',
 					'class'       => 'wc-enhanced-select',
 					'css'         => 'width: 400px;',
 					'default'     => 'customer_completed_order',
@@ -164,6 +269,16 @@ class WC_ESM_Shipment_Settings {
 				),
 			)
 		);
+
+		$groups = self::groups();
+
+		foreach ( $fields as $key => $field ) {
+			if ( empty( $field['group'] ) || ! isset( $groups[ $field['group'] ] ) ) {
+				$fields[ $key ]['group'] = 'connection';
+			}
+		}
+
+		return $fields;
 	}
 
 	/**
@@ -243,17 +358,37 @@ class WC_ESM_Shipment_Settings {
 
 		$id     = $provider->get_id();
 		$saved  = self::settings_for( $id );
+		$groups = self::groups_for( $provider );
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- choosing a group is a view, not an action; active_group() takes only what it recognises.
+		$active = self::active_group( isset( $_GET['group'] ) ? $_GET['group'] : '', $provider );
 		$fields = array(
 			array(
+				'type'    => 'wc_esm_group_tabs',
+				'id'      => 'wc_esm_groups_' . $id,
+				'section' => $section,
+				'groups'  => $groups,
+				'active'  => $active,
+			),
+			array(
 				'type' => 'title',
-				'name' => $provider->get_title(),
+				'name' => $groups[ $active ],
 				'id'   => 'wc_esm_section_' . $id,
 			),
 		);
 
 		foreach ( self::fields_for( $provider ) as $key => $field ) {
+			if ( $field['group'] !== $active ) {
+				continue;
+			}
+
+			$default = isset( $field['default'] ) ? $field['default'] : '';
+
+			// A shop that saved this screen once has an empty string stored
+			// for every field it left alone; those must not shadow a default,
+			// or the shop's own address would never reach the sender fields
+			// of an existing install.
 			$field['id']    = sprintf( 'wc_esm_%s_%s', $id, $key );
-			$field['value'] = isset( $saved[ $key ] ) ? $saved[ $key ] : ( isset( $field['default'] ) ? $field['default'] : '' );
+			$field['value'] = isset( $saved[ $key ] ) && '' !== $saved[ $key ] ? $saved[ $key ] : $default;
 
 			if ( 'multiselect' === $field['type'] ) {
 				$field['value'] = array_filter( explode( ',', (string) $field['value'] ) );
