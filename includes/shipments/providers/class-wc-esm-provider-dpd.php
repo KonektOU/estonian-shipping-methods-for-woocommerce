@@ -31,6 +31,15 @@ class WC_ESM_Provider_Dpd extends WC_ESM_Shipment_Provider {
 	const TRACKING_URL = 'https://tracking.dpd.de/parcelstatus?query=%s&locale=et_EE';
 
 	/**
+	 * What the tokens this plugin asks for are called in DPD's own list of
+	 * them, so a shopkeeper looking at that list can tell where they came
+	 * from.
+	 *
+	 * @var string
+	 */
+	const TOKEN_NAME = 'Estonian Shipping Methods for WooCommerce';
+
+	/**
 	 * Declared features.
 	 *
 	 * @var array
@@ -165,20 +174,14 @@ class WC_ESM_Provider_Dpd extends WC_ESM_Shipment_Provider {
 	 * @return WC_ESM_Shipment_Result
 	 */
 	public function register( $snapshot ) {
-		$response = $this->authed( 'shipments', 'POST', WC_ESM_Payload_Dpd::build( $snapshot, $this->get_settings() ) );
+		$response = $this->authed( 'shipments', 'POST', array( WC_ESM_Payload_Dpd::build( $snapshot, $this->get_settings() ) ) );
 
 		if ( ! $response->ok() ) {
 			return $this->refusal( $response, (string) $response->get( 'message', '' ) );
 		}
 
 		$id       = (string) $response->get( 'id', '' );
-		$barcodes = array();
-
-		foreach ( (array) $response->get( 'parcels', array() ) as $parcel ) {
-			if ( ! empty( $parcel['parcelNumber'] ) ) {
-				$barcodes[] = (string) $parcel['parcelNumber'];
-			}
-		}
+		$barcodes = array_values( array_filter( (array) $response->get( 'parcelNumbers', array() ) ) );
 
 		if ( '' === $id ) {
 			return WC_ESM_Shipment_Result::failure(
@@ -225,7 +228,7 @@ class WC_ESM_Provider_Dpd extends WC_ESM_Shipment_Provider {
 			return $this->refusal( $response, (string) $response->get( 'message', '' ) );
 		}
 
-		return WC_ESM_Shipment_Result::success( array( 'pdf' => $response->raw() ) );
+		return WC_ESM_Shipment_Result::success( array( 'pdfs' => self::binary( $response->get( 'labels', array() ) ) ) );
 	}
 
 	/**
@@ -248,15 +251,22 @@ class WC_ESM_Provider_Dpd extends WC_ESM_Shipment_Provider {
 			return $this->refusal( $response, (string) $response->get( 'message', '' ) );
 		}
 
-		$reference = (string) $response->get( 'id', '' );
+		$pdf = self::binary( $response->get( 'binaryData', '' ) );
 
-		if ( '' === $reference ) {
+		if ( ! $pdf ) {
 			return WC_ESM_Shipment_Result::failure(
-				__( 'DPD closed the manifest but returned no reference for it.', 'wc-estonian-shipping-methods' )
+				__( 'DPD closed the manifest but returned no document for it.', 'wc-estonian-shipping-methods' )
 			);
 		}
 
-		return WC_ESM_Shipment_Result::success( array( 'reference' => $reference ) );
+		// DPD answers a closed manifest with the document itself and no
+		// reference of its own, so this is the only moment it can be had.
+		return WC_ESM_Shipment_Result::success(
+			array(
+				'pdf'       => $pdf[0],
+				'reference' => '',
+			)
+		);
 	}
 
 	/**
@@ -279,7 +289,11 @@ class WC_ESM_Provider_Dpd extends WC_ESM_Shipment_Provider {
 			return $this->refusal( $response, (string) $response->get( 'message', '' ) );
 		}
 
-		return WC_ESM_Shipment_Result::success( array( 'pdf' => $response->raw() ) );
+		$pdf = self::binary( $response->get( 'binaryData', '' ) );
+
+		return $pdf
+			? WC_ESM_Shipment_Result::success( array( 'pdf' => $pdf[0] ) )
+			: WC_ESM_Shipment_Result::failure( __( 'DPD returned no manifest document.', 'wc-estonian-shipping-methods' ) );
 	}
 
 	/**
@@ -319,23 +333,6 @@ class WC_ESM_Provider_Dpd extends WC_ESM_Shipment_Provider {
 		return WC_ESM_Shipment_Result::success(
 			array( 'reference' => (string) $response->get( 'id', '' ) )
 		);
-	}
-
-	/**
-	 * Call a booked courier off.
-	 *
-	 * @param string $reference Pickup reference.
-	 *
-	 * @return WC_ESM_Shipment_Result
-	 */
-	public function cancel_pickup( $reference ) {
-		$response = $this->authed( 'pickups', 'DELETE', array( 'ids' => (string) $reference ) );
-
-		if ( ! $response->ok() ) {
-			return $this->refusal( $response, (string) $response->get( 'message', '' ) );
-		}
-
-		return WC_ESM_Shipment_Result::success();
 	}
 
 	/**
@@ -424,8 +421,13 @@ class WC_ESM_Provider_Dpd extends WC_ESM_Shipment_Provider {
 		$response = $this->client()->post(
 			'auth/tokens',
 			array(
-				'username' => $this->get_setting( 'username' ),
-				'password' => $this->get_setting( 'password' ),
+				'name' => self::TOKEN_NAME,
+				'ttl'  => WC_ESM_Dpd_Token::TTL,
+			),
+			array(
+				// The contract's credentials prove who is asking; the body
+				// only names the token being asked for.
+				'Authorization' => 'Basic ' . base64_encode( $this->get_setting( 'username' ) . ':' . $this->get_setting( 'password' ) ),
 			)
 		);
 
@@ -437,6 +439,32 @@ class WC_ESM_Provider_Dpd extends WC_ESM_Shipment_Provider {
 		WC_ESM_Dpd_Token::remember( $key, $token );
 
 		return $token;
+	}
+
+	/**
+	 * DPD's base64 payloads as bytes.
+	 *
+	 * Labels arrive as a list of objects each carrying one, a manifest as a
+	 * single string; both are base64.
+	 *
+	 * @param mixed $data What the carrier sent.
+	 *
+	 * @return array Decoded documents.
+	 */
+	protected static function binary( $data ) {
+		if ( is_string( $data ) ) {
+			return '' === $data ? array() : array( base64_decode( $data ) );
+		}
+
+		$documents = array();
+
+		foreach ( (array) $data as $entry ) {
+			if ( ! empty( $entry['binaryData'] ) ) {
+				$documents[] = base64_decode( $entry['binaryData'] );
+			}
+		}
+
+		return $documents;
 	}
 
 	/**

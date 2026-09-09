@@ -34,7 +34,7 @@ class WC_ESM_Provider_Omniva extends WC_ESM_Shipment_Provider {
 	 *
 	 * @var array
 	 */
-	protected $features = array( 'labels', 'tracking', 'pickup', 'cod', 'return' );
+	protected $features = array( 'labels', 'tracking', 'pickup', 'pickup_cancel', 'cod', 'return' );
 
 	/**
 	 * Id.

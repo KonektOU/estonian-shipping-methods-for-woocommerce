@@ -29,7 +29,9 @@ abstract class WC_ESM_Shipment_Provider {
 	/**
 	 * Capabilities this carrier opts into.
 	 *
-	 * One of: labels, tracking, pickup, manifest, cod, cod_report, return.
+	 * One of: labels, tracking, pickup, pickup_cancel, manifest, cod,
+	 * cod_report, return. Booking a courier and calling one off are separate
+	 * because carriers differ: DPD books but cannot cancel.
 	 *
 	 * @var array
 	 */

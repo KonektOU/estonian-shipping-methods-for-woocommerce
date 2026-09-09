@@ -503,6 +503,12 @@ class WC_ESM_Dispatch_Screen {
 		if ( $result->is_success() ) {
 			WC_ESM_Unmanifested_Orders::mark_manifested( $provider->get_id() );
 			WC_ESM_Dispatch_Log::record( $provider->get_id(), 'manifest', $result->get( 'reference', '' ) );
+
+			// A carrier that hands the manifest back as it closes gives no
+			// second chance at it, so this is where the shopkeeper gets it.
+			if ( '' !== $result->get( 'pdf', '' ) ) {
+				WC_ESM_Shipment_Labels::stream( $result->get( 'pdf' ), 'manifest.pdf' );
+			}
 		}
 
 		return $result;

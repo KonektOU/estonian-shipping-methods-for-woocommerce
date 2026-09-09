@@ -100,7 +100,18 @@ class WC_ESM_Dispatch_Test_Provider extends WC_ESM_Test_Provider {
 	 *
 	 * @var array
 	 */
-	protected $features = array( 'pickup', 'manifest' );
+	protected $features = array( 'pickup', 'pickup_cancel', 'manifest' );
+
+	/**
+	 * Set the features.
+	 *
+	 * @param array $features Features.
+	 *
+	 * @return void
+	 */
+	public function declare_features( $features ) {
+		$this->features = $features;
+	}
 
 	/**
 	 * Id.

@@ -129,14 +129,18 @@ class WC_ESM_Dispatch_Log {
 			return array();
 		}
 
+		// Booking a courier and calling one off are separate capabilities
+		// because carriers differ: DPD books but its API offers no way to
+		// cancel, so it declares the one and not the other.
 		$offered = array(
 			'manifest' => array( 'manifest', 'manifest_download' ),
-			'pickup'   => array( 'pickup', 'pickup_cancel' ),
+			'pickup'   => array( 'pickup_cancel', 'pickup_cancel' ),
 		);
 
 		$type = isset( $entry['type'] ) ? $entry['type'] : '';
 
-		if ( ! isset( $offered[ $type ] ) ) {
+		// Nothing to fetch again without a reference to fetch it by.
+		if ( ! isset( $offered[ $type ] ) || '' === (string) ( isset( $entry['reference'] ) ? $entry['reference'] : '' ) ) {
 			return array();
 		}
 

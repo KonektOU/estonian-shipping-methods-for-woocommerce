@@ -115,6 +115,46 @@ class Test_Dispatch_Log extends WC_ESM_Test_Case {
 	}
 
 	/**
+	 * A carrier that books couriers but cannot call one off is not offered
+	 * the cancel. DPD is exactly that: its API has no endpoint for it, and a
+	 * button that fails when pressed is worse than no button.
+	 *
+	 * @return void
+	 */
+	public function test_a_carrier_that_cannot_cancel_is_not_offered_the_cancel() {
+		$booker = new WC_ESM_Dispatch_Test_Provider();
+		$booker->declare_features( array( 'pickup', 'manifest' ) );
+
+		$registry = new WC_ESM_Shipment_Registry();
+		$registry->register( $booker );
+
+		$this->assertSame(
+			array(),
+			WC_ESM_Dispatch_Log::row_actions(
+				array( 'provider' => 'withmanifest', 'type' => 'pickup', 'reference' => 'P-1' ),
+				$registry
+			)
+		);
+	}
+
+	/**
+	 * A manifest with no reference cannot be fetched again, so no button
+	 * offers to. DPD hands the document back when the manifest is closed and
+	 * gives no reference of its own.
+	 *
+	 * @return void
+	 */
+	public function test_a_manifest_with_no_reference_offers_no_download() {
+		$this->assertSame(
+			array(),
+			WC_ESM_Dispatch_Log::row_actions(
+				array( 'provider' => 'withmanifest', 'type' => 'manifest', 'reference' => '' ),
+				$this->registry()
+			)
+		);
+	}
+
+	/**
 	 * A pickup entry from a carrier that can cancel offers the cancel.
 	 *
 	 * @return void

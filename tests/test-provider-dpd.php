@@ -119,7 +119,7 @@ class Test_Provider_Dpd extends WC_ESM_Test_Case {
 	 * @return array
 	 */
 	protected function login( $token = 'tok-1' ) {
-		return array( 200, array( 'token' => $token ) );
+		return array( 200, array( 'token' => $token, 'secretId' => 's1', 'validUntil' => '2030-01-01T00:00:00' ) );
 	}
 
 	/**
@@ -148,6 +148,8 @@ class Test_Provider_Dpd extends WC_ESM_Test_Case {
 		$this->assertTrue( $provider->supports( 'pickup' ) );
 		$this->assertTrue( $provider->supports( 'labels' ) );
 		$this->assertFalse( $provider->supports( 'return' ) );
+		// DPD's API offers no way to call a booked courier off.
+		$this->assertFalse( $provider->supports( 'pickup_cancel' ) );
 	}
 
 	/**
@@ -159,7 +161,7 @@ class Test_Provider_Dpd extends WC_ESM_Test_Case {
 		$provider = $this->provider(
 			array(
 				$this->login( 'tok-1' ),
-				array( 201, array( 'id' => 'ship-1', 'parcels' => array( array( 'parcelNumber' => 'P1' ) ) ) ),
+				array( 201, array( 'id' => 'ship-1', 'parcelNumbers' => array( 'P1' ) ) ),
 			)
 		);
 
@@ -261,8 +263,8 @@ class Test_Provider_Dpd extends WC_ESM_Test_Case {
 				array(
 					201,
 					array(
-						'id'      => 'ship-1',
-						'parcels' => array( array( 'parcelNumber' => 'P1' ), array( 'parcelNumber' => 'P2' ) ),
+						'id'            => 'ship-1',
+						'parcelNumbers' => array( 'P1', 'P2' ),
 					),
 				),
 			)
@@ -284,14 +286,14 @@ class Test_Provider_Dpd extends WC_ESM_Test_Case {
 		$provider = $this->provider(
 			array(
 				$this->login(),
-				array( 200, '%PDF-label' ),
+				array( 200, array( 'labels' => array( array( 'binaryData' => base64_encode( '%PDF-label' ) ) ) ) ),
 			)
 		);
 
 		$result = $provider->fetch_labels( array( 'ship-1' ) );
 
 		$this->assertTrue( $result->is_success() );
-		$this->assertSame( '%PDF-label', $result->get( 'pdf' ) );
+		$this->assertSame( array( '%PDF-label' ), $result->get( 'pdfs' ) );
 		$this->assertSame( 'shipments/labels', $provider->fake->endpoint( 1 ) );
 		$this->assertSame( array( 'ship-1' ), $provider->fake->body( 1 )['shipmentIds'] );
 		$this->assertSame( 'A6', $provider->fake->body( 1 )['paperSize'] );
@@ -307,14 +309,14 @@ class Test_Provider_Dpd extends WC_ESM_Test_Case {
 		$provider = $this->provider(
 			array(
 				$this->login(),
-				array( 201, array( 'id' => 'man-1' ) ),
+				array( 200, array( 'shipmentIds' => array( 'ship-1', 'ship-2' ), 'binaryData' => base64_encode( '%PDF-manifest' ) ) ),
 			)
 		);
 
 		$result = $provider->close_manifest( array( 'ship-1', 'ship-2' ) );
 
 		$this->assertTrue( $result->is_success() );
-		$this->assertSame( 'man-1', $result->get( 'reference' ) );
+		$this->assertSame( '%PDF-manifest', $result->get( 'pdf' ) );
 		$this->assertSame( 'shipments/manifests', $provider->fake->endpoint( 1 ) );
 	}
 
@@ -339,7 +341,7 @@ class Test_Provider_Dpd extends WC_ESM_Test_Case {
 		$provider = $this->provider(
 			array(
 				$this->login(),
-				array( 200, '%PDF-manifest' ),
+				array( 200, array( 'binaryData' => base64_encode( '%PDF-manifest' ) ) ),
 			)
 		);
 
@@ -405,5 +407,71 @@ class Test_Provider_Dpd extends WC_ESM_Test_Case {
 		$this->assertSame( 'eserviss.dpd.lv', WC_ESM_Provider_Dpd::host_for( 'LV' ) );
 		$this->assertSame( 'esiunta.dpd.lt', WC_ESM_Provider_Dpd::host_for( 'LT' ) );
 		$this->assertSame( 'telli.dpd.ee', WC_ESM_Provider_Dpd::host_for( 'XX' ) );
+	}
+
+	/**
+	 * A shipment is posted as a list. DPD's endpoint takes an array of them
+	 * and refuses a bare object, however many there are.
+	 *
+	 * @return void
+	 */
+	public function test_a_shipment_is_posted_as_a_list() {
+		$provider = $this->provider( array( $this->login(), array( 201, array( 'id' => 'ship-1' ) ) ) );
+		$provider->register( WC_ESM_Order_Snapshot::make( $this->snapshot() ) );
+
+		$body = $provider->fake->body( 1 );
+
+		$this->assertArrayHasKey( 0, $body );
+		$this->assertSame( '123456', $body[0]['payerCode'] );
+	}
+
+	/**
+	 * The contract's credentials go as HTTP basic authentication, and the
+	 * body names the token and how long it should live. Sending the username
+	 * and password in the body is refused.
+	 *
+	 * @return void
+	 */
+	public function test_logging_in_uses_basic_authentication() {
+		$provider = $this->provider( array( $this->login(), array( 201, array( 'id' => 'ship-1' ) ) ) );
+		$provider->register( WC_ESM_Order_Snapshot::make( $this->snapshot() ) );
+
+		$login = $provider->fake->calls[0];
+
+		$this->assertSame( 'auth/tokens', $login['endpoint'] );
+		$this->assertSame( 'Basic ' . base64_encode( 'shop:secret' ), $login['headers']['Authorization'] );
+		$this->assertArrayHasKey( 'name', $login['body'] );
+		$this->assertArrayHasKey( 'ttl', $login['body'] );
+		$this->assertArrayNotHasKey( 'password', $login['body'] );
+	}
+
+	/**
+	 * A manifest comes back as the PDF itself, because DPD returns no
+	 * reference to fetch it by later.
+	 *
+	 * @return void
+	 */
+	public function test_a_closed_manifest_has_no_reference_to_offer() {
+		$provider = $this->provider(
+			array(
+				$this->login(),
+				array( 200, array( 'binaryData' => base64_encode( '%PDF-manifest' ) ) ),
+			)
+		);
+
+		$this->assertSame( '', $provider->close_manifest( array( 'ship-1' ) )->get( 'reference' ) );
+	}
+
+	/**
+	 * Asked to call a courier off, DPD says honestly that it cannot: its API
+	 * has no endpoint for it, and a button that fails when pressed is worse
+	 * than no button.
+	 *
+	 * @return void
+	 */
+	public function test_a_booked_courier_cannot_be_called_off() {
+		$result = ( new WC_ESM_Provider_Dpd() )->cancel_pickup( 'pick-1' );
+
+		$this->assertSame( 'unsupported', $result->get_code() );
 	}
 }
