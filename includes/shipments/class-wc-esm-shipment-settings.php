@@ -12,14 +12,25 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * WooCommerce -> Settings -> Shipping -> Estonian shipping (integrations).
  *
- * One option row per carrier rather than one per field: a carrier has a dozen
- * fields, they are read together or not at all, and a dozen autoloaded rows each
- * is a poor trade for that.
+ * Settings are stored the way WooCommerce stores them: one option per field,
+ * named after the field's id. That is not a design choice - it is what
+ * WC_Settings_Shipping does with a section that is not a shipping method, and
+ * it does it without firing woocommerce_update_options_shipping_<section>. A
+ * plugin that saves its own merged row on that action writes something nothing
+ * ever reads, and every carrier reads back as unconfigured however carefully
+ * the shopkeeper filled the screen in.
+ *
+ * So the screen is left to WooCommerce and this only reads. A shop configured
+ * before that was understood is still read, from the merged row, so nobody has
+ * to type an API key in twice.
  */
 class WC_ESM_Shipment_Settings {
 
 	/**
 	 * Hook the screen up.
+	 *
+	 * Saving is WooCommerce's own: it writes every field on the open screen
+	 * to its own option, which is why there is nothing here for it.
 	 *
 	 * @return void
 	 */
@@ -28,20 +39,6 @@ class WC_ESM_Shipment_Settings {
 		add_filter( 'woocommerce_get_settings_shipping', array( __CLASS__, 'get_settings' ), 10, 2 );
 		add_action( 'admin_notices', array( __CLASS__, 'maybe_warn_about_the_pdf_library' ) );
 		add_action( 'woocommerce_admin_field_wc_esm_group_tabs', array( __CLASS__, 'render_group_tabs' ) );
-
-		// WooCommerce fires woocommerce_update_options_shipping_<section> with no
-		// arguments, so each provider gets its own closure that carries its
-		// section id through to save().
-		foreach ( WC_ESM_Shipment_Registry::instance()->get_providers() as $provider ) {
-			$section = self::section_id( $provider->get_id() );
-
-			add_action(
-				'woocommerce_update_options_shipping_' . $section,
-				static function () use ( $section ) {
-					self::save( $section );
-				}
-			);
-		}
 	}
 
 	/**
@@ -177,25 +174,60 @@ class WC_ESM_Shipment_Settings {
 	}
 
 	/**
-	 * The option row a carrier's settings live in.
+	 * The option one setting lives in, which is the id of its field on the
+	 * screen - that is what WooCommerce saves it under.
 	 *
 	 * @param string $provider_id Provider id.
+	 * @param string $key         Setting name.
 	 *
 	 * @return string
 	 */
-	public static function option_key( $provider_id ) {
-		return 'wc_esm_settings_' . $provider_id;
+	public static function option_key( $provider_id, $key ) {
+		return sprintf( 'wc_esm_%s_%s', $provider_id, $key );
 	}
 
 	/**
 	 * One carrier's stored settings.
 	 *
+	 * @param string                        $provider_id Provider id.
+	 * @param WC_ESM_Shipment_Registry|null $registry    Registry, defaulting to the singleton.
+	 *
+	 * @return array
+	 */
+	public static function settings_for( $provider_id, $registry = null ) {
+		$registry = $registry ? $registry : WC_ESM_Shipment_Registry::instance();
+		$provider = $registry->get_provider( $provider_id );
+
+		if ( ! $provider ) {
+			return array();
+		}
+
+		$settings = self::legacy_settings_for( $provider_id );
+
+		foreach ( array_keys( self::fields_for( $provider ) ) as $key ) {
+			$stored = get_option( self::option_key( $provider_id, $key ), null );
+
+			if ( null !== $stored && false !== $stored ) {
+				$settings[ $key ] = $stored;
+			}
+		}
+
+		return $settings;
+	}
+
+	/**
+	 * What a shop configured before the storage was understood still holds.
+	 *
+	 * One merged row per carrier was written by an earlier version of this
+	 * plugin on an action WooCommerce does not fire for these screens. Any
+	 * shop that has one keeps it until the screen is saved again.
+	 *
 	 * @param string $provider_id Provider id.
 	 *
 	 * @return array
 	 */
-	public static function settings_for( $provider_id ) {
-		$stored = get_option( self::option_key( $provider_id ), array() );
+	protected static function legacy_settings_for( $provider_id ) {
+		$stored = get_option( 'wc_esm_settings_' . $provider_id, array() );
 
 		return is_array( $stored ) ? $stored : array();
 	}
@@ -203,12 +235,13 @@ class WC_ESM_Shipment_Settings {
 	/**
 	 * Which order status triggers registration for a carrier.
 	 *
-	 * @param string $provider_id Provider id.
+	 * @param string                        $provider_id Provider id.
+	 * @param WC_ESM_Shipment_Registry|null $registry    Registry, defaulting to the singleton.
 	 *
 	 * @return string Status slug without the wc- prefix, or an empty string for never.
 	 */
-	public static function registration_status( $provider_id ) {
-		$settings = self::settings_for( $provider_id );
+	public static function registration_status( $provider_id, $registry = null ) {
+		$settings = self::settings_for( $provider_id, $registry );
 
 		return isset( $settings['registration_status'] ) ? (string) $settings['registration_status'] : '';
 	}
@@ -222,7 +255,7 @@ class WC_ESM_Shipment_Settings {
 	 */
 	public static function hydrate( $registry ) {
 		foreach ( $registry->get_providers() as $provider ) {
-			$provider->set_settings( self::settings_for( $provider->get_id() ) );
+			$provider->set_settings( self::settings_for( $provider->get_id(), $registry ) );
 		}
 	}
 
@@ -357,7 +390,7 @@ class WC_ESM_Shipment_Settings {
 		}
 
 		$id     = $provider->get_id();
-		$saved  = self::settings_for( $id );
+		$saved  = self::settings_for( $id, $registry );
 		$groups = self::groups_for( $provider );
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- choosing a group is a view, not an action; active_group() takes only what it recognises.
 		$active = self::active_group( isset( $_GET['group'] ) ? $_GET['group'] : '', $provider );
@@ -391,7 +424,9 @@ class WC_ESM_Shipment_Settings {
 			$field['value'] = isset( $saved[ $key ] ) && '' !== $saved[ $key ] ? $saved[ $key ] : $default;
 
 			if ( 'multiselect' === $field['type'] ) {
-				$field['value'] = array_filter( explode( ',', (string) $field['value'] ) );
+				$field['value'] = is_array( $field['value'] )
+					? array_values( array_filter( $field['value'] ) )
+					: array_filter( explode( ',', (string) $field['value'] ) );
 			}
 
 			$fields[] = $field;
@@ -403,56 +438,6 @@ class WC_ESM_Shipment_Settings {
 		);
 
 		return $fields;
-	}
-
-	/**
-	 * Save the posted settings for the carrier whose section was submitted.
-	 *
-	 * Fields absent from the post are left as they were rather than cleared,
-	 * so a screen that shows only some of a carrier's fields does not wipe
-	 * the rest.
-	 *
-	 * @param string $section Section id.
-	 *
-	 * @return void
-	 */
-	public static function save( $section = '' ) {
-		$provider = self::provider_for_section( $section );
-
-		if ( ! $provider ) {
-			return;
-		}
-
-		// WooCommerce has already checked the nonce for this screen before
-		// firing woocommerce_update_options_shipping_*.
-		// phpcs:disable WordPress.Security.NonceVerification.Missing
-		$id     = $provider->get_id();
-		$values = self::settings_for( $id );
-
-		foreach ( self::fields_for( $provider ) as $key => $field ) {
-			$input = sprintf( 'wc_esm_%s_%s', $id, $key );
-
-			if ( ! isset( $_POST[ $input ] ) ) {
-				continue;
-			}
-
-			$value = wp_unslash( $_POST[ $input ] );
-
-			if ( 'multiselect' === $field['type'] ) {
-				$values[ $key ] = implode( ',', array_map( 'sanitize_text_field', (array) $value ) );
-
-				continue;
-			}
-
-			$values[ $key ] = 'textarea' === $field['type']
-				? sanitize_textarea_field( $value )
-				: sanitize_text_field( $value );
-		}
-
-		update_option( self::option_key( $id ), $values );
-		// phpcs:enable WordPress.Security.NonceVerification.Missing
-
-		self::hydrate( WC_ESM_Shipment_Registry::instance() );
 	}
 
 	/**

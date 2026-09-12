@@ -22,11 +22,10 @@ class Test_Shipment_Settings extends WC_ESM_Test_Case {
 	protected function setUp(): void {
 		parent::setUp();
 
+		// WooCommerce writes one option per field, named after the field id.
 		$GLOBALS['wc_esm_options'] = array(
-			'wc_esm_settings_testcarrier' => array(
-				'api_key'             => 'stored-key',
-				'registration_status' => 'completed',
-			),
+			'wc_esm_testcarrier_api_key'             => 'stored-key',
+			'wc_esm_testcarrier_registration_status' => 'completed',
 		);
 
 		unset( $_GET['group'] );
@@ -75,9 +74,9 @@ class Test_Shipment_Settings extends WC_ESM_Test_Case {
 	 *
 	 * @return void
 	 */
-	public function test_each_carrier_has_its_own_option() {
-		$this->assertSame( 'wc_esm_settings_testcarrier', WC_ESM_Shipment_Settings::option_key( 'testcarrier' ) );
-		$this->assertSame( 'wc_esm_settings_dpd', WC_ESM_Shipment_Settings::option_key( 'dpd' ) );
+	public function test_each_field_has_its_own_option() {
+		$this->assertSame( 'wc_esm_testcarrier_api_key', WC_ESM_Shipment_Settings::option_key( 'testcarrier', 'api_key' ) );
+		$this->assertSame( 'wc_esm_dpd_username', WC_ESM_Shipment_Settings::option_key( 'dpd', 'username' ) );
 	}
 
 	/**
@@ -86,8 +85,67 @@ class Test_Shipment_Settings extends WC_ESM_Test_Case {
 	 * @return void
 	 */
 	public function test_stored_settings_are_read_back() {
-		$this->assertSame( 'stored-key', WC_ESM_Shipment_Settings::settings_for( 'testcarrier' )['api_key'] );
-		$this->assertSame( array(), WC_ESM_Shipment_Settings::settings_for( 'dpd' ) );
+		$this->assertSame( 'stored-key', WC_ESM_Shipment_Settings::settings_for( 'testcarrier', $this->registry() )['api_key'] );
+	}
+
+	/**
+	 * A carrier nobody has configured reads as empty rather than as a row of
+	 * false values.
+	 *
+	 * @return void
+	 */
+	public function test_an_unconfigured_carrier_reads_as_empty() {
+		$GLOBALS['wc_esm_options'] = array();
+
+		$this->assertSame( array(), WC_ESM_Shipment_Settings::settings_for( 'testcarrier', $this->registry() ) );
+	}
+
+	/**
+	 * A carrier nobody registered has no fields to read, so it is empty too.
+	 *
+	 * @return void
+	 */
+	public function test_an_unregistered_carrier_reads_as_empty() {
+		$this->assertSame( array(), WC_ESM_Shipment_Settings::settings_for( 'collectnet', $this->registry() ) );
+	}
+
+	/**
+	 * WooCommerce stores a multiselect as an array, and it reads back as one.
+	 *
+	 * @return void
+	 */
+	public function test_a_multiselect_is_stored_as_an_array() {
+		$GLOBALS['wc_esm_options']['wc_esm_testcarrier_tracking_emails'] = array( 'customer_completed_order' );
+
+		$this->assertSame(
+			array( 'customer_completed_order' ),
+			WC_ESM_Shipment_Settings::settings_for( 'testcarrier', $this->registry() )['tracking_emails']
+		);
+	}
+
+	/**
+	 * A shop configured before the storage changed is still read, so an API
+	 * key typed in once does not have to be typed in again.
+	 *
+	 * @return void
+	 */
+	public function test_settings_from_the_older_storage_are_still_read() {
+		$GLOBALS['wc_esm_options'] = array(
+			'wc_esm_settings_testcarrier' => array( 'api_key' => 'from-the-old-row' ),
+		);
+
+		$this->assertSame( 'from-the-old-row', WC_ESM_Shipment_Settings::settings_for( 'testcarrier', $this->registry() )['api_key'] );
+	}
+
+	/**
+	 * What a field holds now wins over what the older row held.
+	 *
+	 * @return void
+	 */
+	public function test_a_field_wins_over_the_older_row() {
+		$GLOBALS['wc_esm_options']['wc_esm_settings_testcarrier'] = array( 'api_key' => 'from-the-old-row' );
+
+		$this->assertSame( 'stored-key', WC_ESM_Shipment_Settings::settings_for( 'testcarrier', $this->registry() )['api_key'] );
 	}
 
 	/**
@@ -108,7 +166,7 @@ class Test_Shipment_Settings extends WC_ESM_Test_Case {
 	 * @return void
 	 */
 	public function test_the_registration_status_is_a_setting() {
-		$this->assertSame( 'completed', WC_ESM_Shipment_Settings::registration_status( 'testcarrier' ) );
+		$this->assertSame( 'completed', WC_ESM_Shipment_Settings::registration_status( 'testcarrier', $this->registry() ) );
 	}
 
 	/**
@@ -117,7 +175,7 @@ class Test_Shipment_Settings extends WC_ESM_Test_Case {
 	 * @return void
 	 */
 	public function test_a_carrier_without_a_status_sends_nothing_automatically() {
-		$this->assertSame( '', WC_ESM_Shipment_Settings::registration_status( 'dpd' ) );
+		$this->assertSame( '', WC_ESM_Shipment_Settings::registration_status( 'dpd', $this->registry() ) );
 	}
 
 	/**
@@ -227,7 +285,7 @@ class Test_Shipment_Settings extends WC_ESM_Test_Case {
 	 * @return void
 	 */
 	public function test_a_multiselect_reaches_the_screen_as_a_list() {
-		$GLOBALS['wc_esm_options']['wc_esm_settings_testcarrier']['tracking_emails'] = 'customer_completed_order,customer_on_hold_order';
+		$GLOBALS['wc_esm_options']['wc_esm_testcarrier_tracking_emails'] = 'customer_completed_order,customer_on_hold_order';
 		$_GET['group'] = 'automation';
 
 		foreach ( WC_ESM_Shipment_Settings::get_settings( array(), 'wc_esm_testcarrier', $this->registry() ) as $field ) {
@@ -332,7 +390,7 @@ class Test_Shipment_Settings extends WC_ESM_Test_Case {
 	 * @return void
 	 */
 	public function test_an_empty_saved_value_falls_back_to_the_default() {
-		$GLOBALS['wc_esm_options']['wc_esm_settings_testcarrier']['tracking_template'] = '';
+		$GLOBALS['wc_esm_options']['wc_esm_testcarrier_tracking_template'] = '';
 		$_GET['group'] = 'automation';
 
 		foreach ( WC_ESM_Shipment_Settings::get_settings( array(), 'wc_esm_testcarrier', $this->registry() ) as $field ) {
