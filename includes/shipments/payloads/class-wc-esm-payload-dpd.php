@@ -36,7 +36,11 @@ class WC_ESM_Payload_Dpd extends WC_ESM_Payload {
 			'receiverAddress'    => self::receiver( $snapshot ),
 			'payerCode'          => self::setting( $settings, 'payer_code' ),
 			'service'            => array(
-				'serviceName' => self::setting( $settings, 'service_alias' ),
+				// The alias, not the name: DPD lists a short code against
+				// each service on the contract - PS for a parcel shop,
+				// CLASSIC for a business delivery - and refuses the
+				// human-readable name.
+				'serviceAlias' => self::setting( $settings, 'service_alias' ),
 			),
 			'parcels'            => array(
 				array( 'weight' => (float) $snapshot['weight'] ),
@@ -54,8 +58,8 @@ class WC_ESM_Payload_Dpd extends WC_ESM_Payload {
 		if ( '' !== $alias && WC_ESM_Order_Snapshot::has_cod( $snapshot ) ) {
 			$body['additionalServices'] = array(
 				array(
-					'serviceName' => $alias,
-					'fields'      => array(
+					'serviceAlias' => $alias,
+					'fields'       => array(
 						'amount'    => (float) $snapshot['cod_amount'],
 						'currency'  => $snapshot['currency'],
 						'reference' => (string) $snapshot['order_number'],

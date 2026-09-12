@@ -25,7 +25,7 @@ class Test_Payload_Dpd extends WC_ESM_Test_Case {
 		return array_merge(
 			array(
 				'payer_code'      => '123456',
-				'service_alias'   => 'DPD CLASSIC',
+				'service_alias'   => 'PS',
 				'sender_name'     => 'Testpood',
 				'sender_phone'    => '+3726001234',
 				'sender_email'    => 'pood@example.com',
@@ -119,7 +119,20 @@ class Test_Payload_Dpd extends WC_ESM_Test_Case {
 	 */
 	public function test_the_contract_is_named() {
 		$this->assertSame( '123456', $this->body()['payerCode'] );
-		$this->assertSame( 'DPD CLASSIC', $this->body()['service']['serviceName'] );
+	}
+
+	/**
+	 * The service travels as its alias - the short code DPD lists against
+	 * the contract, like PS or CLASSIC - and under the field name DPD asks
+	 * for. The human-readable name is refused.
+	 *
+	 * @return void
+	 */
+	public function test_the_service_travels_as_an_alias() {
+		$service = $this->body()['service'];
+
+		$this->assertSame( 'PS', $service['serviceAlias'] );
+		$this->assertArrayNotHasKey( 'serviceName', $service );
 	}
 
 	/**
@@ -165,7 +178,7 @@ class Test_Payload_Dpd extends WC_ESM_Test_Case {
 			array( 'cod_service_alias' => 'COD' )
 		);
 
-		$this->assertSame( 'COD', $body['additionalServices'][0]['serviceName'] );
+		$this->assertSame( 'COD', $body['additionalServices'][0]['serviceAlias'] );
 		$this->assertSame( 19.90, $body['additionalServices'][0]['fields']['amount'] );
 		$this->assertSame( 'EUR', $body['additionalServices'][0]['fields']['currency'] );
 	}

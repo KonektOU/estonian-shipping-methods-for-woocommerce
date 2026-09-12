@@ -137,15 +137,15 @@ class WC_ESM_Provider_Dpd extends WC_ESM_Shipment_Provider {
 				),
 				'service_alias'     => array(
 					'group'       => 'shipments',
-					'title'       => __( 'Service name', 'wc-estonian-shipping-methods' ),
+					'title'       => __( 'Service alias', 'wc-estonian-shipping-methods' ),
 					'type'        => 'text',
-					'default'     => 'DPD CLASSIC',
-					'description' => __( 'The service exactly as it is named on your contract.', 'wc-estonian-shipping-methods' ),
+					'default'     => '',
+					'description' => __( 'The short alias DPD lists against the service on your contract - PS for a parcel shop, CLASSIC for a business delivery. Not the name it shows beside it.', 'wc-estonian-shipping-methods' ),
 					'desc_tip'    => true,
 				),
 				'cod_service_alias' => array(
 					'group'       => 'shipments',
-					'title'       => __( 'Cash on delivery service name', 'wc-estonian-shipping-methods' ),
+					'title'       => __( 'Cash on delivery service alias', 'wc-estonian-shipping-methods' ),
 					'type'        => 'text',
 					'default'     => '',
 					'description' => __( 'Leave empty unless your contract carries one. A name DPD does not recognise has it refuse the whole shipment, not just the service.', 'wc-estonian-shipping-methods' ),
@@ -177,11 +177,15 @@ class WC_ESM_Provider_Dpd extends WC_ESM_Shipment_Provider {
 		$response = $this->authed( 'shipments', 'POST', array( WC_ESM_Payload_Dpd::build( $snapshot, $this->get_settings() ) ) );
 
 		if ( ! $response->ok() ) {
-			return $this->refusal( $response, (string) $response->get( 'message', '' ) );
+			return $this->refusal( $response, $this->what_it_said( $response ) );
 		}
 
-		$id       = (string) $response->get( 'id', '' );
-		$barcodes = array_values( array_filter( (array) $response->get( 'parcelNumbers', array() ) ) );
+		// A posted list is answered with a list, one entry per shipment, so
+		// ours is the first of them.
+		$created  = $response->json();
+		$created  = isset( $created[0] ) && is_array( $created[0] ) ? $created[0] : array();
+		$id       = isset( $created['id'] ) ? (string) $created['id'] : '';
+		$barcodes = array_values( array_filter( (array) ( isset( $created['parcelNumbers'] ) ? $created['parcelNumbers'] : array() ) ) );
 
 		if ( '' === $id ) {
 			return WC_ESM_Shipment_Result::failure(
@@ -225,10 +229,18 @@ class WC_ESM_Provider_Dpd extends WC_ESM_Shipment_Provider {
 		);
 
 		if ( ! $response->ok() ) {
-			return $this->refusal( $response, (string) $response->get( 'message', '' ) );
+			return $this->refusal( $response, $this->what_it_said( $response ) );
 		}
 
-		return WC_ESM_Shipment_Result::success( array( 'pdfs' => self::binary( $response->get( 'labels', array() ) ) ) );
+		// The documents come back under "pages"; the documentation calls the
+		// same thing "labels", so both are accepted.
+		$pdfs = self::binary( $response->get( 'pages', $response->get( 'labels', array() ) ) );
+
+		if ( ! $pdfs ) {
+			return WC_ESM_Shipment_Result::failure( __( 'DPD returned no label.', 'wc-estonian-shipping-methods' ) );
+		}
+
+		return WC_ESM_Shipment_Result::success( array( 'pdfs' => $pdfs ) );
 	}
 
 	/**
@@ -248,7 +260,7 @@ class WC_ESM_Provider_Dpd extends WC_ESM_Shipment_Provider {
 		$response = $this->authed( 'shipments/manifests', 'POST', array( 'shipmentIds' => $refs ) );
 
 		if ( ! $response->ok() ) {
-			return $this->refusal( $response, (string) $response->get( 'message', '' ) );
+			return $this->refusal( $response, $this->what_it_said( $response ) );
 		}
 
 		$pdf = self::binary( $response->get( 'binaryData', '' ) );
@@ -286,7 +298,7 @@ class WC_ESM_Provider_Dpd extends WC_ESM_Shipment_Provider {
 		$response = $this->authed( 'shipments/manifests/' . rawurlencode( $reference ), 'GET' );
 
 		if ( ! $response->ok() ) {
-			return $this->refusal( $response, (string) $response->get( 'message', '' ) );
+			return $this->refusal( $response, $this->what_it_said( $response ) );
 		}
 
 		$pdf = self::binary( $response->get( 'binaryData', '' ) );
@@ -327,7 +339,7 @@ class WC_ESM_Provider_Dpd extends WC_ESM_Shipment_Provider {
 		);
 
 		if ( ! $response->ok() ) {
-			return $this->refusal( $response, (string) $response->get( 'message', '' ) );
+			return $this->refusal( $response, $this->what_it_said( $response ) );
 		}
 
 		return WC_ESM_Shipment_Result::success(
@@ -442,6 +454,41 @@ class WC_ESM_Provider_Dpd extends WC_ESM_Shipment_Provider {
 	}
 
 	/**
+	 * What DPD said was wrong.
+	 *
+	 * Its validation errors answer in the shape RFC 7807 describes - a title
+	 * and a detail keyed by field - while its other errors use a message.
+	 * The field names are the half a shopkeeper can act on, so they win.
+	 *
+	 * @param WC_ESM_Api_Response $response What came back.
+	 *
+	 * @return string
+	 */
+	protected function what_it_said( $response ) {
+		$detail = $response->get( 'detail', array() );
+
+		if ( is_array( $detail ) && $detail ) {
+			$said = array();
+
+			foreach ( $detail as $field => $problem ) {
+				$said[] = is_string( $field ) ? $field . ': ' . $problem : (string) $problem;
+			}
+
+			return implode( '; ', $said );
+		}
+
+		foreach ( array( 'message', 'title' ) as $key ) {
+			$value = (string) $response->get( $key, '' );
+
+			if ( '' !== $value ) {
+				return $value;
+			}
+		}
+
+		return '';
+	}
+
+	/**
 	 * DPD's base64 payloads as bytes.
 	 *
 	 * Labels arrive as a list of objects each carrying one, a manifest as a
@@ -453,18 +500,41 @@ class WC_ESM_Provider_Dpd extends WC_ESM_Shipment_Provider {
 	 */
 	protected static function binary( $data ) {
 		if ( is_string( $data ) ) {
-			return '' === $data ? array() : array( base64_decode( $data ) );
+			return '' === $data ? array() : array( self::decode( $data ) );
 		}
 
 		$documents = array();
 
 		foreach ( (array) $data as $entry ) {
 			if ( ! empty( $entry['binaryData'] ) ) {
-				$documents[] = base64_decode( $entry['binaryData'] );
+				$documents[] = self::decode( $entry['binaryData'] );
 			}
 		}
 
 		return $documents;
+	}
+
+	/**
+	 * One base64 payload as bytes.
+	 *
+	 * DPD sends these as data URIs - "data:application/pdf;base64," and then
+	 * the payload - and decoding the prefix along with the rest produces a
+	 * file no reader will open. The documentation describes bare base64, so
+	 * both are handled.
+	 *
+	 * @param string $data What the carrier sent.
+	 *
+	 * @return string
+	 */
+	protected static function decode( $data ) {
+		$data = (string) $data;
+		$comma = strpos( $data, ',' );
+
+		if ( 0 === strpos( $data, 'data:' ) && false !== $comma ) {
+			$data = substr( $data, $comma + 1 );
+		}
+
+		return (string) base64_decode( $data );
 	}
 
 	/**

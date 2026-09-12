@@ -161,7 +161,7 @@ class Test_Provider_Dpd extends WC_ESM_Test_Case {
 		$provider = $this->provider(
 			array(
 				$this->login( 'tok-1' ),
-				array( 201, array( 'id' => 'ship-1', 'parcelNumbers' => array( 'P1' ) ) ),
+				array( 201, array( array( 'id' => 'ship-1', 'parcelNumbers' => array( 'P1' ) ) ) ),
 			)
 		);
 
@@ -181,7 +181,7 @@ class Test_Provider_Dpd extends WC_ESM_Test_Case {
 	 */
 	public function test_a_remembered_token_is_reused() {
 		WC_ESM_Dpd_Token::remember( WC_ESM_Dpd_Token::cache_key( 'telli.dpd.ee', 'shop' ), 'tok-cached' );
-		$provider = $this->provider( array( array( 201, array( 'id' => 'ship-1' ) ) ) );
+		$provider = $this->provider( array( array( 201, array( array( 'id' => 'ship-1' ) ) ) ) );
 
 		$provider->register( WC_ESM_Order_Snapshot::make( $this->snapshot() ) );
 
@@ -201,7 +201,7 @@ class Test_Provider_Dpd extends WC_ESM_Test_Case {
 			array(
 				array( 401, array() ),
 				$this->login( 'tok-fresh' ),
-				array( 201, array( 'id' => 'ship-1' ) ),
+				array( 201, array( array( 'id' => 'ship-1' ) ) ),
 			)
 		);
 
@@ -263,8 +263,10 @@ class Test_Provider_Dpd extends WC_ESM_Test_Case {
 				array(
 					201,
 					array(
-						'id'            => 'ship-1',
-						'parcelNumbers' => array( 'P1', 'P2' ),
+						array(
+							'id'            => 'ship-1',
+							'parcelNumbers' => array( 'P1', 'P2' ),
+						),
 					),
 				),
 			)
@@ -286,7 +288,7 @@ class Test_Provider_Dpd extends WC_ESM_Test_Case {
 		$provider = $this->provider(
 			array(
 				$this->login(),
-				array( 200, array( 'labels' => array( array( 'binaryData' => base64_encode( '%PDF-label' ) ) ) ) ),
+				array( 200, array( 'pages' => array( array( 'binaryData' => 'data:application/pdf;base64,' . base64_encode( '%PDF-label' ) ) ) ) ),
 			)
 		);
 
@@ -416,7 +418,7 @@ class Test_Provider_Dpd extends WC_ESM_Test_Case {
 	 * @return void
 	 */
 	public function test_a_shipment_is_posted_as_a_list() {
-		$provider = $this->provider( array( $this->login(), array( 201, array( 'id' => 'ship-1' ) ) ) );
+		$provider = $this->provider( array( $this->login(), array( 201, array( array( 'id' => 'ship-1' ) ) ) ) );
 		$provider->register( WC_ESM_Order_Snapshot::make( $this->snapshot() ) );
 
 		$body = $provider->fake->body( 1 );
@@ -433,7 +435,7 @@ class Test_Provider_Dpd extends WC_ESM_Test_Case {
 	 * @return void
 	 */
 	public function test_logging_in_uses_basic_authentication() {
-		$provider = $this->provider( array( $this->login(), array( 201, array( 'id' => 'ship-1' ) ) ) );
+		$provider = $this->provider( array( $this->login(), array( 201, array( array( 'id' => 'ship-1' ) ) ) ) );
 		$provider->register( WC_ESM_Order_Snapshot::make( $this->snapshot() ) );
 
 		$login = $provider->fake->calls[0];
@@ -473,5 +475,124 @@ class Test_Provider_Dpd extends WC_ESM_Test_Case {
 		$result = ( new WC_ESM_Provider_Dpd() )->cancel_pickup( 'pick-1' );
 
 		$this->assertSame( 'unsupported', $result->get_code() );
+	}
+
+	/**
+	 * A validation refusal says which field DPD disliked. It answers in the
+	 * shape RFC 7807 describes - a title and a detail keyed by field - and
+	 * not with the message field its other errors use.
+	 *
+	 * @return void
+	 */
+	public function test_a_validation_refusal_names_the_field() {
+		$provider = $this->provider(
+			array(
+				$this->login(),
+				array(
+					422,
+					array(
+						'title'  => 'The service.service alias field is required.',
+						'detail' => array( '0.service.serviceAlias' => 'The service.service alias field is required.' ),
+					),
+				),
+			)
+		);
+
+		$message = $provider->register( WC_ESM_Order_Snapshot::make( $this->snapshot() ) )->get_message();
+
+		$this->assertStringContainsString( 'service.serviceAlias', $message );
+	}
+
+	/**
+	 * The plainer errors still read, so nothing is lost by handling both.
+	 *
+	 * @return void
+	 */
+	public function test_a_plain_refusal_still_reads() {
+		$provider = $this->provider(
+			array(
+				$this->login(),
+				array( 400, array( 'message' => 'payer code unknown' ) ),
+			)
+		);
+
+		$this->assertStringContainsString(
+			'payer code unknown',
+			$provider->register( WC_ESM_Order_Snapshot::make( $this->snapshot() ) )->get_message()
+		);
+	}
+
+	/**
+	 * A shipment with no parcel numbers yet is still registered. DPD issues
+	 * them when the label is printed, not when the shipment is created, and
+	 * the shipment id is what everything afterwards is keyed on.
+	 *
+	 * @return void
+	 */
+	public function test_a_shipment_with_no_parcel_numbers_is_still_registered() {
+		$provider = $this->provider(
+			array(
+				$this->login(),
+				array( 201, array( array( 'id' => 'ship-1', 'parcelNumbers' => array() ) ) ),
+			)
+		);
+
+		$result = $provider->register( WC_ESM_Order_Snapshot::make( $this->snapshot() ) );
+
+		$this->assertTrue( $result->is_success() );
+		$this->assertSame( array( 'ship-1' ), $result->get( 'label_refs' ) );
+		$this->assertSame( array(), $result->get( 'barcodes' ) );
+	}
+
+	/**
+	 * The documents arrive as data URIs, and the bytes are what a merger
+	 * wants - decoding the prefix along with them produces a file no reader
+	 * will open.
+	 *
+	 * @return void
+	 */
+	public function test_a_data_uri_is_unwrapped_before_decoding() {
+		$provider = $this->provider(
+			array(
+				$this->login(),
+				array( 200, array( 'pages' => array( array( 'binaryData' => 'data:application/pdf;base64,' . base64_encode( '%PDF-real' ) ) ) ) ),
+			)
+		);
+
+		$this->assertSame( array( '%PDF-real' ), $provider->fetch_labels( array( 'ship-1' ) )->get( 'pdfs' ) );
+	}
+
+	/**
+	 * Bare base64, which the documentation describes, still reads.
+	 *
+	 * @return void
+	 */
+	public function test_bare_base64_still_reads() {
+		$provider = $this->provider(
+			array(
+				$this->login(),
+				array( 200, array( 'labels' => array( array( 'binaryData' => base64_encode( '%PDF-bare' ) ) ) ) ),
+			)
+		);
+
+		$this->assertSame( array( '%PDF-bare' ), $provider->fetch_labels( array( 'ship-1' ) )->get( 'pdfs' ) );
+	}
+
+	/**
+	 * An answer carrying no document at all is a failure. Calling it a
+	 * success would have the bulk printer hand back an empty file and say
+	 * nothing was wrong.
+	 *
+	 * @return void
+	 */
+	public function test_an_answer_with_no_document_is_a_failure() {
+		$provider = $this->provider(
+			array(
+				$this->login(),
+				array( 200, array( 'shipmentIds' => array( 'ship-1' ), 'pages' => array() ) ),
+			)
+		);
+
+		$this->assertTrue( $provider->fetch_labels( array( 'ship-1' ) )->is_failure() );
 	}
 }
