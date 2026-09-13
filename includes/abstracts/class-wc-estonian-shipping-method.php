@@ -18,6 +18,16 @@ abstract class WC_Estonian_Shipping_Method extends WC_Shipping_Method {
 	public $country = 'EE';
 
 	/**
+	 * Whether this method cannot deliver without a phone number.
+	 *
+	 * DPD texts the pickup code to it and refuses a parcel shop delivery that
+	 * has none. Both checkouts read this before letting an order through.
+	 *
+	 * @var bool
+	 */
+	public $requires_phone = false;
+
+	/**
 	 * Flat price of this shipping method
 	 *
 	 * @var string|float
@@ -358,6 +368,32 @@ abstract class WC_Estonian_Shipping_Method extends WC_Shipping_Method {
 		if ( defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG === TRUE ) {
 			$logger = new WC_Logger();
 			$logger->add( $this->id, is_array( $data ) || is_object( $data ) ? print_r( $data, TRUE ) : var_export( $data, true ) );
+		}
+	}
+
+	/**
+	 * Refuses a classic checkout that gave no phone for a method that needs
+	 * one.
+	 *
+	 * Only the missing number is checked here: the prefix is already checked
+	 * by validate_customer_phone_number(), and saying so twice helps nobody.
+	 *
+	 * @param array $posted Checkout data.
+	 *
+	 * @return void
+	 */
+	public function validate_required_phone( $posted ) {
+		if ( ! $this->requires_phone || empty( $posted['shipping_method'] ) || ! $this->is_chosen_method( (array) $posted['shipping_method'] ) ) {
+			return;
+		}
+
+		$phone = WC_ESM_Checkout_Phone::pick(
+			isset( $posted['billing_phone'] ) ? $posted['billing_phone'] : '',
+			isset( $posted['shipping_phone'] ) ? $posted['shipping_phone'] : ''
+		);
+
+		if ( WC_ESM_Checkout_Phone::MISSING === WC_ESM_Checkout_Phone::problem( $phone, true ) ) {
+			wc_add_notice( WC_ESM_Checkout_Phone::message( WC_ESM_Checkout_Phone::MISSING ), 'error' );
 		}
 	}
 

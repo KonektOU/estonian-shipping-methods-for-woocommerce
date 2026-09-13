@@ -39,6 +39,7 @@ class WC_Estonian_Shipping_Blocks {
 		add_action( 'woocommerce_blocks_loaded', array( __CLASS__, 'register_checkout_block' ) );
 
 		add_action( 'woocommerce_store_api_checkout_update_order_from_request', array( __CLASS__, 'save_terminal_on_order' ), 10, 2 );
+		add_action( 'woocommerce_store_api_checkout_update_order_from_request', array( __CLASS__, 'validate_phone_on_order' ), 10, 2 );
 	}
 
 	/**
@@ -240,6 +241,56 @@ class WC_Estonian_Shipping_Blocks {
 		$method->store_order_terminal_name( $order, $terminal_id );
 
 		WC()->session->set( $method->field_name, $terminal_id );
+	}
+
+	/**
+	 * Refuse a block checkout that gave no usable phone for a method that
+	 * needs one.
+	 *
+	 * The classic checkout has checked the prefix all along and never checked
+	 * that a number was there at all; the block checkout checked neither, so
+	 * a DPD parcel shop order could be placed that DPD would then refuse. This
+	 * is where both are checked for the block checkout.
+	 *
+	 * Only when the order is placed. This hook also fires on the PUT and PATCH
+	 * requests the form sends while the customer is still typing, once a draft
+	 * order exists - refusing those would put an error on the form mid-sentence.
+	 * WooCommerce draws the same line for a missing payment method.
+	 *
+	 * @param \WC_Order        $order   Order.
+	 * @param \WP_REST_Request $request Checkout request.
+	 *
+	 * @throws \Automattic\WooCommerce\StoreApi\Exceptions\RouteException When the phone is missing or has no prefix.
+	 *
+	 * @return void
+	 */
+	public static function validate_phone_on_order( $order, $request ) {
+		if ( 'POST' !== $request->get_method() ) {
+			return;
+		}
+
+		$method = self::get_chosen_terminals_method( $order );
+
+		if ( ! $method || empty( $method->requires_phone ) ) {
+			return;
+		}
+
+		// The request, not the order: it is what the customer just submitted,
+		// whatever has or has not been copied onto the order yet.
+		$phone = WC_ESM_Checkout_Phone::pick(
+			isset( $request['billing_address']['phone'] ) ? (string) $request['billing_address']['phone'] : '',
+			isset( $request['shipping_address']['phone'] ) ? (string) $request['shipping_address']['phone'] : ''
+		);
+
+		$problem = WC_ESM_Checkout_Phone::problem( $phone, true );
+
+		if ( '' !== $problem ) {
+			throw new Automattic\WooCommerce\StoreApi\Exceptions\RouteException(
+				'wc_esm_phone_' . $problem,
+				esc_html( WC_ESM_Checkout_Phone::message( $problem ) ),
+				400
+			);
+		}
 	}
 
 	/**

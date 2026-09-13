@@ -19,6 +19,14 @@ abstract class WC_Estonian_Shipping_Method_DPD_Shops extends WC_Estonian_Shippin
 	public $api_url = 'https://eserviss.dpd.lv/api/v1/';
 
 	/**
+	 * DPD texts the pickup code, and refuses a parcel shop delivery without a
+	 * phone number to text it to.
+	 *
+	 * @var bool
+	 */
+	public $requires_phone = true;
+
+	/**
 	 * API token for authentication
 	 *
 	 * @var string
@@ -33,6 +41,7 @@ abstract class WC_Estonian_Shipping_Method_DPD_Shops extends WC_Estonian_Shippin
 
 		// Checkout phone numbe validation.
 		add_action( 'woocommerce_after_checkout_validation', array( $this, 'validate_customer_phone_number' ), 10, 1 );
+		add_action( 'woocommerce_after_checkout_validation', array( $this, 'validate_required_phone' ), 10, 1 );
 
 		// Construct parent.
 		parent::__construct( $instance_id );

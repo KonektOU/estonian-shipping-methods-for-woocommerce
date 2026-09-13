@@ -201,6 +201,9 @@ class Estonian_Shipping_Methods_For_WooCommerce {
 		// Compatibility helpers.
 		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/compatibility-helpers.php';
 
+		// What both checkouts ask of the phone number.
+		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/class-wc-esm-checkout-phone.php';
+
 		// The block checkout, which does not fire any of the classic hooks.
 		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/class-wc-estonian-shipping-blocks.php';
 
