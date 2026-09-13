@@ -171,4 +171,68 @@ class Test_Order_Snapshot extends WC_ESM_Test_Case {
 			array_keys( WC_ESM_Order_Snapshot::make( $this->snapshot() ) )
 		);
 	}
+
+	/**
+	 * Omniva's and DPD's terminal lists carry no country. The terminal is in
+	 * the country its shipping method serves, so that is what fills it in -
+	 * without it DPD refuses the parcel and Omniva has no address to route.
+	 *
+	 * @return void
+	 */
+	public function test_a_terminal_without_a_country_takes_the_methods() {
+		$terminal = WC_ESM_Order_Snapshot::normalise_terminal(
+			array( 'place_id' => 'EE90100', 'zipcode' => '79805', 'name' => 'Automaat Kohila', 'address' => 'Viljandi mnt 3A', 'city' => 'Kohila' ),
+			'EE'
+		);
+
+		$this->assertSame( 'EE', $terminal['country'] );
+	}
+
+	/**
+	 * A terminal list that does carry its country keeps it: Smartposti's
+	 * Finnish machines say FI themselves.
+	 *
+	 * @return void
+	 */
+	public function test_a_terminal_that_names_its_country_keeps_it() {
+		$terminal = WC_ESM_Order_Snapshot::normalise_terminal( array( 'place_id' => '1', 'country' => 'FI' ), 'EE' );
+
+		$this->assertSame( 'FI', $terminal['country'] );
+	}
+
+	/**
+	 * Omniva and DPD call the postcode zipcode. The snapshot calls it
+	 * postalcode everywhere, so one name is read by every payload builder.
+	 *
+	 * @return void
+	 */
+	public function test_a_zipcode_becomes_the_postalcode() {
+		$terminal = WC_ESM_Order_Snapshot::normalise_terminal( array( 'place_id' => 'EE90100', 'zipcode' => '79805' ), 'EE' );
+
+		$this->assertSame( '79805', $terminal['postalcode'] );
+	}
+
+	/**
+	 * A key the shape does not have is dropped from a nested group too, not
+	 * only at the top: a fixed shape that lets zipcode through is not fixed.
+	 *
+	 * @return void
+	 */
+	public function test_an_unknown_nested_key_is_dropped() {
+		$snapshot = WC_ESM_Order_Snapshot::make( array( 'terminal' => array( 'place_id' => 'EE90100', 'zipcode' => '79805' ) ) );
+
+		$this->assertArrayNotHasKey( 'zipcode', $snapshot['terminal'] );
+	}
+
+	/**
+	 * A customer who gave a phone number only on the shipping address is
+	 * still reachable.
+	 *
+	 * @return void
+	 */
+	public function test_the_shipping_phone_stands_in_for_a_missing_billing_phone() {
+		$this->assertSame( '+37255512345', WC_ESM_Order_Snapshot::recipient_phone( '', '+37255512345' ) );
+		$this->assertSame( '+3725001', WC_ESM_Order_Snapshot::recipient_phone( '+3725001', '+37255512345' ) );
+		$this->assertSame( '', WC_ESM_Order_Snapshot::recipient_phone( '', '' ) );
+	}
 }

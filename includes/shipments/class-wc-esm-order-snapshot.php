@@ -85,6 +85,13 @@ class WC_ESM_Order_Snapshot {
 		$defaults = self::defaults();
 		$snapshot = array_replace_recursive( $defaults, array_intersect_key( (array) $order_data, $defaults ) );
 
+		// Unknown keys are dropped inside the groups as well as at the top:
+		// Omniva's and DPD's terminal lists send zipcode, and a fixed shape
+		// that lets it through is not fixed.
+		foreach ( array( 'terminal', 'recipient', 'address' ) as $group ) {
+			$snapshot[ $group ] = array_intersect_key( (array) $snapshot[ $group ], $defaults[ $group ] );
+		}
+
 		$snapshot['order_id']   = (int) $snapshot['order_id'];
 		$snapshot['weight']     = (float) $snapshot['weight'];
 		$snapshot['cod_amount'] = (float) $snapshot['cod_amount'];
@@ -130,7 +137,7 @@ class WC_ESM_Order_Snapshot {
 		$terminal = array();
 
 		if ( '' !== $terminal_id && $method && method_exists( $method, 'get_terminal_data' ) ) {
-			$terminal = (array) $method->get_terminal_data( $terminal_id );
+			$terminal = self::normalise_terminal( (array) $method->get_terminal_data( $terminal_id ), isset( $method->country ) ? $method->country : '' );
 		}
 
 		$created = $order->get_date_created();
@@ -144,7 +151,7 @@ class WC_ESM_Order_Snapshot {
 				'terminal'     => $terminal,
 				'recipient'    => array(
 					'name'  => trim( $order->get_shipping_first_name() . ' ' . $order->get_shipping_last_name() ) ?: trim( $order->get_billing_first_name() . ' ' . $order->get_billing_last_name() ),
-					'phone' => $order->get_billing_phone(),
+					'phone' => self::recipient_phone( $order->get_billing_phone(), method_exists( $order, 'get_shipping_phone' ) ? $order->get_shipping_phone() : '' ),
 					'email' => $order->get_billing_email(),
 				),
 				'address'      => array(
@@ -169,6 +176,50 @@ class WC_ESM_Order_Snapshot {
 				'shop_name'    => get_bloginfo( 'name' ),
 			)
 		);
+	}
+
+	/**
+	 * One terminal, in the shape every payload builder reads.
+	 *
+	 * The carriers' terminal lists disagree. Smartposti's names each
+	 * machine's country and postcode; Omniva's and DPD's name neither country
+	 * nor anything called postalcode, only a zipcode. A terminal is always in
+	 * the country its shipping method serves, so that fills the gap - without
+	 * it DPD refuses the parcel outright and Omniva has no address to route.
+	 *
+	 * @param array  $terminal What the shipping method knows about it.
+	 * @param string $country  The country the shipping method serves.
+	 *
+	 * @return array
+	 */
+	public static function normalise_terminal( $terminal, $country ) {
+		$terminal = (array) $terminal;
+
+		if ( empty( $terminal['country'] ) ) {
+			$terminal['country'] = (string) $country;
+		}
+
+		if ( empty( $terminal['postalcode'] ) && ! empty( $terminal['zipcode'] ) ) {
+			$terminal['postalcode'] = (string) $terminal['zipcode'];
+		}
+
+		return $terminal;
+	}
+
+	/**
+	 * The number a carrier texts the pickup code to.
+	 *
+	 * WooCommerce keeps a phone on each address. The billing one is what a
+	 * customer usually fills in; a customer who gave one only for delivery
+	 * is still reachable.
+	 *
+	 * @param string $billing  Billing phone.
+	 * @param string $shipping Shipping phone.
+	 *
+	 * @return string
+	 */
+	public static function recipient_phone( $billing, $shipping ) {
+		return '' !== (string) $billing ? (string) $billing : (string) $shipping;
 	}
 
 	/**
