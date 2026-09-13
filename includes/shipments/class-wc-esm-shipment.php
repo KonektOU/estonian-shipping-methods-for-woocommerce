@@ -99,6 +99,31 @@ class WC_ESM_Shipment {
 	}
 
 	/**
+	 * Add parcel numbers that arrived after the shipment was registered.
+	 *
+	 * DPD issues them only when the label is printed, so they reach the order
+	 * then rather than with the shipment. record() would replace the label
+	 * references along with them; this only adds, and only what is not
+	 * already there, so printing twice changes nothing.
+	 *
+	 * @param WC_Order $order    Order.
+	 * @param array    $barcodes Parcel numbers.
+	 *
+	 * @return void
+	 */
+	public static function record_barcodes( $order, $barcodes ) {
+		$known = self::barcodes( $order );
+		$added = array_values( array_diff( self::as_list( $barcodes ), $known ) );
+
+		if ( ! $added ) {
+			return;
+		}
+
+		$order->update_meta_data( self::BARCODES, array_merge( $known, $added ) );
+		$order->save();
+	}
+
+	/**
 	 * Write a failure where the order screen can show it.
 	 *
 	 * @param WC_Order $order   Order.

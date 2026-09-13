@@ -217,30 +217,54 @@ class WC_ESM_Provider_Dpd extends WC_ESM_Shipment_Provider {
 			return WC_ESM_Shipment_Result::failure( __( 'There is nothing to print.', 'wc-estonian-shipping-methods' ) );
 		}
 
-		$response = $this->authed(
-			'shipments/labels',
-			'POST',
+		$pdfs            = array();
+		$barcodes_by_ref = array();
+
+		// One request per shipment. DPD answers a request for several in an
+		// order of its own choosing, and a shipment of several parcels has
+		// several numbers, so only an answer about one shipment says for
+		// certain which parcel numbers are whose. Printing a shipment again
+		// returns the numbers it already had, so a reprint is harmless.
+		foreach ( $refs as $ref ) {
+			$response = $this->authed(
+				'shipments/labels',
+				'POST',
+				array(
+					'shipmentIds'   => array( $ref ),
+					'labelFormat'   => 'application/pdf',
+					'paperSize'     => $this->get_setting( 'label_format', 'A4' ),
+					'downloadLabel' => true,
+				)
+			);
+
+			if ( ! $response->ok() ) {
+				return $this->refusal( $response, $this->what_it_said( $response ) );
+			}
+
+			// The documents come back under "pages"; the documentation calls
+			// the same thing "labels", so both are accepted.
+			$documents = self::binary( $response->get( 'pages', $response->get( 'labels', array() ) ) );
+
+			if ( ! $documents ) {
+				return WC_ESM_Shipment_Result::failure( __( 'DPD returned no label.', 'wc-estonian-shipping-methods' ) );
+			}
+
+			$pdfs    = array_merge( $pdfs, $documents );
+			$numbers = array_values( array_filter( (array) $response->get( 'parcelNumbers', array() ) ) );
+
+			// DPD issues parcel numbers when the label is printed, not when
+			// the shipment is created, so this is the first moment they exist.
+			if ( $numbers ) {
+				$barcodes_by_ref[ $ref ] = $numbers;
+			}
+		}
+
+		return WC_ESM_Shipment_Result::success(
 			array(
-				'shipmentIds'   => $refs,
-				'labelFormat'   => 'application/pdf',
-				'paperSize'     => $this->get_setting( 'label_format', 'A4' ),
-				'downloadLabel' => true,
+				'pdfs'            => $pdfs,
+				'barcodes_by_ref' => $barcodes_by_ref,
 			)
 		);
-
-		if ( ! $response->ok() ) {
-			return $this->refusal( $response, $this->what_it_said( $response ) );
-		}
-
-		// The documents come back under "pages"; the documentation calls the
-		// same thing "labels", so both are accepted.
-		$pdfs = self::binary( $response->get( 'pages', $response->get( 'labels', array() ) ) );
-
-		if ( ! $pdfs ) {
-			return WC_ESM_Shipment_Result::failure( __( 'DPD returned no label.', 'wc-estonian-shipping-methods' ) );
-		}
-
-		return WC_ESM_Shipment_Result::success( array( 'pdfs' => $pdfs ) );
 	}
 
 	/**

@@ -390,4 +390,50 @@ class Test_Shipment_Labels extends WC_ESM_Test_Case {
 		$this->assertSame( '', $outcome['pdf'] );
 		$this->assertSame( 0, $outcome['printed'] );
 	}
+
+	/**
+	 * Parcel numbers a carrier hands back when printing land on the order
+	 * whose shipment they belong to, matched by the shipment reference. DPD
+	 * returns shipments in its own order, not the one asked for, so matching
+	 * by position would put one order's number on another.
+	 *
+	 * @return void
+	 */
+	public function test_parcel_numbers_land_on_the_order_they_belong_to() {
+		list( $registry, $one ) = $this->two_carriers();
+
+		$first  = new WC_ESM_Shipped_Order( 'labeller_method', array( 'ship-A' ), 1 );
+		$second = new WC_ESM_Shipped_Order( 'labeller_method', array( 'ship-B' ), 2 );
+
+		$one->answer = WC_ESM_Shipment_Result::success(
+			array(
+				'pdfs'            => array( '%PDF-both' ),
+				'barcodes_by_ref' => array(
+					'ship-B' => array( '05605586869411' ),
+					'ship-A' => array( '05605586869410' ),
+				),
+			)
+		);
+
+		WC_ESM_Shipment_Labels::collect( array( $first, $second ), $registry );
+
+		$this->assertSame( array( '05605586869410' ), WC_ESM_Shipment::barcodes( $first ) );
+		$this->assertSame( array( '05605586869411' ), WC_ESM_Shipment::barcodes( $second ) );
+	}
+
+	/**
+	 * A carrier that says nothing about parcel numbers when printing -
+	 * Smartposti and Omniva issue them at registration - leaves the orders
+	 * as they were.
+	 *
+	 * @return void
+	 */
+	public function test_a_carrier_that_sends_no_numbers_leaves_orders_alone() {
+		list( $registry ) = $this->two_carriers();
+		$order            = new WC_ESM_Shipped_Order( 'labeller_method', array( 'ship-A' ), 1 );
+
+		WC_ESM_Shipment_Labels::collect( array( $order ), $registry );
+
+		$this->assertSame( array(), WC_ESM_Shipment::barcodes( $order ) );
+	}
 }

@@ -595,4 +595,64 @@ class Test_Provider_Dpd extends WC_ESM_Test_Case {
 
 		$this->assertTrue( $provider->fetch_labels( array( 'ship-1' ) )->is_failure() );
 	}
+
+	/**
+	 * Each shipment is printed with its own request. DPD answers a request
+	 * for several in an order of its own, and a shipment of several parcels
+	 * has several numbers, so only a request for one says for certain which
+	 * numbers are whose.
+	 *
+	 * @return void
+	 */
+	public function test_each_shipment_is_printed_on_its_own() {
+		$pdf      = array( 'pages' => array( array( 'binaryData' => base64_encode( '%PDF-x' ) ) ) );
+		$provider = $this->provider( array( $this->login(), array( 200, $pdf ), array( 200, $pdf ) ) );
+
+		$provider->fetch_labels( array( 'ship-A', 'ship-B' ) );
+
+		$this->assertCount( 3, $provider->fake->calls );
+		$this->assertSame( array( 'ship-A' ), $provider->fake->body( 1 )['shipmentIds'] );
+		$this->assertSame( array( 'ship-B' ), $provider->fake->body( 2 )['shipmentIds'] );
+	}
+
+	/**
+	 * The parcel numbers DPD issues while printing come back keyed by the
+	 * shipment they belong to, every parcel of a multi-parcel shipment
+	 * included.
+	 *
+	 * @return void
+	 */
+	public function test_parcel_numbers_come_back_by_shipment() {
+		$provider = $this->provider(
+			array(
+				$this->login(),
+				array( 200, array( 'parcelNumbers' => array( '05605586869414', '05605586869415' ), 'pages' => array( array( 'binaryData' => base64_encode( '%PDF-A' ) ) ) ) ),
+				array( 200, array( 'parcelNumbers' => array( '05605586869416' ), 'pages' => array( array( 'binaryData' => base64_encode( '%PDF-B' ) ) ) ) ),
+			)
+		);
+
+		$result = $provider->fetch_labels( array( 'ship-A', 'ship-B' ) );
+
+		$this->assertSame(
+			array(
+				'ship-A' => array( '05605586869414', '05605586869415' ),
+				'ship-B' => array( '05605586869416' ),
+			),
+			$result->get( 'barcodes_by_ref' )
+		);
+		$this->assertSame( array( '%PDF-A', '%PDF-B' ), $result->get( 'pdfs' ) );
+	}
+
+	/**
+	 * One shipment failing fails the print rather than handing back a batch
+	 * that is quietly missing a label.
+	 *
+	 * @return void
+	 */
+	public function test_one_failed_shipment_fails_the_print() {
+		$pdf      = array( 'pages' => array( array( 'binaryData' => base64_encode( '%PDF-x' ) ) ) );
+		$provider = $this->provider( array( $this->login(), array( 200, $pdf ), array( 500, array( 'message' => 'boom' ) ) ) );
+
+		$this->assertTrue( $provider->fetch_labels( array( 'ship-A', 'ship-B' ) )->is_failure() );
+	}
 }

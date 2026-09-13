@@ -114,6 +114,8 @@ class WC_ESM_Shipment_Labels {
 				$pdfs[] = $pdf;
 			}
 
+			self::record_parcel_numbers( $group['orders'], (array) $result->get( 'barcodes_by_ref', array() ) );
+
 			$printed += count( $group['refs'] );
 		}
 
@@ -122,6 +124,38 @@ class WC_ESM_Shipment_Labels {
 			'printed'  => $printed,
 			'problems' => $problems,
 		);
+	}
+
+	/**
+	 * Put parcel numbers the carrier issued while printing onto the orders
+	 * they belong to.
+	 *
+	 * Matched by shipment reference, never by position: DPD hands shipments
+	 * back in an order of its own choosing, and a shipment of several parcels
+	 * has several numbers, so a list lined up by index puts one order's
+	 * numbers on another.
+	 *
+	 * @param array $orders          Orders in the group that was printed.
+	 * @param array $barcodes_by_ref Parcel numbers keyed by shipment reference.
+	 *
+	 * @return void
+	 */
+	protected static function record_parcel_numbers( $orders, $barcodes_by_ref ) {
+		if ( ! $barcodes_by_ref ) {
+			return;
+		}
+
+		foreach ( $orders as $order ) {
+			$barcodes = array();
+
+			foreach ( WC_ESM_Shipment::label_refs( $order ) as $ref ) {
+				if ( isset( $barcodes_by_ref[ $ref ] ) ) {
+					$barcodes = array_merge( $barcodes, (array) $barcodes_by_ref[ $ref ] );
+				}
+			}
+
+			WC_ESM_Shipment::record_barcodes( $order, $barcodes );
+		}
 	}
 
 	/**

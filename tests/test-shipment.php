@@ -227,4 +227,49 @@ class Test_Shipment extends WC_ESM_Test_Case {
 		$this->assertSame( array(), WC_ESM_Shipment::barcodes( $order ) );
 		$this->assertFalse( WC_ESM_Shipment::is_registered( $order ) );
 	}
+
+	/**
+	 * A carrier that issues parcel numbers only when the label is printed -
+	 * DPD - has them written onto the order then, next to the shipment that
+	 * was already there.
+	 *
+	 * @return void
+	 */
+	public function test_parcel_numbers_can_arrive_after_registration() {
+		$order = new WC_ESM_Fake_Order();
+		WC_ESM_Shipment::record( $order, WC_ESM_Shipment_Result::success( array( 'label_refs' => array( 'ship-1' ) ) ) );
+
+		WC_ESM_Shipment::record_barcodes( $order, array( '05605586869410' ) );
+
+		$this->assertSame( array( '05605586869410' ), WC_ESM_Shipment::barcodes( $order ) );
+		$this->assertSame( array( 'ship-1' ), WC_ESM_Shipment::label_refs( $order ) );
+	}
+
+	/**
+	 * Printing again adds nothing twice.
+	 *
+	 * @return void
+	 */
+	public function test_the_same_parcel_number_is_not_written_twice() {
+		$order = new WC_ESM_Fake_Order();
+		WC_ESM_Shipment::record_barcodes( $order, array( 'P1' ) );
+
+		WC_ESM_Shipment::record_barcodes( $order, array( 'P1', 'P2' ) );
+
+		$this->assertSame( array( 'P1', 'P2' ), WC_ESM_Shipment::barcodes( $order ) );
+	}
+
+	/**
+	 * Nothing to add writes nothing, so a print that brought no numbers does
+	 * not save the order for no reason.
+	 *
+	 * @return void
+	 */
+	public function test_no_parcel_numbers_writes_nothing() {
+		$order = new WC_ESM_Fake_Order();
+
+		WC_ESM_Shipment::record_barcodes( $order, array() );
+
+		$this->assertSame( 0, $order->saves );
+	}
 }
