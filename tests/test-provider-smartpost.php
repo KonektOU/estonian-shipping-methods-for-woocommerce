@@ -93,8 +93,7 @@ class Test_Provider_Smartpost extends WC_ESM_Test_Case {
 	}
 
 	/**
-	 * It prints labels and it tracks; it books no couriers and closes no
-	 * manifests.
+	 * It prints labels, tracks and collects cash on delivery.
 	 *
 	 * @return void
 	 */
@@ -104,8 +103,6 @@ class Test_Provider_Smartpost extends WC_ESM_Test_Case {
 		$this->assertTrue( $provider->supports( 'labels' ) );
 		$this->assertTrue( $provider->supports( 'tracking' ) );
 		$this->assertTrue( $provider->supports( 'cod' ) );
-		$this->assertFalse( $provider->supports( 'pickup' ) );
-		$this->assertFalse( $provider->supports( 'manifest' ) );
 		// No endpoint for reading back what was collected is documented, so
 		// the capability is not claimed. See the provider's docblock.
 		$this->assertTrue( $provider->supports( 'cod_report' ) );

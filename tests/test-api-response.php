@@ -76,7 +76,7 @@ class Test_Api_Response extends WC_ESM_Test_Case {
 	}
 
 	/**
-	 * A label and a manifest come back as PDF bytes rather than JSON. Asking
+	 * A label comes back as PDF bytes rather than JSON. Asking
 	 * for them as JSON gives nothing rather than a warning, and the bytes are
 	 * there for whoever wants them.
 	 *

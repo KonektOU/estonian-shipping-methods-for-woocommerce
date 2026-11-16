@@ -137,19 +137,16 @@ class Test_Provider_Dpd extends WC_ESM_Test_Case {
 	}
 
 	/**
-	 * DPD is the only carrier here that closes manifests.
+	 * DPD prints labels and tracks parcels, but takes no returns here.
 	 *
 	 * @return void
 	 */
-	public function test_it_is_the_one_that_closes_manifests() {
+	public function test_it_declares_what_it_offers() {
 		$provider = new WC_ESM_Provider_Dpd();
 
-		$this->assertTrue( $provider->supports( 'manifest' ) );
-		$this->assertTrue( $provider->supports( 'pickup' ) );
 		$this->assertTrue( $provider->supports( 'labels' ) );
+		$this->assertTrue( $provider->supports( 'tracking' ) );
 		$this->assertFalse( $provider->supports( 'return' ) );
-		// DPD's API offers no way to call a booked courier off.
-		$this->assertFalse( $provider->supports( 'pickup_cancel' ) );
 	}
 
 	/**
@@ -302,93 +299,6 @@ class Test_Provider_Dpd extends WC_ESM_Test_Case {
 	}
 
 	/**
-	 * Closing a manifest hands DPD the shipments it covers and gives back
-	 * the reference the manifest is filed under.
-	 *
-	 * @return void
-	 */
-	public function test_closing_a_manifest_gives_back_its_reference() {
-		$provider = $this->provider(
-			array(
-				$this->login(),
-				array( 200, array( 'shipmentIds' => array( 'ship-1', 'ship-2' ), 'binaryData' => base64_encode( '%PDF-manifest' ) ) ),
-			)
-		);
-
-		$result = $provider->close_manifest( array( 'ship-1', 'ship-2' ) );
-
-		$this->assertTrue( $result->is_success() );
-		$this->assertSame( '%PDF-manifest', $result->get( 'pdf' ) );
-		$this->assertSame( 'shipments/manifests', $provider->fake->endpoint( 1 ) );
-	}
-
-	/**
-	 * Closing a manifest over nothing asks DPD nothing.
-	 *
-	 * @return void
-	 */
-	public function test_a_manifest_over_nothing_asks_nothing() {
-		$provider = $this->provider();
-
-		$this->assertTrue( $provider->close_manifest( array() )->is_failure() );
-		$this->assertSame( array(), $provider->fake->calls );
-	}
-
-	/**
-	 * A closed manifest can be fetched again as a PDF.
-	 *
-	 * @return void
-	 */
-	public function test_a_closed_manifest_can_be_fetched_again() {
-		$provider = $this->provider(
-			array(
-				$this->login(),
-				array( 200, array( 'binaryData' => base64_encode( '%PDF-manifest' ) ) ),
-			)
-		);
-
-		$result = $provider->fetch_manifest( 'man-1' );
-
-		$this->assertTrue( $result->is_success() );
-		$this->assertSame( '%PDF-manifest', $result->get( 'pdf' ) );
-		$this->assertStringContainsString( 'man-1', $provider->fake->endpoint( 1 ) );
-	}
-
-	/**
-	 * A courier is booked for a window at the shop's own address.
-	 *
-	 * @return void
-	 */
-	public function test_a_courier_is_booked_for_a_window() {
-		$provider = $this->provider(
-			array(
-				$this->login(),
-				array( 201, array( 'id' => 'pick-1' ) ),
-			)
-		);
-
-		$result = $provider->request_pickup(
-			array(
-				'date'      => '2026-09-10',
-				'time_from' => '09:00',
-				'time_to'   => '17:00',
-				'comment'   => 'Back door',
-			)
-		);
-
-		$this->assertTrue( $result->is_success() );
-		$this->assertSame( 'pick-1', $result->get( 'reference' ) );
-
-		$body = $provider->fake->body( 1 );
-		$this->assertSame( 'pickups', $provider->fake->endpoint( 1 ) );
-		$this->assertSame( '2026-09-10', $body['pickupDate'] );
-		$this->assertSame( '09:00', $body['pickupTimeFrom'] );
-		$this->assertSame( '17:00', $body['pickupTimeTo'] );
-		$this->assertSame( 'Back door', $body['messageToCourier'] );
-		$this->assertSame( 'Tallinn', $body['address']['city'] );
-	}
-
-	/**
 	 * A customer can follow the parcel by its number.
 	 *
 	 * @return void
@@ -445,36 +355,6 @@ class Test_Provider_Dpd extends WC_ESM_Test_Case {
 		$this->assertArrayHasKey( 'name', $login['body'] );
 		$this->assertArrayHasKey( 'ttl', $login['body'] );
 		$this->assertArrayNotHasKey( 'password', $login['body'] );
-	}
-
-	/**
-	 * A manifest comes back as the PDF itself, because DPD returns no
-	 * reference to fetch it by later.
-	 *
-	 * @return void
-	 */
-	public function test_a_closed_manifest_has_no_reference_to_offer() {
-		$provider = $this->provider(
-			array(
-				$this->login(),
-				array( 200, array( 'binaryData' => base64_encode( '%PDF-manifest' ) ) ),
-			)
-		);
-
-		$this->assertSame( '', $provider->close_manifest( array( 'ship-1' ) )->get( 'reference' ) );
-	}
-
-	/**
-	 * Asked to call a courier off, DPD says honestly that it cannot: its API
-	 * has no endpoint for it, and a button that fails when pressed is worse
-	 * than no button.
-	 *
-	 * @return void
-	 */
-	public function test_a_booked_courier_cannot_be_called_off() {
-		$result = ( new WC_ESM_Provider_Dpd() )->cancel_pickup( 'pick-1' );
-
-		$this->assertSame( 'unsupported', $result->get_code() );
 	}
 
 	/**

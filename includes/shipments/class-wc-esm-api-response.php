@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * One carrier's answer to one request.
  *
  * Carriers answer in two shapes and the same carrier uses both: JSON for
- * everything about a shipment, PDF bytes for a label or a manifest. Before
+ * everything about a shipment, PDF bytes for a label. Before
  * this, each provider passed around an array whose 'body' was sometimes a
  * string, sometimes a decoded array and in one case either - a difference
  * nothing named and every caller had to know.

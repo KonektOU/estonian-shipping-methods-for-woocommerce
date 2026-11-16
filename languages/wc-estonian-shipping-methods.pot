@@ -409,125 +409,21 @@ msgid "Smartpost Lithuania"
 msgstr ""
 
 #. translators: 1: carrier name, 2: why the request did not arrive.
-#: includes/shipments/abstracts/class-wc-esm-shipment-provider.php:260
+#: includes/shipments/abstracts/class-wc-esm-shipment-provider.php:214
 #, php-format
 msgid "%1$s could not be reached: %2$s"
 msgstr ""
 
 #. translators: 1: carrier name, 2: HTTP status code, 3: what the carrier said.
-#: includes/shipments/abstracts/class-wc-esm-shipment-provider.php:271
+#: includes/shipments/abstracts/class-wc-esm-shipment-provider.php:225
 #, php-format
 msgid "%1$s refused the request (HTTP %2$d): %3$s"
 msgstr ""
 
 #. translators: 1: carrier name, 2: HTTP status code.
-#: includes/shipments/abstracts/class-wc-esm-shipment-provider.php:282
+#: includes/shipments/abstracts/class-wc-esm-shipment-provider.php:236
 #, php-format
 msgid "%1$s refused the request (HTTP %2$d)."
-msgstr ""
-
-#: includes/shipments/class-wc-esm-dispatch-screen.php:81
-#: includes/shipments/class-wc-esm-dispatch-screen.php:313
-msgid "Recent dispatches"
-msgstr ""
-
-#: includes/shipments/class-wc-esm-dispatch-screen.php:147
-#: includes/shipments/class-wc-esm-dispatch-screen.php:148
-#: includes/shipments/class-wc-esm-dispatch-screen.php:165
-msgid "Parcel dispatch"
-msgstr ""
-
-#: includes/shipments/class-wc-esm-dispatch-screen.php:235
-msgid "Courier pickup"
-msgstr ""
-
-#: includes/shipments/class-wc-esm-dispatch-screen.php:243
-msgid "Pickup date"
-msgstr ""
-
-#: includes/shipments/class-wc-esm-dispatch-screen.php:247
-msgid "Between"
-msgstr ""
-
-#: includes/shipments/class-wc-esm-dispatch-screen.php:254
-msgid "Message to the courier"
-msgstr ""
-
-#: includes/shipments/class-wc-esm-dispatch-screen.php:258
-msgid "Book a pickup"
-msgstr ""
-
-#: includes/shipments/class-wc-esm-dispatch-screen.php:274
-msgid "Manifest"
-msgstr ""
-
-#. translators: %d: number of shipments.
-#: includes/shipments/class-wc-esm-dispatch-screen.php:279
-#, php-format
-msgid "%d shipment is not on a manifest yet."
-msgid_plural "%d shipments are not on a manifest yet."
-msgstr[0] ""
-msgstr[1] ""
-
-#. translators: %d: the ceiling that was hit.
-#: includes/shipments/class-wc-esm-dispatch-screen.php:289
-#, php-format
-msgid "Stopped after %d orders; there may be more not shown here."
-msgstr ""
-
-#: includes/shipments/class-wc-esm-dispatch-screen.php:300
-msgid "Close the manifest"
-msgstr ""
-
-#: includes/shipments/class-wc-esm-dispatch-screen.php:316
-msgid "Nothing has been booked or manifested yet."
-msgstr ""
-
-#: includes/shipments/class-wc-esm-dispatch-screen.php:322
-msgid "Carrier"
-msgstr ""
-
-#: includes/shipments/class-wc-esm-dispatch-screen.php:323
-msgid "Kind"
-msgstr ""
-
-#: includes/shipments/class-wc-esm-dispatch-screen.php:324
-msgid "Reference"
-msgstr ""
-
-#: includes/shipments/class-wc-esm-dispatch-screen.php:325
-msgid "When"
-msgstr ""
-
-#: includes/shipments/class-wc-esm-dispatch-screen.php:326
-msgid "Actions"
-msgstr ""
-
-#: includes/shipments/class-wc-esm-dispatch-screen.php:354
-msgid "Download"
-msgstr ""
-
-#. translators: 1: carrier name, 2: pickup reference.
-#: includes/shipments/class-wc-esm-dispatch-screen.php:366
-#, php-format
-msgid "Cancel the pickup %2$s booked with %1$s?"
-msgstr ""
-
-#: includes/shipments/class-wc-esm-dispatch-screen.php:374
-msgid "Cancel"
-msgstr ""
-
-#: includes/shipments/class-wc-esm-dispatch-screen.php:380
-msgid "Cancelled"
-msgstr ""
-
-#: includes/shipments/class-wc-esm-dispatch-screen.php:441
-#: includes/shipments/class-wc-esm-shipment-admin.php:176
-msgid "You are not allowed to do that."
-msgstr ""
-
-#: includes/shipments/class-wc-esm-dispatch-screen.php:551
-msgid "That pickup has already been cancelled."
 msgstr ""
 
 #. translators: 1: shop name, 2: order number.
@@ -571,6 +467,10 @@ msgstr ""
 
 #: includes/shipments/class-wc-esm-shipment-admin.php:160
 msgid "Follow the parcel"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-shipment-admin.php:176
+msgid "You are not allowed to do that."
 msgstr ""
 
 #: includes/shipments/class-wc-esm-shipment-admin.php:216
@@ -690,7 +590,7 @@ msgstr ""
 #: includes/shipments/class-wc-esm-shop-address.php:117
 msgid ""
 "WooCommerce keeps no telephone number for the shop, so this one is yours to "
-"fill in. The carrier calls it when a pickup goes wrong."
+"fill in. The carrier calls it when something goes wrong with a parcel."
 msgstr ""
 
 #: includes/shipments/class-wc-esm-shop-address.php:120
@@ -812,24 +712,8 @@ msgstr ""
 msgid "There is nothing to print."
 msgstr ""
 
-#: includes/shipments/providers/class-wc-esm-provider-dpd.php:240
+#: includes/shipments/providers/class-wc-esm-provider-dpd.php:249
 msgid "DPD returned no label."
-msgstr ""
-
-#: includes/shipments/providers/class-wc-esm-provider-dpd.php:257
-msgid "There is nothing to put on a manifest."
-msgstr ""
-
-#: includes/shipments/providers/class-wc-esm-provider-dpd.php:270
-msgid "DPD closed the manifest but returned no document for it."
-msgstr ""
-
-#: includes/shipments/providers/class-wc-esm-provider-dpd.php:295
-msgid "There is no manifest to fetch."
-msgstr ""
-
-#: includes/shipments/providers/class-wc-esm-provider-dpd.php:308
-msgid "DPD returned no manifest document."
 msgstr ""
 
 #: includes/shipments/providers/class-wc-esm-provider-omniva.php:54

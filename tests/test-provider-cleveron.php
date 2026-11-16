@@ -125,7 +125,7 @@ class Test_Provider_Cleveron extends WC_ESM_Test_Case {
 	public function test_it_declares_nothing_it_cannot_do() {
 		$provider = new WC_ESM_Provider_Cleveron();
 
-		foreach ( array( 'labels', 'tracking', 'pickup', 'manifest', 'cod', 'cod_report', 'return' ) as $feature ) {
+		foreach ( array( 'labels', 'tracking', 'cod', 'cod_report', 'return' ) as $feature ) {
 			$this->assertFalse( $provider->supports( $feature ), $feature );
 		}
 	}

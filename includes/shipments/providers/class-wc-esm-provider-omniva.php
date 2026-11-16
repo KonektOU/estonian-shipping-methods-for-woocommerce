@@ -34,7 +34,7 @@ class WC_ESM_Provider_Omniva extends WC_ESM_Shipment_Provider {
 	 *
 	 * @var array
 	 */
-	protected $features = array( 'labels', 'tracking', 'pickup', 'pickup_cancel', 'cod', 'return' );
+	protected $features = array( 'labels', 'tracking', 'cod', 'return' );
 
 	/**
 	 * Id.
@@ -211,67 +211,6 @@ class WC_ESM_Provider_Omniva extends WC_ESM_Shipment_Provider {
 	}
 
 	/**
-	 * Book a courier.
-	 *
-	 * @param array $args date, time_from, time_to, comment.
-	 *
-	 * @return WC_ESM_Shipment_Result
-	 */
-	public function request_pickup( $args ) {
-		$response = $this->client()->post(
-			'courierorders/create-pickup-order',
-			array(
-				'customerCode'      => $this->get_setting( 'customer_code' ),
-				'contactPersonName' => $this->get_setting( 'sender_name' ),
-				'contactPhone'      => $this->get_setting( 'sender_phone' ),
-				'pickupAddress'     => array(
-					'postcode'      => $this->get_setting( 'sender_postcode' ),
-					'deliverypoint' => $this->get_setting( 'sender_city' ),
-					'country'       => $this->get_setting( 'sender_country', 'EE' ),
-					'street'        => trim( $this->get_setting( 'sender_street' ) . ' ' . $this->get_setting( 'sender_house' ) ),
-				),
-				'startTime'         => $this->moment( $args, 'time_from', '08:00' ),
-				'endTime'           => $this->moment( $args, 'time_to', '17:00' ),
-				'pickupComment'     => isset( $args['comment'] ) ? $args['comment'] : '',
-				'isTwoManPickup'    => false,
-				'isHeavyPackage'    => false,
-				'packageCount'      => 1,
-			)
-		);
-
-		if ( ! $response->ok() ) {
-			return $this->refusal( $response, $this->what_it_said( $response ) );
-		}
-
-		return WC_ESM_Shipment_Result::success(
-			array( 'reference' => (string) $response->get( 'courierOrderNumber', '' ) )
-		);
-	}
-
-	/**
-	 * Call a booked courier off.
-	 *
-	 * @param string $reference Pickup reference.
-	 *
-	 * @return WC_ESM_Shipment_Result
-	 */
-	public function cancel_pickup( $reference ) {
-		$response = $this->client()->post(
-			'courierorders/cancel-pickup-order',
-			array(
-				'customerCode'       => $this->get_setting( 'customer_code' ),
-				'courierOrderNumber' => (string) $reference,
-			)
-		);
-
-		if ( ! $response->ok() ) {
-			return $this->refusal( $response, $this->what_it_said( $response ) );
-		}
-
-		return WC_ESM_Shipment_Result::success();
-	}
-
-	/**
 	 * Where a customer follows a parcel.
 	 *
 	 * @param string $barcode Barcode.
@@ -282,50 +221,6 @@ class WC_ESM_Provider_Omniva extends WC_ESM_Shipment_Provider {
 		$barcode = (string) $barcode;
 
 		return '' === $barcode ? '' : sprintf( self::TRACKING_URL, rawurlencode( $barcode ) );
-	}
-
-	/**
-	 * One date and time, in the shape OMX wants it.
-	 *
-	 * @param array  $args    Pickup arguments.
-	 * @param string $key     Which time.
-	 * @param string $default Fallback time of day.
-	 *
-	 * @return string
-	 */
-	protected function moment( $args, $key, $default ) {
-		$date = isset( $args['date'] ) && '' !== $args['date'] ? $args['date'] : gmdate( 'Y-m-d' );
-		$time = isset( $args[ $key ] ) && '' !== $args[ $key ] ? $args[ $key ] : $default;
-
-		return self::utc_moment( $date, $time, function_exists( 'wp_timezone_string' ) ? wp_timezone_string() : 'UTC' );
-	}
-
-	/**
-	 * A local date and time as OMX reads it.
-	 *
-	 * Omniva reads the pickup window in UTC. A shop in Tallinn asking for
-	 * nine in the morning means nine o'clock where the courier is going, and
-	 * sending the wall clock unconverted puts them there three hours late all
-	 * summer.
-	 *
-	 * @param string $date     Y-m-d, in the shop's own timezone.
-	 * @param string $time     H:i, in the shop's own timezone.
-	 * @param string $timezone The shop's timezone.
-	 *
-	 * @return string
-	 */
-	public static function utc_moment( $date, $time, $timezone ) {
-		try {
-			$moment = new DateTime( $date . ' ' . $time, new DateTimeZone( $timezone ) );
-		} catch ( \Throwable $e ) {
-			// An unusable timezone must not stop a shop booking a courier;
-			// the times were typed by hand and UTC is the honest fallback.
-			$moment = new DateTime( $date . ' ' . $time, new DateTimeZone( 'UTC' ) );
-		}
-
-		$moment->setTimezone( new DateTimeZone( 'UTC' ) );
-
-		return $moment->format( 'Y-m-d\TH:i:s' ) . '.000';
 	}
 
 	/**

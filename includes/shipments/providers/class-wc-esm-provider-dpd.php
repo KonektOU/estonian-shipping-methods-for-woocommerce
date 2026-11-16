@@ -44,7 +44,7 @@ class WC_ESM_Provider_Dpd extends WC_ESM_Shipment_Provider {
 	 *
 	 * @var array
 	 */
-	protected $features = array( 'labels', 'tracking', 'pickup', 'manifest', 'cod' );
+	protected $features = array( 'labels', 'tracking', 'cod' );
 
 	/**
 	 * Which portal answers for a country.
@@ -268,110 +268,6 @@ class WC_ESM_Provider_Dpd extends WC_ESM_Shipment_Provider {
 	}
 
 	/**
-	 * Close a manifest over the shipments handed to the courier.
-	 *
-	 * @param array $refs Shipment ids.
-	 *
-	 * @return WC_ESM_Shipment_Result
-	 */
-	public function close_manifest( $refs ) {
-		$refs = array_values( array_filter( (array) $refs ) );
-
-		if ( ! $refs ) {
-			return WC_ESM_Shipment_Result::failure( __( 'There is nothing to put on a manifest.', 'wc-estonian-shipping-methods' ) );
-		}
-
-		$response = $this->authed( 'shipments/manifests', 'POST', array( 'shipmentIds' => $refs ) );
-
-		if ( ! $response->ok() ) {
-			return $this->refusal( $response, $this->what_it_said( $response ) );
-		}
-
-		$pdf = self::binary( $response->get( 'binaryData', '' ) );
-
-		if ( ! $pdf ) {
-			return WC_ESM_Shipment_Result::failure(
-				__( 'DPD closed the manifest but returned no document for it.', 'wc-estonian-shipping-methods' )
-			);
-		}
-
-		// DPD answers a closed manifest with the document itself and no
-		// reference of its own, so this is the only moment it can be had.
-		return WC_ESM_Shipment_Result::success(
-			array(
-				'pdf'       => $pdf[0],
-				'reference' => '',
-			)
-		);
-	}
-
-	/**
-	 * Fetch a manifest that was already closed.
-	 *
-	 * @param string $reference Manifest reference.
-	 *
-	 * @return WC_ESM_Shipment_Result
-	 */
-	public function fetch_manifest( $reference ) {
-		$reference = (string) $reference;
-
-		if ( '' === $reference ) {
-			return WC_ESM_Shipment_Result::failure( __( 'There is no manifest to fetch.', 'wc-estonian-shipping-methods' ) );
-		}
-
-		$response = $this->authed( 'shipments/manifests/' . rawurlencode( $reference ), 'GET' );
-
-		if ( ! $response->ok() ) {
-			return $this->refusal( $response, $this->what_it_said( $response ) );
-		}
-
-		$pdf = self::binary( $response->get( 'binaryData', '' ) );
-
-		return $pdf
-			? WC_ESM_Shipment_Result::success( array( 'pdf' => $pdf[0] ) )
-			: WC_ESM_Shipment_Result::failure( __( 'DPD returned no manifest document.', 'wc-estonian-shipping-methods' ) );
-	}
-
-	/**
-	 * Book a courier.
-	 *
-	 * @param array $args date, time_from, time_to, comment.
-	 *
-	 * @return WC_ESM_Shipment_Result
-	 */
-	public function request_pickup( $args ) {
-		$response = $this->authed(
-			'pickups',
-			'POST',
-			array(
-				'payerCode'        => $this->get_setting( 'payer_code' ),
-				'pickupDate'       => isset( $args['date'] ) && '' !== $args['date'] ? $args['date'] : gmdate( 'Y-m-d' ),
-				'pickupTimeFrom'   => isset( $args['time_from'] ) && '' !== $args['time_from'] ? $args['time_from'] : '09:00',
-				'pickupTimeTo'     => isset( $args['time_to'] ) && '' !== $args['time_to'] ? $args['time_to'] : '17:00',
-				'messageToCourier' => isset( $args['comment'] ) ? $args['comment'] : '',
-				'address'          => array(
-					'name'       => $this->get_setting( 'sender_name' ),
-					'phone'      => $this->get_setting( 'sender_phone' ),
-					'email'      => $this->get_setting( 'sender_email' ),
-					'street'     => $this->get_setting( 'sender_street' ),
-					'streetNo'   => $this->get_setting( 'sender_house' ),
-					'city'       => $this->get_setting( 'sender_city' ),
-					'postalCode' => $this->get_setting( 'sender_postcode' ),
-					'country'    => $this->get_setting( 'sender_country', 'EE' ),
-				),
-			)
-		);
-
-		if ( ! $response->ok() ) {
-			return $this->refusal( $response, $this->what_it_said( $response ) );
-		}
-
-		return WC_ESM_Shipment_Result::success(
-			array( 'reference' => (string) $response->get( 'id', '' ) )
-		);
-	}
-
-	/**
 	 * Where a customer follows a parcel.
 	 *
 	 * @param string $barcode Parcel number.
@@ -515,8 +411,8 @@ class WC_ESM_Provider_Dpd extends WC_ESM_Shipment_Provider {
 	/**
 	 * DPD's base64 payloads as bytes.
 	 *
-	 * Labels arrive as a list of objects each carrying one, a manifest as a
-	 * single string; both are base64.
+	 * Labels arrive as a list of objects each carrying one; a single document
+	 * may also arrive as a bare string. Both are base64.
 	 *
 	 * @param mixed $data What the carrier sent.
 	 *

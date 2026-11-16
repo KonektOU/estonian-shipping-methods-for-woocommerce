@@ -13,9 +13,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Cleveron Office, over its integration API.
  *
  * Cleveron declares no capabilities at all, and that is the point of them
- * being optional: it prints no labels, tracks nothing, books no couriers and
- * closes no manifests. The order screen asks supports() before offering a
- * button, so a Cleveron order simply shows fewer of them.
+ * being optional: it prints no labels and tracks nothing. The order screen
+ * asks supports() before offering a button, so a Cleveron order simply shows
+ * fewer of them.
  *
  * What is per-zone stays with the shipping method: which parcel robot, what
  * slot size, which message templates. A shop with two offices runs two

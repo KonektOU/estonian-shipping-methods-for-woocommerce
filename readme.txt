@@ -38,13 +38,12 @@ The plugin can also send the parcel, not only offer the method: orders go to
 the carrier on a status you choose or by hand, labels print per order and in
 bulk (a selection spanning several carriers merges into one PDF, which needs
 `composer install`), the customer gets a tracking sentence in the order e-mails
-you choose and under My account, and courier pickups and manifests live under
-WooCommerce - Parcel dispatch. Registration is queued, so a carrier's API is
-never on a customer's checkout.
+you choose and under My account. Registration is queued, so a carrier's API is
+never on a customer's checkout. Courier pickups and manifests are left to the
+carrier's own portal.
 
 Carriers differ in what they offer and nothing is shown where it would fail:
-Cleveron prints no labels and tracks nothing, only DPD closes manifests, only
-Omniva and DPD send a courier.
+Cleveron prints no labels and tracks nothing.
 
 Smartposti has been exercised end to end against a real contract. Omniva and
 DPD are written from their published documentation and covered by unit tests,

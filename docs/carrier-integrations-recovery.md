@@ -17,6 +17,15 @@ lost code used, and reusing them is deliberate: stored option keys, order meta
 keys and method ids are written into live shops and shipping zones, and the
 rebuild has to meet them exactly.
 
+**Since removed:** courier pickups, DPD manifests and the WooCommerce →
+Parcel dispatch screen (`WC_ESM_Dispatch_Screen`, `WC_ESM_Dispatch_Log`,
+`WC_ESM_Unmanifested_Orders`, the `pickup`, `pickup_cancel` and `manifest`
+capabilities, task #55's additions). They were never asked for in #43 and went
+beyond what comparable plugins offer; shops book couriers and close manifests
+in the carrier's own portal. The sections below that describe them are kept as
+history. The `wc_esm_dispatch_log` option and `_wc_esm_manifested` order meta
+were never released, so nothing is migrated.
+
 Reference material downloaded from the board sits outside the repo, in
 `~/Work/esm-reference`: Smartposti's API documentation, and the Omniva ePlis and
 DPD Interconnector plugins as reference implementations. Two more reference

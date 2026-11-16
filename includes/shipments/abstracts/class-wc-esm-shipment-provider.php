@@ -19,8 +19,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  * the rest.
  *
  * That matters because the capabilities are genuinely uneven: Cleveron prints
- * no labels and tracks nothing, only DPD closes manifests, only Omniva takes
- * returns, and only Smartposti reports what cash on delivery it collected.
+ * no labels and tracks nothing, only Omniva takes returns, and only Smartposti
+ * reports what cash on delivery it collected.
  * Callers ask supports() before offering a button, and this class answers the
  * ones that ask anyway.
  */
@@ -29,9 +29,7 @@ abstract class WC_ESM_Shipment_Provider {
 	/**
 	 * Capabilities this carrier opts into.
 	 *
-	 * One of: labels, tracking, pickup, pickup_cancel, manifest, cod,
-	 * cod_report, return. Booking a courier and calling one off are separate
-	 * because carriers differ: DPD books but cannot cancel.
+	 * One of: labels, tracking, cod, cod_report, return.
 	 *
 	 * @var array
 	 */
@@ -170,50 +168,6 @@ abstract class WC_ESM_Shipment_Provider {
 	 */
 	public function get_tracking_url( $barcode ) {
 		return '';
-	}
-
-	/**
-	 * Book a courier.
-	 *
-	 * @param array $args date, time_from, time_to, comment.
-	 *
-	 * @return WC_ESM_Shipment_Result
-	 */
-	public function request_pickup( $args ) {
-		return WC_ESM_Shipment_Result::unsupported( 'pickup' );
-	}
-
-	/**
-	 * Call a booked courier off.
-	 *
-	 * @param string $reference Pickup reference.
-	 *
-	 * @return WC_ESM_Shipment_Result
-	 */
-	public function cancel_pickup( $reference ) {
-		return WC_ESM_Shipment_Result::unsupported( 'pickup' );
-	}
-
-	/**
-	 * Close a manifest over the shipments handed to the courier.
-	 *
-	 * @param array $refs Shipment references.
-	 *
-	 * @return WC_ESM_Shipment_Result
-	 */
-	public function close_manifest( $refs ) {
-		return WC_ESM_Shipment_Result::unsupported( 'manifest' );
-	}
-
-	/**
-	 * Fetch a manifest that was already closed.
-	 *
-	 * @param string $reference Manifest reference.
-	 *
-	 * @return WC_ESM_Shipment_Result
-	 */
-	public function fetch_manifest( $reference ) {
-		return WC_ESM_Shipment_Result::unsupported( 'manifest' );
 	}
 
 	/**

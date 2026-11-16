@@ -104,17 +104,15 @@ class Test_Provider_Omniva extends WC_ESM_Test_Case {
 	}
 
 	/**
-	 * Omniva books couriers and takes returns; it closes no manifests.
+	 * Omniva prints labels and takes returns.
 	 *
 	 * @return void
 	 */
 	public function test_it_declares_what_it_offers() {
 		$provider = new WC_ESM_Provider_Omniva();
 
-		$this->assertTrue( $provider->supports( 'pickup' ) );
 		$this->assertTrue( $provider->supports( 'return' ) );
 		$this->assertTrue( $provider->supports( 'labels' ) );
-		$this->assertFalse( $provider->supports( 'manifest' ) );
 	}
 
 	/**
@@ -187,83 +185,6 @@ class Test_Provider_Omniva extends WC_ESM_Test_Case {
 		$this->assertSame( array( '%PDF-one', '%PDF-two' ), $result->get( 'pdfs' ) );
 		$this->assertSame( 'shipments/package-labels', $provider->fake->endpoint() );
 		$this->assertSame( array( 'CE1', 'CE2' ), $provider->fake->body()['barcodes'] );
-	}
-
-	/**
-	 * A courier is booked for a window on a day, at the shop's own address.
-	 *
-	 * @return void
-	 */
-	public function test_a_courier_is_booked_for_a_window() {
-		$provider = $this->provider( array( array( 200, array( 'courierOrderNumber' => '4141146' ) ) ) );
-
-		$result = $provider->request_pickup(
-			array(
-				'date'      => '2026-09-10',
-				'time_from' => '09:00',
-				'time_to'   => '17:00',
-				'comment'   => 'Ring the bell',
-			)
-		);
-
-		$this->assertTrue( $result->is_success() );
-		$this->assertSame( '4141146', $result->get( 'reference' ) );
-		$this->assertSame( 'courierorders/create-pickup-order', $provider->fake->endpoint() );
-
-		$body = $provider->fake->body();
-		$this->assertSame( 'Tallinn', $body['pickupAddress']['deliverypoint'] );
-	}
-
-	/**
-	 * Omniva reads the window in UTC. A shop in Tallinn asking for nine in
-	 * the morning means nine local, and sending the wall clock unconverted
-	 * puts the courier there three hours late in summer.
-	 *
-	 * @return void
-	 */
-	public function test_the_window_is_sent_in_utc() {
-		$this->assertSame(
-			'2026-09-10T06:00:00.000',
-			WC_ESM_Provider_Omniva::utc_moment( '2026-09-10', '09:00', 'Europe/Tallinn' )
-		);
-		$this->assertSame(
-			'2026-01-10T07:00:00.000',
-			WC_ESM_Provider_Omniva::utc_moment( '2026-01-10', '09:00', 'Europe/Tallinn' )
-		);
-	}
-
-	/**
-	 * A shop that runs on UTC already is not shifted.
-	 *
-	 * @return void
-	 */
-	public function test_a_shop_already_on_utc_is_not_shifted() {
-		$this->assertSame( '2026-09-10T09:00:00.000', WC_ESM_Provider_Omniva::utc_moment( '2026-09-10', '09:00', 'UTC' ) );
-	}
-
-	/**
-	 * A booked courier is called off by the number Omniva files it under,
-	 * and Omniva asks for it by that name.
-	 *
-	 * @return void
-	 */
-	public function test_a_cancellation_names_the_courier_order() {
-		$provider = $this->provider( array( array( 200, array() ) ) );
-		$provider->cancel_pickup( '4141146' );
-
-		$this->assertSame( '4141146', $provider->fake->body()['courierOrderNumber'] );
-	}
-
-	/**
-	 * A booked courier can be called off by the reference the booking gave.
-	 *
-	 * @return void
-	 */
-	public function test_a_booked_courier_can_be_called_off() {
-		$provider = $this->provider( array( array( 200, array() ) ) );
-
-		$this->assertTrue( $provider->cancel_pickup( 'P-1' )->is_success() );
-		$this->assertSame( 'courierorders/cancel-pickup-order', $provider->fake->endpoint() );
 	}
 
 	/**

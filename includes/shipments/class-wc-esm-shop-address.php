@@ -114,7 +114,7 @@ class WC_ESM_Shop_Address {
 			),
 			'sender_phone'    => array(
 				'title'       => __( 'Sender phone', 'wc-estonian-shipping-methods' ),
-				'description' => __( 'WooCommerce keeps no telephone number for the shop, so this one is yours to fill in. The carrier calls it when a pickup goes wrong.', 'wc-estonian-shipping-methods' ),
+				'description' => __( 'WooCommerce keeps no telephone number for the shop, so this one is yours to fill in. The carrier calls it when something goes wrong with a parcel.', 'wc-estonian-shipping-methods' ),
 				'desc_tip'    => true,
 			),
 			'sender_email'    => array( 'title' => __( 'Sender e-mail', 'wc-estonian-shipping-methods' ) ),

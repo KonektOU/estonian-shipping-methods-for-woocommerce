@@ -88,7 +88,7 @@ class Test_Shipment_Registry extends WC_ESM_Test_Case {
 	 * @return void
 	 */
 	public function test_a_capability_nobody_offers_is_empty() {
-		$this->assertSame( array(), $this->registry()->providers_supporting( 'manifest' ) );
+		$this->assertSame( array(), $this->registry()->providers_supporting( 'teleportation' ) );
 	}
 
 	/**

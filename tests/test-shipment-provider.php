@@ -91,39 +91,6 @@ class WC_ESM_Bare_Test_Provider extends WC_ESM_Shipment_Provider {
 }
 
 /**
- * A carrier offering pickups and manifests.
- */
-class WC_ESM_Dispatch_Test_Provider extends WC_ESM_Test_Provider {
-
-	/**
-	 * Declared features.
-	 *
-	 * @var array
-	 */
-	protected $features = array( 'pickup', 'pickup_cancel', 'manifest' );
-
-	/**
-	 * Set the features.
-	 *
-	 * @param array $features Features.
-	 *
-	 * @return void
-	 */
-	public function declare_features( $features ) {
-		$this->features = $features;
-	}
-
-	/**
-	 * Id.
-	 *
-	 * @return string
-	 */
-	public function get_id() {
-		return 'withmanifest';
-	}
-}
-
-/**
  * A carrier offering nothing beyond the label.
  */
 class WC_ESM_Plain_Test_Provider extends WC_ESM_Test_Provider {
@@ -173,7 +140,6 @@ class Test_Shipment_Provider extends WC_ESM_Test_Case {
 
 		$this->assertTrue( $provider->supports( 'cod' ) );
 		$this->assertTrue( $provider->supports( 'return' ) );
-		$this->assertFalse( $provider->supports( 'pickup' ) );
 		$this->assertFalse( $provider->supports( 'labels' ) );
 	}
 
@@ -194,7 +160,7 @@ class Test_Shipment_Provider extends WC_ESM_Test_Case {
 	public function test_a_carrier_declaring_nothing_supports_nothing() {
 		$provider = new WC_ESM_Bare_Test_Provider();
 
-		foreach ( array( 'cod', 'cod_report', 'return', 'labels', 'tracking', 'pickup', 'manifest' ) as $feature ) {
+		foreach ( array( 'cod', 'cod_report', 'return', 'labels', 'tracking' ) as $feature ) {
 			$this->assertFalse( $provider->supports( $feature ), $feature );
 		}
 	}
@@ -255,11 +221,7 @@ class Test_Shipment_Provider extends WC_ESM_Test_Case {
 		$provider = new WC_ESM_Test_Provider();
 
 		foreach ( array(
-			'fetch_labels'   => array( array( 'ref-1' ) ),
-			'request_pickup' => array( array() ),
-			'cancel_pickup'  => array( 'P-1' ),
-			'close_manifest' => array( array( 'ref-1' ) ),
-			'fetch_manifest' => array( 'M-1' ),
+			'fetch_labels' => array( array( 'ref-1' ) ),
 		) as $method => $args ) {
 			$result = $provider->{$method}( ...$args );
 

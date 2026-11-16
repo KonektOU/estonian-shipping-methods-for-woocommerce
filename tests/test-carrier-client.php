@@ -154,12 +154,12 @@ class Test_Carrier_Client extends WC_ESM_Test_Case {
 	}
 
 	/**
-	 * Any method can be asked for: one carrier cancels a pickup with DELETE.
+	 * Any method can be asked for: DPD deletes a shipment with DELETE.
 	 *
 	 * @return void
 	 */
 	public function test_any_method_can_be_asked_for() {
-		$this->client()->request( 'DELETE', 'pickups', array( 'ids' => 'P-1' ) );
+		$this->client()->request( 'DELETE', 'shipments', array( 'ids' => 'P-1' ) );
 
 		$this->assertSame( 'DELETE', $this->sent['args']['method'] );
 	}
