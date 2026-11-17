@@ -272,4 +272,22 @@ class Test_Shipment extends WC_ESM_Test_Case {
 
 		$this->assertSame( 0, $order->saves );
 	}
+
+	/**
+	 * A label nobody printed reads as not printed; once printed, it is
+	 * stamped with when.
+	 *
+	 * @return void
+	 */
+	public function test_a_printed_label_is_stamped() {
+		$order = new WC_ESM_Fake_Order();
+
+		$this->assertFalse( WC_ESM_Shipment::label_printed( $order ) );
+
+		WC_ESM_Shipment::record_label_printed( $order, 1794834096 );
+
+		$this->assertTrue( WC_ESM_Shipment::label_printed( $order ) );
+		$this->assertSame( 1794834096, $order->meta[ WC_ESM_Shipment::LABEL_PRINTED ] );
+		$this->assertSame( 1, $order->saves );
+	}
 }

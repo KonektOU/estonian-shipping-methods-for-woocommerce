@@ -28,6 +28,15 @@ class WC_ESM_Shipment {
 	const ERROR      = '_wc_esm_error';
 
 	/**
+	 * When the label was last printed, as a Unix timestamp.
+	 *
+	 * Only the orders list reads it. The order's own WooCommerce status is
+	 * left alone: printing a label is a step in packing, not a decision about
+	 * the order.
+	 */
+	const LABEL_PRINTED = '_wc_esm_label_printed';
+
+	/**
 	 * The parcel barcodes on an order.
 	 *
 	 * @param WC_Order $order Order.
@@ -120,6 +129,30 @@ class WC_ESM_Shipment {
 		}
 
 		$order->update_meta_data( self::BARCODES, array_merge( $known, $added ) );
+		$order->save();
+	}
+
+	/**
+	 * Whether this order's label has been printed.
+	 *
+	 * @param WC_Order $order Order.
+	 *
+	 * @return bool
+	 */
+	public static function label_printed( $order ) {
+		return '' !== (string) $order->get_meta( self::LABEL_PRINTED );
+	}
+
+	/**
+	 * Note that this order's label has been printed.
+	 *
+	 * @param WC_Order $order Order.
+	 * @param int|null $when  Timestamp, defaulting to now.
+	 *
+	 * @return void
+	 */
+	public static function record_label_printed( $order, $when = null ) {
+		$order->update_meta_data( self::LABEL_PRINTED, (int) ( null === $when ? time() : $when ) );
 		$order->save();
 	}
 

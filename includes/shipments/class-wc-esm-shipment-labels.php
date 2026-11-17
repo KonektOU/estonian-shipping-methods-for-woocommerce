@@ -116,6 +116,14 @@ class WC_ESM_Shipment_Labels {
 
 			self::record_parcel_numbers( $group['orders'], (array) $result->get( 'barcodes_by_ref', array() ) );
 
+			// Only the orders whose labels were in the request: an unsent
+			// order in the same group has nothing printed for it.
+			foreach ( $group['orders'] as $order ) {
+				if ( WC_ESM_Shipment::label_refs( $order ) ) {
+					WC_ESM_Shipment::record_label_printed( $order );
+				}
+			}
+
 			$printed += count( $group['refs'] );
 		}
 

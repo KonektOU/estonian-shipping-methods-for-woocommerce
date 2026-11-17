@@ -446,6 +446,52 @@ msgstr ""
 msgid "%1$s refused the request (HTTP %2$d)."
 msgstr ""
 
+#: includes/shipments/class-wc-esm-order-list.php:59
+msgid "Not sent"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-order-list.php:60
+msgid "Queued"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-order-list.php:61
+msgid "Failed"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-order-list.php:62
+msgid "Sent"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-order-list.php:63
+#, fuzzy
+msgid "Label printed"
+msgstr "Pakomāta formāts"
+
+#: includes/shipments/class-wc-esm-order-list.php:146
+#: includes/shipments/class-wc-esm-shipment-admin.php:92
+msgid "Shipment"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-order-list.php:250
+#, fuzzy
+msgid "Print shipping label"
+msgstr "Iespējot bezmaksas piegādes kuponus"
+
+#: includes/shipments/class-wc-esm-order-list.php:251
+#: includes/shipments/class-wc-esm-shipment-admin.php:132
+msgid "Send to the carrier"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-order-list.php:298
+#: includes/shipments/class-wc-esm-shipment-admin.php:176
+msgid "You are not allowed to do that."
+msgstr ""
+
+#: includes/shipments/class-wc-esm-order-list.php:365
+#, fuzzy
+msgid "All shipments"
+msgstr "Visu laiku"
+
 #. translators: 1: shop name, 2: order number.
 #: includes/shipments/class-wc-esm-order-snapshot.php:169
 #: includes/shipments/payloads/class-wc-esm-payload-smartpost.php:159
@@ -461,10 +507,6 @@ msgid ""
 "way."
 msgstr ""
 
-#: includes/shipments/class-wc-esm-shipment-admin.php:92
-msgid "Shipment"
-msgstr ""
-
 #: includes/shipments/class-wc-esm-shipment-admin.php:118
 msgid "This order is not shipped by a carrier this plugin handles."
 msgstr ""
@@ -477,20 +519,12 @@ msgstr ""
 msgid "Last attempt failed:"
 msgstr ""
 
-#: includes/shipments/class-wc-esm-shipment-admin.php:132
-msgid "Send to the carrier"
-msgstr ""
-
 #: includes/shipments/class-wc-esm-shipment-admin.php:133
 msgid "Print the label"
 msgstr ""
 
 #: includes/shipments/class-wc-esm-shipment-admin.php:160
 msgid "Follow the parcel"
-msgstr ""
-
-#: includes/shipments/class-wc-esm-shipment-admin.php:176
-msgid "You are not allowed to do that."
 msgstr ""
 
 #: includes/shipments/class-wc-esm-shipment-admin.php:216

@@ -436,4 +436,38 @@ class Test_Shipment_Labels extends WC_ESM_Test_Case {
 
 		$this->assertSame( array(), WC_ESM_Shipment::barcodes( $order ) );
 	}
+
+	/**
+	 * A printed label is noted on its order, so the orders list can tell
+	 * what has been packed. An unsent order in the same batch had nothing
+	 * printed and is not marked.
+	 *
+	 * @return void
+	 */
+	public function test_a_printed_label_is_noted_on_its_order() {
+		list( $registry ) = $this->two_carriers();
+
+		$sent   = new WC_ESM_Shipped_Order( 'labeller_method', array( 'r1' ), 1 );
+		$unsent = new WC_ESM_Shipped_Order( 'labeller_method', array(), 2 );
+
+		WC_ESM_Shipment_Labels::collect( array( $sent, $unsent ), $registry );
+
+		$this->assertTrue( WC_ESM_Shipment::label_printed( $sent ) );
+		$this->assertFalse( WC_ESM_Shipment::label_printed( $unsent ) );
+	}
+
+	/**
+	 * A carrier that refused to print leaves its orders unmarked.
+	 *
+	 * @return void
+	 */
+	public function test_a_refused_print_marks_nothing() {
+		list( $registry, $one ) = $this->two_carriers();
+		$one->answer            = WC_ESM_Shipment_Result::failure( 'Down.' );
+		$order                  = new WC_ESM_Shipped_Order( 'labeller_method', array( 'r1' ), 1 );
+
+		WC_ESM_Shipment_Labels::collect( array( $order ), $registry );
+
+		$this->assertFalse( WC_ESM_Shipment::label_printed( $order ) );
+	}
 }
