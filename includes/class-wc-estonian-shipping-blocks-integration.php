@@ -48,12 +48,12 @@ class WC_Estonian_Shipping_Blocks_Integration implements IntegrationInterface {
 			true
 		);
 
+		// Both scripts carry words of their own: the checkout one the
+		// customer reads, the editor one the shopkeeper does.
 		if ( function_exists( 'wp_set_script_translations' ) ) {
-			wp_set_script_translations(
-				'wc-estonian-shipping-terminals-block',
-				'wc-estonian-shipping-methods',
-				WC_ESTONIAN_SHIPPING_METHODS_PATH . '/languages'
-			);
+			foreach ( array( 'wc-estonian-shipping-terminals-block', 'wc-estonian-shipping-terminals-block-editor' ) as $handle ) {
+				wp_set_script_translations( $handle, 'wc-estonian-shipping-methods', WC_ESTONIAN_SHIPPING_METHODS_PATH . '/languages' );
+			}
 		}
 	}
 

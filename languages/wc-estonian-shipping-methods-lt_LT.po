@@ -21,25 +21,73 @@ msgstr ""
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-SearchPath-0: .\n"
 
+#: assets/js/checkout-block-editor.js:19 assets/js/checkout-block-editor.js:40
+#: assets/js/checkout-block.js:52
+#, fuzzy
+msgid "Parcel terminal"
+msgstr "Rikiuoti paštomatus pagal"
+
+#: assets/js/checkout-block-editor.js:23
+msgid ""
+"Lets the customer choose a parcel terminal for the shipping method they "
+"picked."
+msgstr ""
+
+#: assets/js/checkout-block-editor.js:44
+msgid ""
+"A terminal list is shown here when the customer chooses a shipping method "
+"that delivers to parcel terminals."
+msgstr ""
+
+#: assets/js/checkout-block.js:82
+#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:355
+#: includes/class-wc-estonian-shipping-blocks.php:235
+msgid "Please select a parcel terminal"
+msgstr "Prašome pasirinkti paštomatą"
+
+#: assets/js/checkout-block.js:189
+#, fuzzy
+msgid "- Choose terminal -"
+msgstr "- Pasirinkita paštomatą -"
+
+#: assets/js/checkout-block.js:216
 #: estonian-shipping-methods-for-woocommerce.php:186
 #, fuzzy
 msgid "Search by town or terminal name"
 msgstr "Tik paštomato pavadinimas"
 
+#: assets/js/checkout-block.js:217
 #: estonian-shipping-methods-for-woocommerce.php:187
 #, fuzzy
 msgid "Search terminals"
 msgstr "Rikiuoti paštomatus pagal"
+
+#: assets/js/checkout-block.js:233
+#: includes/class-wc-estonian-shipping-blocks.php:128
+#: woocommerce/checkout/form-shipping-dpd.php:22
+#: woocommerce/checkout/form-shipping-omniva.php:22
+#: woocommerce/checkout/form-shipping-smartpost.php:22
+msgid "Choose terminal"
+msgstr "Pasirinkite paštomatą"
+
+#: assets/js/checkout-block.js:248
+#, fuzzy, javascript-format
+msgid "%d terminal found"
+msgid_plural "%d terminals found"
+msgstr[0] "Paštomatų formatas"
+msgstr[1] "Paštomatų formatas"
+msgstr[2] "Paštomatų formatas"
+
+#: assets/js/checkout-block.js:249
+#: estonian-shipping-methods-for-woocommerce.php:190
+msgid "No terminals match that search."
+msgstr ""
 
 #. translators: %d: number of terminals matching the search.
 #: estonian-shipping-methods-for-woocommerce.php:189
 #, fuzzy, php-format
 msgid "%d terminals found"
 msgstr "Paštomatų formatas"
-
-#: estonian-shipping-methods-for-woocommerce.php:190
-msgid "No terminals match that search."
-msgstr ""
 
 #: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:73
 msgid "Chosen terminal"
@@ -80,11 +128,6 @@ msgstr "Grupuoti paštomatus"
 #: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:141
 msgid "By cities"
 msgstr "Pagal miestus"
-
-#: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:355
-#: includes/class-wc-estonian-shipping-blocks.php:235
-msgid "Please select a parcel terminal"
-msgstr "Prašome pasirinkti paštomatą"
 
 #. translators: %s: terminal ID
 #: includes/abstracts/class-wc-estonian-shipping-method-terminals.php:920
@@ -196,13 +239,6 @@ msgstr ""
 msgid ""
 "Please enter a phone number: the pickup code for your parcel is sent to it."
 msgstr ""
-
-#: includes/class-wc-estonian-shipping-blocks.php:128
-#: woocommerce/checkout/form-shipping-dpd.php:22
-#: woocommerce/checkout/form-shipping-omniva.php:22
-#: woocommerce/checkout/form-shipping-smartpost.php:22
-msgid "Choose terminal"
-msgstr "Pasirinkite paštomatą"
 
 #: includes/class-wc-estonian-shipping-blocks.php:140
 msgid "Shipping method the terminals belong to."
@@ -460,7 +496,7 @@ msgid "Failed"
 msgstr ""
 
 #: includes/shipments/class-wc-esm-order-list.php:62
-msgid "Sent"
+msgid "Registered"
 msgstr ""
 
 #: includes/shipments/class-wc-esm-order-list.php:63

@@ -245,7 +245,7 @@
 					'p',
 					{ className: 'wc-esm-terminals__count', 'aria-live': 'polite' },
 					matching
-						? sprintf( _n( '%d terminal found', '%d terminals found', matching ), matching )
+						? sprintf( _n( '%d terminal found', '%d terminals found', matching, 'wc-estonian-shipping-methods' ), matching )
 						: __( 'No terminals match that search.', 'wc-estonian-shipping-methods' )
 				)
 				: null,

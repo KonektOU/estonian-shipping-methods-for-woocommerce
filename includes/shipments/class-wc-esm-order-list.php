@@ -59,7 +59,7 @@ class WC_ESM_Order_List {
 			'not_sent' => __( 'Not sent', 'wc-estonian-shipping-methods' ),
 			'queued'   => __( 'Queued', 'wc-estonian-shipping-methods' ),
 			'failed'   => __( 'Failed', 'wc-estonian-shipping-methods' ),
-			'sent'     => __( 'Sent', 'wc-estonian-shipping-methods' ),
+			'sent'     => __( 'Registered', 'wc-estonian-shipping-methods' ),
 			'printed'  => __( 'Label printed', 'wc-estonian-shipping-methods' ),
 			WC_ESM_Delivery::IN_TRANSIT          => __( 'In transit', 'wc-estonian-shipping-methods' ),
 			WC_ESM_Delivery::AWAITING_COLLECTION => __( 'Awaiting collection', 'wc-estonian-shipping-methods' ),
