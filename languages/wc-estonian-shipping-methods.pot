@@ -409,19 +409,19 @@ msgid "Smartpost Lithuania"
 msgstr ""
 
 #. translators: 1: carrier name, 2: why the request did not arrive.
-#: includes/shipments/abstracts/class-wc-esm-shipment-provider.php:214
+#: includes/shipments/abstracts/class-wc-esm-shipment-provider.php:232
 #, php-format
 msgid "%1$s could not be reached: %2$s"
 msgstr ""
 
 #. translators: 1: carrier name, 2: HTTP status code, 3: what the carrier said.
-#: includes/shipments/abstracts/class-wc-esm-shipment-provider.php:225
+#: includes/shipments/abstracts/class-wc-esm-shipment-provider.php:243
 #, php-format
 msgid "%1$s refused the request (HTTP %2$d): %3$s"
 msgstr ""
 
 #. translators: 1: carrier name, 2: HTTP status code.
-#: includes/shipments/abstracts/class-wc-esm-shipment-provider.php:236
+#: includes/shipments/abstracts/class-wc-esm-shipment-provider.php:254
 #, php-format
 msgid "%1$s refused the request (HTTP %2$d)."
 msgstr ""
@@ -446,26 +446,46 @@ msgstr ""
 msgid "Label printed"
 msgstr ""
 
-#: includes/shipments/class-wc-esm-order-list.php:146
+#: includes/shipments/class-wc-esm-order-list.php:64
+msgid "In transit"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-order-list.php:65
+msgid "Awaiting collection"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-order-list.php:66
+msgid "Delivered"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-order-list.php:67
+msgid "Returning to sender"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-order-list.php:68
+msgid "Returned to sender"
+msgstr ""
+
+#: includes/shipments/class-wc-esm-order-list.php:159
 #: includes/shipments/class-wc-esm-shipment-admin.php:92
 msgid "Shipment"
 msgstr ""
 
-#: includes/shipments/class-wc-esm-order-list.php:250
+#: includes/shipments/class-wc-esm-order-list.php:237
 msgid "Print shipping label"
 msgstr ""
 
-#: includes/shipments/class-wc-esm-order-list.php:251
+#: includes/shipments/class-wc-esm-order-list.php:238
 #: includes/shipments/class-wc-esm-shipment-admin.php:132
 msgid "Send to the carrier"
 msgstr ""
 
-#: includes/shipments/class-wc-esm-order-list.php:298
+#: includes/shipments/class-wc-esm-order-list.php:285
 #: includes/shipments/class-wc-esm-shipment-admin.php:176
 msgid "You are not allowed to do that."
 msgstr ""
 
-#: includes/shipments/class-wc-esm-order-list.php:365
+#: includes/shipments/class-wc-esm-order-list.php:352
 msgid "All shipments"
 msgstr ""
 
@@ -664,145 +684,145 @@ msgstr ""
 msgid "Cleveron created the order but returned no id for it."
 msgstr ""
 
-#: includes/shipments/providers/class-wc-esm-provider-dpd.php:87
+#: includes/shipments/providers/class-wc-esm-provider-dpd.php:171
 msgid "DPD"
 msgstr ""
 
-#: includes/shipments/providers/class-wc-esm-provider-dpd.php:110
+#: includes/shipments/providers/class-wc-esm-provider-dpd.php:194
 msgid "DPD portal"
 msgstr ""
 
-#: includes/shipments/providers/class-wc-esm-provider-dpd.php:113
+#: includes/shipments/providers/class-wc-esm-provider-dpd.php:197
 msgid ""
 "Which of the Baltic DPD portals your contract is with. They are separate "
 "systems."
 msgstr ""
 
-#: includes/shipments/providers/class-wc-esm-provider-dpd.php:116
+#: includes/shipments/providers/class-wc-esm-provider-dpd.php:200
 msgid "Estonia"
 msgstr ""
 
-#: includes/shipments/providers/class-wc-esm-provider-dpd.php:117
+#: includes/shipments/providers/class-wc-esm-provider-dpd.php:201
 msgid "Latvia"
 msgstr ""
 
-#: includes/shipments/providers/class-wc-esm-provider-dpd.php:118
+#: includes/shipments/providers/class-wc-esm-provider-dpd.php:202
 msgid "Lithuania"
 msgstr ""
 
-#: includes/shipments/providers/class-wc-esm-provider-dpd.php:122
-#: includes/shipments/providers/class-wc-esm-provider-omniva.php:93
+#: includes/shipments/providers/class-wc-esm-provider-dpd.php:206
+#: includes/shipments/providers/class-wc-esm-provider-omniva.php:150
 msgid "Username"
 msgstr ""
 
-#: includes/shipments/providers/class-wc-esm-provider-dpd.php:127
-#: includes/shipments/providers/class-wc-esm-provider-omniva.php:98
+#: includes/shipments/providers/class-wc-esm-provider-dpd.php:211
+#: includes/shipments/providers/class-wc-esm-provider-omniva.php:155
 msgid "Password"
 msgstr ""
 
-#: includes/shipments/providers/class-wc-esm-provider-dpd.php:132
+#: includes/shipments/providers/class-wc-esm-provider-dpd.php:216
 msgid "Payer code"
 msgstr ""
 
-#: includes/shipments/providers/class-wc-esm-provider-dpd.php:135
+#: includes/shipments/providers/class-wc-esm-provider-dpd.php:219
 msgid "The contract DPD bills. Your account manager has it."
 msgstr ""
 
-#: includes/shipments/providers/class-wc-esm-provider-dpd.php:140
+#: includes/shipments/providers/class-wc-esm-provider-dpd.php:224
 msgid "Service alias"
 msgstr ""
 
-#: includes/shipments/providers/class-wc-esm-provider-dpd.php:143
+#: includes/shipments/providers/class-wc-esm-provider-dpd.php:227
 msgid ""
 "The short alias DPD lists against the service on your contract - PS for a "
 "parcel shop, CLASSIC for a business delivery. Not the name it shows beside "
 "it."
 msgstr ""
 
-#: includes/shipments/providers/class-wc-esm-provider-dpd.php:148
+#: includes/shipments/providers/class-wc-esm-provider-dpd.php:232
 msgid "Cash on delivery service alias"
 msgstr ""
 
-#: includes/shipments/providers/class-wc-esm-provider-dpd.php:151
+#: includes/shipments/providers/class-wc-esm-provider-dpd.php:235
 msgid ""
 "Leave empty unless your contract carries one. A name DPD does not recognise "
 "has it refuse the whole shipment, not just the service."
 msgstr ""
 
-#: includes/shipments/providers/class-wc-esm-provider-dpd.php:156
+#: includes/shipments/providers/class-wc-esm-provider-dpd.php:240
 msgid "Label paper"
 msgstr ""
 
-#: includes/shipments/providers/class-wc-esm-provider-dpd.php:192
+#: includes/shipments/providers/class-wc-esm-provider-dpd.php:276
 msgid "DPD accepted the parcel but returned no shipment id for it."
 msgstr ""
 
-#: includes/shipments/providers/class-wc-esm-provider-dpd.php:217
-#: includes/shipments/providers/class-wc-esm-provider-omniva.php:183
+#: includes/shipments/providers/class-wc-esm-provider-dpd.php:301
+#: includes/shipments/providers/class-wc-esm-provider-omniva.php:240
 #: includes/shipments/providers/class-wc-esm-provider-smartpost.php:203
 msgid "There is nothing to print."
 msgstr ""
 
-#: includes/shipments/providers/class-wc-esm-provider-dpd.php:249
+#: includes/shipments/providers/class-wc-esm-provider-dpd.php:333
 msgid "DPD returned no label."
 msgstr ""
 
-#: includes/shipments/providers/class-wc-esm-provider-omniva.php:54
+#: includes/shipments/providers/class-wc-esm-provider-omniva.php:111
 msgid "Omniva"
 msgstr ""
 
-#: includes/shipments/providers/class-wc-esm-provider-omniva.php:86
+#: includes/shipments/providers/class-wc-esm-provider-omniva.php:143
 msgid "API host"
 msgstr ""
 
-#: includes/shipments/providers/class-wc-esm-provider-omniva.php:89
+#: includes/shipments/providers/class-wc-esm-provider-omniva.php:146
 msgid ""
 "Omniva issues this per customer. Leave the default unless they gave you "
 "another."
 msgstr ""
 
-#: includes/shipments/providers/class-wc-esm-provider-omniva.php:103
+#: includes/shipments/providers/class-wc-esm-provider-omniva.php:160
 msgid "Integration agent id"
 msgstr ""
 
-#: includes/shipments/providers/class-wc-esm-provider-omniva.php:106
+#: includes/shipments/providers/class-wc-esm-provider-omniva.php:163
 msgid ""
 "The Developer_XXXXXX_YYYYYY value Omniva issued. Every request carries it."
 msgstr ""
 
-#: includes/shipments/providers/class-wc-esm-provider-omniva.php:110
+#: includes/shipments/providers/class-wc-esm-provider-omniva.php:167
 msgid "Customer code"
 msgstr ""
 
-#: includes/shipments/providers/class-wc-esm-provider-omniva.php:113
+#: includes/shipments/providers/class-wc-esm-provider-omniva.php:170
 msgid "The AXA partner code from your Omniva contract."
 msgstr ""
 
-#: includes/shipments/providers/class-wc-esm-provider-omniva.php:121
+#: includes/shipments/providers/class-wc-esm-provider-omniva.php:178
 msgid "Cash on delivery service code"
 msgstr ""
 
-#: includes/shipments/providers/class-wc-esm-provider-omniva.php:124
+#: includes/shipments/providers/class-wc-esm-provider-omniva.php:181
 msgid ""
 "Omniva issues the additional service list per customer. Confirm this code "
 "with them before charging cash on delivery."
 msgstr ""
 
-#: includes/shipments/providers/class-wc-esm-provider-omniva.php:129
+#: includes/shipments/providers/class-wc-esm-provider-omniva.php:186
 msgid "Cash on delivery bank account"
 msgstr ""
 
-#: includes/shipments/providers/class-wc-esm-provider-omniva.php:132
+#: includes/shipments/providers/class-wc-esm-provider-omniva.php:189
 msgid ""
 "The IBAN Omniva pays the collected money into. Cash on delivery does not "
 "work without it."
 msgstr ""
 
-#: includes/shipments/providers/class-wc-esm-provider-omniva.php:160
+#: includes/shipments/providers/class-wc-esm-provider-omniva.php:217
 msgid "Omniva accepted the parcel but returned no barcode for it."
 msgstr ""
 
-#: includes/shipments/providers/class-wc-esm-provider-omniva.php:202
+#: includes/shipments/providers/class-wc-esm-provider-omniva.php:259
 msgid "Omniva returned no labels."
 msgstr ""
 

@@ -42,6 +42,15 @@ you choose and under My account. Registration is queued, so a carrier's API is
 never on a customer's checkout. Courier pickups and manifests are left to the
 carrier's own portal.
 
+The orders list gets a Shipment column and filter: not sent, queued, failed,
+sent, label printed, and - once the carrier reports - in transit, awaiting
+collection, delivered, returning or returned to sender. Smartposti, Omniva and
+DPD are asked hourly in the background, only about parcels whose next check
+has come round: a parcel waiting in a locker less often than one on the move,
+an old one less often still, and a delivered or returned one never again.
+Parcels are followed for 30 days. The order's own WooCommerce status is never
+changed.
+
 Carriers differ in what they offer and nothing is shown where it would fail:
 Cleveron prints no labels and tracks nothing.
 

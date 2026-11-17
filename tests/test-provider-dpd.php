@@ -5,6 +5,7 @@
  * @package Estonian_Shipping_Methods_For_WooCommerce
  */
 
+require_once WC_ESM_PLUGIN_DIR . '/includes/shipments/class-wc-esm-delivery.php';
 require_once WC_ESM_PLUGIN_DIR . '/includes/shipments/class-wc-esm-shipment-result.php';
 require_once WC_ESM_PLUGIN_DIR . '/includes/shipments/class-wc-esm-order-snapshot.php';
 require_once WC_ESM_PLUGIN_DIR . '/includes/shipments/class-wc-esm-dpd-token.php';
@@ -534,5 +535,64 @@ class Test_Provider_Dpd extends WC_ESM_Test_Case {
 		$provider = $this->provider( array( $this->login(), array( 200, $pdf ), array( 500, array( 'message' => 'boom' ) ) ) );
 
 		$this->assertTrue( $provider->fetch_labels( array( 'ship-A', 'ship-B' ) )->is_failure() );
+	}
+
+	/**
+	 * DPD's eight status sentences become the five delivery states.
+	 *
+	 * @return void
+	 */
+	public function test_status_sentences_become_states() {
+		$cases = array(
+			'En route'                                 => WC_ESM_Delivery::IN_TRANSIT,
+			'Delivered to Pickup Point'                => WC_ESM_Delivery::AWAITING_COLLECTION,
+			'Picked up by Consignee from Pickup point' => WC_ESM_Delivery::DELIVERED,
+			'Delivered to Consignee'                   => WC_ESM_Delivery::DELIVERED,
+			'Returning to Sender'                      => WC_ESM_Delivery::RETURNING,
+			'Returned to Sender'                       => WC_ESM_Delivery::RETURNED,
+			'Something new'                            => '',
+		);
+
+		foreach ( $cases as $sentence => $state ) {
+			$answer = array( array( 'parcelNumber' => 'P1', 'details' => array( array( 'status' => $sentence ) ) ) );
+
+			$this->assertSame( $state, WC_ESM_Provider_Dpd::status_to_state( $answer ), $sentence );
+		}
+	}
+
+	/**
+	 * Each parcel is asked about by number, in English, latest status only.
+	 *
+	 * @return void
+	 */
+	public function test_each_parcel_is_asked_about_by_number() {
+		$provider = $this->provider(
+			array(
+				$this->login(),
+				array( 200, array( array( 'parcelNumber' => '05605586869416', 'details' => array( array( 'status' => 'En route' ) ) ) ) ),
+				array( 200, array( array( 'parcelNumber' => '05605586869417', 'details' => array() ) ) ),
+			)
+		);
+
+		$result = $provider->track_parcels( array( '05605586869416', '05605586869417' ) );
+
+		$this->assertSame( array( '05605586869416' => WC_ESM_Delivery::IN_TRANSIT ), $result->get( 'states' ) );
+		$this->assertStringStartsWith( 'status/tracking?pknr=05605586869416', $provider->fake->endpoint( 1 ) );
+		$this->assertStringContainsString( 'lang=en', $provider->fake->endpoint( 1 ) );
+		$this->assertStringContainsString( 'show_all=0', $provider->fake->endpoint( 1 ) );
+		$this->assertSame( 'GET', $provider->fake->calls[1]['method'] );
+	}
+
+	/**
+	 * When DPD is down, the rest of the batch is not asked: it would fail the
+	 * same way.
+	 *
+	 * @return void
+	 */
+	public function test_dpd_being_down_stops_the_batch() {
+		$provider = $this->provider( array( $this->login(), array( 503, '' ) ) );
+
+		$this->assertTrue( $provider->track_parcels( array( 'P1', 'P2', 'P3' ) )->is_failure() );
+		$this->assertCount( 2, $provider->fake->calls );
 	}
 }

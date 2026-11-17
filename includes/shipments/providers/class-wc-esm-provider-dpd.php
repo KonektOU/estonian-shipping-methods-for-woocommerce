@@ -24,6 +24,90 @@ if ( ! defined( 'ABSPATH' ) ) {
 class WC_ESM_Provider_Dpd extends WC_ESM_Shipment_Provider {
 
 	/**
+	 * DPD's parcel status sentences, as delivery states.
+	 *
+	 * The status call answers in one of eight fixed sentences (DPD API
+	 * documentation, "Parcel status messages"), asked for in English so the
+	 * shop's language does not change the words. The numeric status codes
+	 * would need the service code beside them to tell a delivery from a
+	 * return; the sentences already say which.
+	 */
+	const STATUS_STATES = array(
+		'Dropped in Pickup Point'                => WC_ESM_Delivery::IN_TRANSIT,
+		'Picked up by Courier'                   => WC_ESM_Delivery::IN_TRANSIT,
+		'En route'                               => WC_ESM_Delivery::IN_TRANSIT,
+		'Delivered to Pickup Point'              => WC_ESM_Delivery::AWAITING_COLLECTION,
+		'Delivered to Consignee'                 => WC_ESM_Delivery::DELIVERED,
+		'Picked up by Consignee from Pickup point' => WC_ESM_Delivery::DELIVERED,
+		'Returning to Sender'                    => WC_ESM_Delivery::RETURNING,
+		'Returned to Sender'                     => WC_ESM_Delivery::RETURNED,
+	);
+
+	/**
+	 * Where these parcels are.
+	 *
+	 * DPD is asked one parcel at a time, for its latest status only. A
+	 * parcel DPD has no status for yet, or one it reports an error on, is
+	 * left out rather than failing the batch.
+	 *
+	 * @param array $barcodes Parcel numbers.
+	 *
+	 * @return WC_ESM_Shipment_Result
+	 */
+	public function track_parcels( $barcodes ) {
+		$states = array();
+
+		foreach ( array_unique( array_filter( array_map( 'strval', (array) $barcodes ) ) ) as $barcode ) {
+			$response = $this->authed( 'status/tracking?' . http_build_query( array( 'pknr' => $barcode, 'detail' => 0, 'show_all' => 0, 'lang' => 'en' ) ), 'GET' );
+
+			if ( $response->is( 401 ) || 0 === $response->code() || $response->code() >= 500 ) {
+				// The login or DPD itself is down: every other parcel would
+				// fail the same way, so stop here and try them all later.
+				return $this->refusal( $response, $this->what_it_said( $response ) );
+			}
+
+			$state = self::status_to_state( $response->json() );
+
+			if ( '' !== $state ) {
+				$states[ $barcode ] = $state;
+			}
+		}
+
+		return WC_ESM_Shipment_Result::success( array( 'states' => $states ) );
+	}
+
+	/**
+	 * The delivery state in one parcel's status answer.
+	 *
+	 * @param mixed $json Decoded answer: a list of parcels, each with details.
+	 *
+	 * @return string
+	 */
+	public static function status_to_state( $json ) {
+		if ( ! is_array( $json ) ) {
+			return '';
+		}
+
+		$parcels = isset( $json['details'] ) ? array( $json ) : $json;
+		$parcel  = reset( $parcels );
+
+		if ( ! is_array( $parcel ) || empty( $parcel['details'] ) || ! is_array( $parcel['details'] ) ) {
+			return '';
+		}
+
+		$latest = end( $parcel['details'] );
+		$status = is_array( $latest ) && isset( $latest['status'] ) ? trim( (string) $latest['status'] ) : '';
+
+		foreach ( self::STATUS_STATES as $sentence => $state ) {
+			if ( 0 === strcasecmp( $sentence, $status ) ) {
+				return $state;
+			}
+		}
+
+		return '';
+	}
+
+	/**
 	 * Where a customer follows a parcel.
 	 *
 	 * @var string
@@ -44,7 +128,7 @@ class WC_ESM_Provider_Dpd extends WC_ESM_Shipment_Provider {
 	 *
 	 * @var array
 	 */
-	protected $features = array( 'labels', 'tracking', 'cod' );
+	protected $features = array( 'labels', 'tracking', 'delivery', 'cod' );
 
 	/**
 	 * Which portal answers for a country.

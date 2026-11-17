@@ -5,6 +5,7 @@
  * @package Estonian_Shipping_Methods_For_WooCommerce
  */
 
+require_once WC_ESM_PLUGIN_DIR . '/includes/shipments/class-wc-esm-delivery.php';
 require_once WC_ESM_PLUGIN_DIR . '/includes/shipments/class-wc-esm-shipment-result.php';
 require_once WC_ESM_PLUGIN_DIR . '/includes/shipments/class-wc-esm-order-snapshot.php';
 require_once WC_ESM_PLUGIN_DIR . '/includes/shipments/abstracts/class-wc-esm-shipment-provider.php';
@@ -198,5 +199,185 @@ class Test_Provider_Omniva extends WC_ESM_Test_Case {
 			( new WC_ESM_Provider_Omniva() )->get_tracking_url( 'CE123456789EE' )
 		);
 		$this->assertSame( '', ( new WC_ESM_Provider_Omniva() )->get_tracking_url( '' ) );
+	}
+
+	/**
+	 * Options held in memory, for the feed's cursor and buffer.
+	 *
+	 * @return void
+	 */
+	protected function stub_options() {
+		$GLOBALS['wc_esm_options'] = array();
+
+		Brain\Monkey\Functions\when( 'get_option' )->alias(
+			static function ( $key, $default = false ) {
+				return array_key_exists( $key, $GLOBALS['wc_esm_options'] ) ? $GLOBALS['wc_esm_options'][ $key ] : $default;
+			}
+		);
+		Brain\Monkey\Functions\when( 'update_option' )->alias(
+			static function ( $key, $value ) {
+				$GLOBALS['wc_esm_options'][ $key ] = $value;
+
+				return true;
+			}
+		);
+	}
+
+	/**
+	 * One event in the feed.
+	 *
+	 * @param int    $id      Event id.
+	 * @param string $barcode Barcode.
+	 * @param string $code    Event code.
+	 *
+	 * @return array
+	 */
+	protected function event( $id, $barcode, $code ) {
+		return array(
+			'eventId'         => $id,
+			'shipmentBarcode' => $barcode,
+			'eventCode'       => $code,
+		);
+	}
+
+	/**
+	 * The feed's latest meaningful event per parcel is its state; the cursor
+	 * moves past everything read.
+	 *
+	 * @return void
+	 */
+	public function test_the_feed_gives_each_parcel_its_latest_state() {
+		$this->stub_options();
+
+		$provider = $this->provider(
+			array(
+				array(
+					200,
+					array(
+						'content' => array(
+							$this->event( 11, 'CE1', 'TRT_SHIPMENT_HANDOVER_TO_PM' ),
+							$this->event( 12, 'CE1', 'TRT_SHIPMENT_STORED_IN_PM' ),
+							$this->event( 13, 'CE1', 'TRT_SHIPMENT_ARRIVAL_PM_NOTIFICATION' ),
+							$this->event( 14, 'CE2', 'TRT_SHIPMENT_DELIVERED' ),
+						),
+						'last'    => true,
+					),
+				),
+			)
+		);
+
+		$result = $provider->track_parcels( array( 'CE1', 'CE2' ) );
+
+		$this->assertSame(
+			array(
+				'CE1' => WC_ESM_Delivery::AWAITING_COLLECTION,
+				'CE2' => WC_ESM_Delivery::DELIVERED,
+			),
+			$result->get( 'states' )
+		);
+		$this->assertSame( 14, $GLOBALS['wc_esm_options'][ WC_ESM_Provider_Omniva::FEED_CURSOR ] );
+		$this->assertStringContainsString( 'fromTimestamp=', $provider->fake->endpoint() );
+	}
+
+	/**
+	 * Reading on starts after the last event read.
+	 *
+	 * @return void
+	 */
+	public function test_reading_on_starts_after_the_last_event() {
+		$this->stub_options();
+		$GLOBALS['wc_esm_options'][ WC_ESM_Provider_Omniva::FEED_CURSOR ] = 99;
+
+		$provider = $this->provider( array( array( 200, array( 'content' => array() ) ) ) );
+		$provider->track_parcels( array( 'CE1' ) );
+
+		$this->assertStringContainsString( 'fromTrackEventId=99', $provider->fake->endpoint() );
+		$this->assertStringNotContainsString( 'fromTimestamp', $provider->fake->endpoint() );
+	}
+
+	/**
+	 * News about a parcel that was not due is kept until it is asked about,
+	 * because the feed will not repeat it.
+	 *
+	 * @return void
+	 */
+	public function test_news_about_a_parcel_not_due_is_kept() {
+		$this->stub_options();
+
+		$provider = $this->provider(
+			array(
+				array( 200, array( 'content' => array( $this->event( 5, 'CE9', 'TRT_SHIPMENT_DELIVERED' ) ) ) ),
+				array( 200, array( 'content' => array() ) ),
+			)
+		);
+
+		$this->assertSame( array(), $provider->track_parcels( array( 'CE1' ) )->get( 'states' ) );
+		$this->assertSame( array( 'CE9' => WC_ESM_Delivery::DELIVERED ), $provider->track_parcels( array( 'CE9' ) )->get( 'states' ) );
+		$this->assertSame( array(), $GLOBALS['wc_esm_options'][ WC_ESM_Provider_Omniva::FEED_BUFFER ] );
+	}
+
+	/**
+	 * A delivery after a return began is the parcel back with the sender.
+	 *
+	 * @return void
+	 */
+	public function test_a_delivery_after_a_return_is_returned() {
+		$this->stub_options();
+
+		$provider = $this->provider(
+			array(
+				array(
+					200,
+					array(
+						'content' => array(
+							$this->event( 1, 'CE1', 'TRT_SHIPMENT_RETURN' ),
+							$this->event( 2, 'CE1', 'TRT_SHIPMENT_DELIVERED' ),
+						),
+					),
+				),
+			)
+		);
+
+		$this->assertSame( array( 'CE1' => WC_ESM_Delivery::RETURNED ), $provider->track_parcels( array( 'CE1' ) )->get( 'states' ) );
+	}
+
+	/**
+	 * A full page is followed by the next, but never more pages than
+	 * Omniva's rate limit leaves room for.
+	 *
+	 * @return void
+	 */
+	public function test_the_feed_is_read_within_the_rate_limit() {
+		$this->stub_options();
+
+		$full    = array();
+		$answers = array();
+
+		for ( $page = 0; $page < 6; $page++ ) {
+			$full = array();
+
+			for ( $i = 1; $i <= WC_ESM_Provider_Omniva::FEED_PAGE; $i++ ) {
+				$full[] = $this->event( $page * WC_ESM_Provider_Omniva::FEED_PAGE + $i, 'X', 'TRT_SHIPMENT_REGISTERED' );
+			}
+
+			$answers[] = array( 200, array( 'content' => $full ) );
+		}
+
+		$provider = $this->provider( $answers );
+		$provider->track_parcels( array( 'CE1' ) );
+
+		$this->assertCount( WC_ESM_Provider_Omniva::FEED_PAGES_PER_RUN, $provider->fake->calls );
+		$this->assertStringContainsString( 'fromTrackEventId=' . WC_ESM_Provider_Omniva::FEED_PAGE, $provider->fake->endpoint( 1 ) );
+	}
+
+	/**
+	 * A refused first page is a failure.
+	 *
+	 * @return void
+	 */
+	public function test_a_refused_feed_fails() {
+		$this->stub_options();
+
+		$this->assertTrue( $this->provider( array( array( 429, array() ) ) )->track_parcels( array( 'CE1' ) )->is_failure() );
 	}
 }

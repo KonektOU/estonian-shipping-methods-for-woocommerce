@@ -5,6 +5,7 @@
  * @package Estonian_Shipping_Methods_For_WooCommerce
  */
 
+require_once WC_ESM_PLUGIN_DIR . '/includes/shipments/class-wc-esm-delivery.php';
 require_once __DIR__ . '/test-shipment-admin.php';
 require_once WC_ESM_PLUGIN_DIR . '/includes/shipments/class-wc-esm-order-list.php';
 
@@ -264,5 +265,44 @@ class Test_Order_List extends WC_ESM_Test_Case {
 	public function test_an_empty_match_still_restricts_the_list() {
 		$this->assertSame( array( 0 ), WC_ESM_Order_List::ids_or_none( array() ) );
 		$this->assertSame( array( 3, 7 ), WC_ESM_Order_List::ids_or_none( array( 3, 7 ) ) );
+	}
+
+	/**
+	 * Once the carrier reports on the parcel, that is what the column shows,
+	 * printed or not.
+	 *
+	 * @return void
+	 */
+	public function test_the_carriers_report_outranks_printed() {
+		$order                                         = new WC_ESM_Shipped_Order( 'capable_method', array( 'ref-1' ) );
+		$order->meta[ WC_ESM_Shipment::LABEL_PRINTED ] = 1794834096;
+		$order->meta[ WC_ESM_Delivery::STATE ]         = WC_ESM_Delivery::AWAITING_COLLECTION;
+
+		$this->assertSame( WC_ESM_Delivery::AWAITING_COLLECTION, WC_ESM_Order_List::state( $order, $this->registry(), false ) );
+	}
+
+	/**
+	 * The filter puts a reported order under its delivery state and nowhere
+	 * else.
+	 *
+	 * @return void
+	 */
+	public function test_the_filter_follows_the_carriers_report() {
+		$sets = array(
+			'ours'       => array( 1, 2, 3, 4 ),
+			'registered' => array( 1, 2, 3 ),
+			'printed'    => array( 1, 2 ),
+			'delivery'   => array(
+				2 => WC_ESM_Delivery::DELIVERED,
+				3 => WC_ESM_Delivery::IN_TRANSIT,
+				4 => WC_ESM_Delivery::DELIVERED,
+				1 => 'nonsense',
+			),
+		);
+
+		$this->assertSame( array( 1 ), WC_ESM_Order_List::ids_in_state( 'printed', $sets ) );
+		$this->assertSame( array(), WC_ESM_Order_List::ids_in_state( 'sent', $sets ) );
+		$this->assertSame( array( 2 ), WC_ESM_Order_List::ids_in_state( WC_ESM_Delivery::DELIVERED, $sets ) );
+		$this->assertSame( array( 3 ), WC_ESM_Order_List::ids_in_state( WC_ESM_Delivery::IN_TRANSIT, $sets ) );
 	}
 }

@@ -266,6 +266,8 @@ class Estonian_Shipping_Methods_For_WooCommerce {
 		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/class-wc-esm-shipment-labels.php';
 		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/class-wc-esm-shipment-tracking.php';
 		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/class-wc-esm-shipment-admin.php';
+		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/class-wc-esm-delivery.php';
+		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/class-wc-esm-delivery-poller.php';
 		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/class-wc-esm-order-list.php';
 		require_once WC_ESTONIAN_SHIPPING_METHODS_INCLUDES_PATH . '/shipments/class-wc-esm-cleveron-migration.php';
 
@@ -306,6 +308,7 @@ class Estonian_Shipping_Methods_For_WooCommerce {
 		WC_ESM_Shipment_Tracking::init();
 		WC_ESM_Shipment_Admin::init();
 		WC_ESM_Order_List::init();
+		WC_ESM_Delivery_Poller::init();
 		WC_ESM_Cleveron_Migration::init();
 	}
 
@@ -488,3 +491,13 @@ function WC_Estonian_Shipping_Methods() {
 
 // Global for backwards compatibility.
 $GLOBALS['wc_estonian_shipping_methods'] = WC_Estonian_Shipping_Methods();
+
+// The hourly delivery check belongs to this plugin; it goes when the plugin does.
+register_deactivation_hook(
+	__FILE__,
+	static function () {
+		if ( class_exists( 'WC_ESM_Delivery_Poller' ) ) {
+			WC_ESM_Delivery_Poller::unschedule();
+		}
+	}
+);

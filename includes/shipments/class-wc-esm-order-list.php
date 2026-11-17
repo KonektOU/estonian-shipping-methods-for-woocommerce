@@ -61,6 +61,11 @@ class WC_ESM_Order_List {
 			'failed'   => __( 'Failed', 'wc-estonian-shipping-methods' ),
 			'sent'     => __( 'Sent', 'wc-estonian-shipping-methods' ),
 			'printed'  => __( 'Label printed', 'wc-estonian-shipping-methods' ),
+			WC_ESM_Delivery::IN_TRANSIT          => __( 'In transit', 'wc-estonian-shipping-methods' ),
+			WC_ESM_Delivery::AWAITING_COLLECTION => __( 'Awaiting collection', 'wc-estonian-shipping-methods' ),
+			WC_ESM_Delivery::DELIVERED           => __( 'Delivered', 'wc-estonian-shipping-methods' ),
+			WC_ESM_Delivery::RETURNING           => __( 'Returning to sender', 'wc-estonian-shipping-methods' ),
+			WC_ESM_Delivery::RETURNED            => __( 'Returned to sender', 'wc-estonian-shipping-methods' ),
 		);
 	}
 
@@ -68,8 +73,9 @@ class WC_ESM_Order_List {
 	 * Where this order's shipment stands.
 	 *
 	 * Sent outranks everything: once the carrier has the parcel, an old
-	 * error or a stray queue entry is history. A retry waiting in the queue
-	 * outranks the failure it is retrying.
+	 * error or a stray queue entry is history, and what the carrier says
+	 * about the parcel outranks whether its label was printed. A retry
+	 * waiting in the queue outranks the failure it is retrying.
 	 *
 	 * @param WC_Order                      $order    Order.
 	 * @param WC_ESM_Shipment_Registry|null $registry Registry, defaulting to the singleton.
@@ -85,6 +91,13 @@ class WC_ESM_Order_List {
 		}
 
 		if ( WC_ESM_Shipment::is_registered( $order ) ) {
+			// Once the carrier reports on the parcel, that is the news.
+			$delivery = WC_ESM_Delivery::state( $order );
+
+			if ( '' !== $delivery ) {
+				return $delivery;
+			}
+
 			return WC_ESM_Shipment::label_printed( $order ) ? 'printed' : 'sent';
 		}
 
@@ -193,7 +206,12 @@ class WC_ESM_Order_List {
 			'queued'   => 'status-on-hold',
 			'failed'   => 'status-failed',
 			'sent'     => 'status-processing',
-			'printed'  => 'status-completed',
+			'printed'  => 'status-processing',
+			WC_ESM_Delivery::IN_TRANSIT          => 'status-processing',
+			WC_ESM_Delivery::AWAITING_COLLECTION => 'status-on-hold',
+			WC_ESM_Delivery::DELIVERED           => 'status-completed',
+			WC_ESM_Delivery::RETURNING           => 'status-failed',
+			WC_ESM_Delivery::RETURNED            => 'status-failed',
 		);
 		$states = self::states();
 		$title  = 'failed' === $state ? WC_ESM_Shipment::error( $order ) : '';
@@ -415,6 +433,7 @@ class WC_ESM_Order_List {
 				'printed'    => self::orders_with_meta( WC_ESM_Shipment::LABEL_PRINTED ),
 				'failed'     => self::orders_with_meta( WC_ESM_Shipment::ERROR ),
 				'queued'     => self::queued_order_ids(),
+				'delivery'   => self::orders_by_meta_value( WC_ESM_Delivery::STATE ),
 			)
 		);
 	}
@@ -426,29 +445,41 @@ class WC_ESM_Order_List {
 	 * of precedence to them, and is what the tests check.
 	 *
 	 * @param string $state A key of states().
-	 * @param array  $sets  Order ids under ours, registered, printed, failed, queued.
+	 * @param array  $sets  Order ids under ours, registered, printed, failed,
+	 *                      queued; and delivery, as order id => state.
 	 *
 	 * @return array
 	 */
 	public static function ids_in_state( $state, $sets ) {
-		$sets = array_map(
+		// Only a state the column would show counts; anything else stored
+		// there reads as no report, as it does in state().
+		$delivery = array_intersect( isset( $sets['delivery'] ) ? (array) $sets['delivery'] : array(), WC_ESM_Delivery::states() );
+		$sets     = array_map(
 			static function ( $ids ) {
 				return array_map( 'intval', (array) $ids );
 			},
-			array_merge( array_fill_keys( array( 'ours', 'registered', 'printed', 'failed', 'queued' ), array() ), $sets )
+			array_diff_key( array_merge( array_fill_keys( array( 'ours', 'registered', 'printed', 'failed', 'queued' ), array() ), $sets ), array( 'delivery' => true ) )
 		);
 
 		$ours       = $sets['ours'];
 		$registered = array_intersect( $ours, $sets['registered'] );
+		$reported   = array_intersect( $registered, array_map( 'intval', array_keys( $delivery ) ) );
 		$unsent     = array_diff( $ours, $registered );
 		$queued     = array_intersect( $unsent, $sets['queued'] );
 
 		switch ( $state ) {
 			case 'printed':
-				$ids = array_intersect( $registered, $sets['printed'] );
+				$ids = array_diff( array_intersect( $registered, $sets['printed'] ), $reported );
 				break;
 			case 'sent':
-				$ids = array_diff( $registered, $sets['printed'] );
+				$ids = array_diff( $registered, $sets['printed'], $reported );
+				break;
+			case WC_ESM_Delivery::IN_TRANSIT:
+			case WC_ESM_Delivery::AWAITING_COLLECTION:
+			case WC_ESM_Delivery::DELIVERED:
+			case WC_ESM_Delivery::RETURNING:
+			case WC_ESM_Delivery::RETURNED:
+				$ids = array_intersect( $reported, array_map( 'intval', array_keys( $delivery, $state, true ) ) );
 				break;
 			case 'queued':
 				$ids = $queued;
@@ -533,6 +564,27 @@ class WC_ESM_Order_List {
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
 		return $wpdb->get_col( $wpdb->prepare( "SELECT DISTINCT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s AND meta_value NOT IN ( '', 'a:0:{}' )", $key ) );
+	}
+
+	/**
+	 * Every order's value under a meta key, as order id => value.
+	 *
+	 * @param string $key Meta key.
+	 *
+	 * @return array
+	 */
+	protected static function orders_by_meta_value( $key ) {
+		global $wpdb;
+
+		$hpos  = class_exists( '\Automattic\WooCommerce\Utilities\OrderUtil' ) && \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled();
+		$query = $hpos
+			? "SELECT order_id AS id, meta_value AS value FROM {$wpdb->prefix}wc_orders_meta WHERE meta_key = %s"
+			: "SELECT post_id AS id, meta_value AS value FROM {$wpdb->postmeta} WHERE meta_key = %s";
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared -- the query is one of two fixed strings.
+		$rows = $wpdb->get_results( $wpdb->prepare( $query, $key ) );
+
+		return wp_list_pluck( (array) $rows, 'value', 'id' );
 	}
 
 	/**

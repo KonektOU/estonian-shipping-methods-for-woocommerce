@@ -5,6 +5,7 @@
  * @package Estonian_Shipping_Methods_For_WooCommerce
  */
 
+require_once WC_ESM_PLUGIN_DIR . '/includes/shipments/class-wc-esm-delivery.php';
 require_once WC_ESM_PLUGIN_DIR . '/includes/shipments/class-wc-esm-shipment-result.php';
 require_once WC_ESM_PLUGIN_DIR . '/includes/shipments/class-wc-esm-order-snapshot.php';
 require_once WC_ESM_PLUGIN_DIR . '/includes/shipments/abstracts/class-wc-esm-shipment-provider.php';
@@ -311,5 +312,77 @@ class Test_Provider_Smartpost extends WC_ESM_Test_Case {
 		$provider->fetch_cod_report( '2026-09-01', '2026-09-30' );
 
 		$this->assertStringContainsString( 'get_one_day=0', $provider->fake->endpoint() );
+	}
+
+	/**
+	 * Every due parcel goes in one request, barcode by barcode.
+	 *
+	 * @return void
+	 */
+	public function test_parcels_are_tracked_in_one_request() {
+		$provider = $this->provider( array( array( 200, array() ) ) );
+		$provider->track_parcels( array( 'A1', 'B2' ) );
+
+		$this->assertCount( 1, $provider->fake->calls );
+		$this->assertSame( 'tracking?barcode=A1&barcode=B2', $provider->fake->endpoint() );
+	}
+
+	/**
+	 * The furthest stage reached is the state; a parcel out of the
+	 * destination locker is delivered, but only tentatively.
+	 *
+	 * @return void
+	 */
+	public function test_the_furthest_stage_is_the_state() {
+		$provider = $this->provider(
+			array(
+				array(
+					200,
+					array(
+						array( 'barcode' => 'A1', 'sourcein' => '2026-11-10 10:00', 'termin' => '2026-11-10 18:00' ),
+						array( 'barcode' => 'B2', 'termout' => '2026-11-10 20:00', 'destinationin' => '2026-11-11 08:00' ),
+						array( 'barcode' => 'C3', 'destinationin' => '2026-11-11 08:00', 'destinationout' => '2026-11-11 17:00' ),
+						array( 'barcode' => 'D4', 'destinationout' => '2026-11-11 17:00', 'returntermin' => '2026-11-12 09:00' ),
+						array( 'barcode' => 'E5', 'generated' => '2026-11-10 09:00' ),
+					),
+				),
+			)
+		);
+
+		$result = $provider->track_parcels( array( 'A1', 'B2', 'C3', 'D4', 'E5' ) );
+
+		$this->assertSame(
+			array(
+				'A1' => WC_ESM_Delivery::IN_TRANSIT,
+				'B2' => WC_ESM_Delivery::AWAITING_COLLECTION,
+				'C3' => WC_ESM_Delivery::DELIVERED,
+				'D4' => WC_ESM_Delivery::RETURNING,
+			),
+			$result->get( 'states' )
+		);
+		$this->assertSame( array( 'C3' ), $result->get( 'tentative' ) );
+	}
+
+	/**
+	 * However the answer is wrapped, the items are found.
+	 *
+	 * @return void
+	 */
+	public function test_tracking_items_are_found_however_wrapped() {
+		$one = array( 'barcode' => 'A1' );
+
+		$this->assertSame( array( $one ), WC_ESM_Provider_Smartpost::tracking_items( array( $one ) ) );
+		$this->assertSame( array( $one ), WC_ESM_Provider_Smartpost::tracking_items( array( 'item' => array( $one ) ) ) );
+		$this->assertSame( array( $one ), WC_ESM_Provider_Smartpost::tracking_items( $one ) );
+		$this->assertSame( array(), WC_ESM_Provider_Smartpost::tracking_items( null ) );
+	}
+
+	/**
+	 * A refused request is a failure, not a batch of parcels with no news.
+	 *
+	 * @return void
+	 */
+	public function test_a_refused_tracking_request_fails() {
+		$this->assertTrue( $this->provider( array( array( 401, array() ) ) )->track_parcels( array( 'A1' ) )->is_failure() );
 	}
 }

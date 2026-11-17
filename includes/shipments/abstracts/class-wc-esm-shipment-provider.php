@@ -29,7 +29,9 @@ abstract class WC_ESM_Shipment_Provider {
 	/**
 	 * Capabilities this carrier opts into.
 	 *
-	 * One of: labels, tracking, cod, cod_report, return.
+	 * One of: labels, tracking, delivery, cod, cod_report, return. Tracking
+	 * is a link the customer follows; delivery is the carrier telling the
+	 * shop where the parcel is.
 	 *
 	 * @var array
 	 */
@@ -168,6 +170,22 @@ abstract class WC_ESM_Shipment_Provider {
 	 */
 	public function get_tracking_url( $barcode ) {
 		return '';
+	}
+
+	/**
+	 * Where these parcels are.
+	 *
+	 * The answer maps each barcode the carrier knows about to one of the
+	 * WC_ESM_Delivery states; a barcode it has nothing new on is left out.
+	 * 'tentative' lists barcodes reported delivered that may yet turn out to
+	 * be on their way back.
+	 *
+	 * @param array $barcodes Barcodes due to be asked about.
+	 *
+	 * @return WC_ESM_Shipment_Result states, tentative.
+	 */
+	public function track_parcels( $barcodes ) {
+		return WC_ESM_Shipment_Result::unsupported( 'delivery' );
 	}
 
 	/**

@@ -53,7 +53,7 @@ class WC_ESM_Provider_Smartpost extends WC_ESM_Shipment_Provider {
 	 *
 	 * @var array
 	 */
-	protected $features = array( 'labels', 'tracking', 'cod', 'cod_report' );
+	protected $features = array( 'labels', 'tracking', 'delivery', 'cod', 'cod_report' );
 
 	/**
 	 * Id.
@@ -226,6 +226,124 @@ class WC_ESM_Provider_Smartpost extends WC_ESM_Shipment_Provider {
 		}
 
 		return WC_ESM_Shipment_Result::success( array( 'pdfs' => $pdfs ) );
+	}
+
+	/**
+	 * Where these parcels are.
+	 *
+	 * Smartposti answers with a timestamp per stage rather than a status, and
+	 * takes any number of barcodes in one request, so a batch costs one call
+	 * per hundred parcels. The furthest stage reached is the state. Leaving
+	 * the destination locker reads the same whether the customer took the
+	 * parcel or a courier did, to send it back, so a delivery is tentative.
+	 *
+	 * @param array $barcodes Barcodes.
+	 *
+	 * @return WC_ESM_Shipment_Result
+	 */
+	public function track_parcels( $barcodes ) {
+		$barcodes  = array_values( array_unique( array_filter( array_map( 'strval', (array) $barcodes ) ) ) );
+		$states    = array();
+		$tentative = array();
+
+		foreach ( array_chunk( $barcodes, self::LABELS_PER_REQUEST ) as $batch ) {
+			if ( ! $batch ) {
+				continue;
+			}
+
+			$response = $this->client()->get( 'tracking?barcode=' . implode( '&barcode=', array_map( 'rawurlencode', $batch ) ) );
+
+			if ( ! $response->ok() ) {
+				return $this->refusal( $response );
+			}
+
+			foreach ( self::tracking_items( $response->json() ) as $item ) {
+				$barcode = isset( $item['barcode'] ) ? (string) $item['barcode'] : '';
+				$state   = self::stage_to_state( $item );
+
+				if ( '' === $barcode || '' === $state ) {
+					continue;
+				}
+
+				$states[ $barcode ] = $state;
+
+				if ( WC_ESM_Delivery::DELIVERED === $state ) {
+					$tentative[] = $barcode;
+				}
+			}
+		}
+
+		return WC_ESM_Shipment_Result::success(
+			array(
+				'states'    => $states,
+				'tentative' => $tentative,
+			)
+		);
+	}
+
+	/**
+	 * The items in a tracking answer, however they were wrapped.
+	 *
+	 * The documentation names the fields item/barcode and so on, which in
+	 * JSON may arrive as a bare list, as a list under "item", or - for one
+	 * parcel - as the object itself.
+	 *
+	 * @param mixed $json Decoded answer.
+	 *
+	 * @return array
+	 */
+	public static function tracking_items( $json ) {
+		if ( ! is_array( $json ) ) {
+			return array();
+		}
+
+		foreach ( array( 'item', 'items' ) as $key ) {
+			if ( isset( $json[ $key ] ) && is_array( $json[ $key ] ) ) {
+				$json = $json[ $key ];
+				break;
+			}
+		}
+
+		if ( isset( $json['barcode'] ) ) {
+			return array( $json );
+		}
+
+		return array_values( array_filter( $json, 'is_array' ) );
+	}
+
+	/**
+	 * The furthest stage a parcel's timestamps show, as a delivery state.
+	 *
+	 * @param array $item One parcel's timestamps.
+	 *
+	 * @return string '' while nothing has happened to it.
+	 */
+	public static function stage_to_state( $item ) {
+		$reached = static function ( $key ) use ( $item ) {
+			return ! empty( $item[ $key ] );
+		};
+
+		foreach ( array( 'returnin', 'returnout', 'returntermin', 'returntermout' ) as $key ) {
+			if ( $reached( $key ) ) {
+				return WC_ESM_Delivery::RETURNING;
+			}
+		}
+
+		if ( $reached( 'destinationout' ) ) {
+			return WC_ESM_Delivery::DELIVERED;
+		}
+
+		if ( $reached( 'destinationin' ) ) {
+			return WC_ESM_Delivery::AWAITING_COLLECTION;
+		}
+
+		foreach ( array( 'termout', 'termin', 'sourceout', 'sourcein' ) as $key ) {
+			if ( $reached( $key ) ) {
+				return WC_ESM_Delivery::IN_TRANSIT;
+			}
+		}
+
+		return '';
 	}
 
 	/**
