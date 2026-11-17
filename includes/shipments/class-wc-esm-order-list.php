@@ -204,37 +204,6 @@ class WC_ESM_Order_List {
 			'' !== $title ? ' title="' . esc_attr( $title ) . '"' : '',
 			esc_html( $states[ $state ] )
 		);
-
-		self::render_barcode( $order );
-	}
-
-	/**
-	 * The parcel number under the badge, linked where the carrier tracks.
-	 *
-	 * @param WC_Order $order Order.
-	 *
-	 * @return void
-	 */
-	protected static function render_barcode( $order ) {
-		$barcodes = WC_ESM_Shipment::barcodes( $order );
-
-		if ( ! $barcodes ) {
-			return;
-		}
-
-		$barcode  = reset( $barcodes );
-		$provider = WC_ESM_Shipment_Registry::instance()->provider_for_order( $order );
-		$url      = $provider && $provider->supports( 'tracking' ) ? $provider->get_tracking_url( $barcode ) : '';
-
-		echo '<br /><small>';
-
-		if ( '' !== $url ) {
-			printf( '<a href="%s" target="_blank" rel="noopener noreferrer">%s</a>', esc_url( $url ), esc_html( $barcode ) );
-		} else {
-			echo esc_html( $barcode );
-		}
-
-		echo '</small>';
 	}
 
 	/**
