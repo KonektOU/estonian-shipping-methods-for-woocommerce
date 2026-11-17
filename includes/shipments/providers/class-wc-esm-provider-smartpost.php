@@ -284,9 +284,10 @@ class WC_ESM_Provider_Smartpost extends WC_ESM_Shipment_Provider {
 	/**
 	 * The items in a tracking answer, however they were wrapped.
 	 *
-	 * The documentation names the fields item/barcode and so on, which in
-	 * JSON may arrive as a bare list, as a list under "item", or - for one
-	 * parcel - as the object itself.
+	 * Smartposti answers {"orders": {"item": [...]}} - seen live; the
+	 * documentation only names the fields item/barcode and so on. A bare
+	 * list, a list under "item", or one parcel's object on its own are
+	 * accepted as well.
 	 *
 	 * @param mixed $json Decoded answer.
 	 *
@@ -295,6 +296,10 @@ class WC_ESM_Provider_Smartpost extends WC_ESM_Shipment_Provider {
 	public static function tracking_items( $json ) {
 		if ( ! is_array( $json ) ) {
 			return array();
+		}
+
+		if ( isset( $json['orders'] ) && is_array( $json['orders'] ) ) {
+			$json = $json['orders'];
 		}
 
 		foreach ( array( 'item', 'items' ) as $key ) {

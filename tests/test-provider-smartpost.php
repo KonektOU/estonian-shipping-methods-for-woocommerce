@@ -338,12 +338,17 @@ class Test_Provider_Smartpost extends WC_ESM_Test_Case {
 			array(
 				array(
 					200,
+					// The shape Smartposti really answers in.
 					array(
-						array( 'barcode' => 'A1', 'sourcein' => '2026-11-10 10:00', 'termin' => '2026-11-10 18:00' ),
-						array( 'barcode' => 'B2', 'termout' => '2026-11-10 20:00', 'destinationin' => '2026-11-11 08:00' ),
-						array( 'barcode' => 'C3', 'destinationin' => '2026-11-11 08:00', 'destinationout' => '2026-11-11 17:00' ),
-						array( 'barcode' => 'D4', 'destinationout' => '2026-11-11 17:00', 'returntermin' => '2026-11-12 09:00' ),
-						array( 'barcode' => 'E5', 'generated' => '2026-11-10 09:00' ),
+						'orders' => array(
+							'item' => array(
+								array( 'barcode' => 'A1', 'sourcein' => '2026-11-10 10:00', 'termin' => '2026-11-10 18:00', 'termout' => '' ),
+								array( 'barcode' => 'B2', 'termout' => '2026-11-10 20:00', 'destinationin' => '2026-11-11 08:00' ),
+								array( 'barcode' => 'C3', 'destinationin' => '2026-11-11 08:00', 'destinationout' => '2026-11-11 17:00' ),
+								array( 'barcode' => 'D4', 'destinationout' => '2026-11-11 17:00', 'returntermin' => '2026-11-12 09:00' ),
+								array( 'barcode' => 'E5', 'generated' => 1794906043, 'sourcein' => '' ),
+							),
+						),
 					),
 				),
 			)
@@ -373,6 +378,7 @@ class Test_Provider_Smartpost extends WC_ESM_Test_Case {
 
 		$this->assertSame( array( $one ), WC_ESM_Provider_Smartpost::tracking_items( array( $one ) ) );
 		$this->assertSame( array( $one ), WC_ESM_Provider_Smartpost::tracking_items( array( 'item' => array( $one ) ) ) );
+		$this->assertSame( array( $one ), WC_ESM_Provider_Smartpost::tracking_items( array( 'orders' => array( 'item' => array( $one ) ) ) ) );
 		$this->assertSame( array( $one ), WC_ESM_Provider_Smartpost::tracking_items( $one ) );
 		$this->assertSame( array(), WC_ESM_Provider_Smartpost::tracking_items( null ) );
 	}
